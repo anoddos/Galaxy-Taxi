@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyTaxi.Api", "GalaxyTaxi.Api\GalaxyTaxi.Api.csproj", "{48B5A517-4AB0-43A2-86DD-FFFDA90736AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyTaxi.Web", "GalaxyTaxi.Web\GalaxyTaxi.Web.csproj", "{66113D11-B7AA-4FC6-A99E-5696AF83BF38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyTaxi.Shared", "GalaxyTaxi.Shared\GalaxyTaxi.Shared.csproj", "{22BD9DB3-7E54-426C-B7C0-29778CB7C6E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{48B5A517-4AB0-43A2-86DD-FFFDA90736AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48B5A517-4AB0-43A2-86DD-FFFDA90736AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48B5A517-4AB0-43A2-86DD-FFFDA90736AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48B5A517-4AB0-43A2-86DD-FFFDA90736AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66113D11-B7AA-4FC6-A99E-5696AF83BF38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66113D11-B7AA-4FC6-A99E-5696AF83BF38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66113D11-B7AA-4FC6-A99E-5696AF83BF38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66113D11-B7AA-4FC6-A99E-5696AF83BF38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22BD9DB3-7E54-426C-B7C0-29778CB7C6E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22BD9DB3-7E54-426C-B7C0-29778CB7C6E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22BD9DB3-7E54-426C-B7C0-29778CB7C6E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22BD9DB3-7E54-426C-B7C0-29778CB7C6E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

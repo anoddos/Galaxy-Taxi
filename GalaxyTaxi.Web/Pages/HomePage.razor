@@ -1,0 +1,12 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Authorization
+@using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Login
+@attribute [Authorize]
+@inject IAccountService AccountService
+
+<div class="p-4">
+    <div class="container">
+        <p>Information About Galaxy Taxi !!</p>
+    </div>
+</div>

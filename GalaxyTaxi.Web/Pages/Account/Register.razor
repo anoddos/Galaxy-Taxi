@@ -1,0 +1,65 @@
+﻿@page "/account/register"
+@using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Register
+@using Microsoft.AspNetCore.Components
+@inject IAccountService AccountService
+@inject NavigationManager NavigationManager
+
+<div class="card">
+    <h4 class="card-header">Register</h4>
+    <div class="card-body">
+        <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <div class="form-group">
+                <label>First Name</label>
+                <InputText @bind-Value="model.CompanyName" class="form-control" />
+                <ValidationMessage For="@(() => model.CompanyName)" />
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <InputText @bind-Value="model.CompanyEmail" class="form-control" />
+                <ValidationMessage For="@(() => model.CompanyEmail)" />
+            </div>
+            @* ra tipis equntia dropdown unda gaichitos aq
+            <div class="form-group">
+                <label>Username</label>
+                <InputText @bind-Value="model.Type" class="form-control" />
+                <ValidationMessage For="@(() => model.Type)" />
+            </div>*@ 
+            //dropdown for usertype
+            <div class="form-group">
+                <label>Password</label>
+                <InputText @bind-Value="model.Password" type="password" class="form-control" />
+                <ValidationMessage For="@(() => model.Password)" />
+            </div>
+            <button disabled="@loading" class="btn btn-primary">
+                @if (loading) 
+                {
+                    <span class="spinner-border spinner-border-sm mr-1"></span>
+                }
+                Register
+            </button>
+            <NavLink href="account/login" class="btn btn-link">Cancel</NavLink>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest model = new RegisterRequest();
+    private bool loading;
+
+    private async void OnValidSubmit()
+    {
+        loading = true;
+        try
+        {
+            await AccountService.RegisterAsync(model);
+            NavigationManager.NavigateTo("account/login");
+        }
+        catch (Exception ex)
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+}

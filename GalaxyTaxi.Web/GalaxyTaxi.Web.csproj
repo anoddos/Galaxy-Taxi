@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Grpc.Net.Client" Version="2.47.0" />
+        <PackageReference Include="Grpc.Net.Client.Web" Version="2.47.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.4" PrivateAssets="all" />
+        <PackageReference Include="MudBlazor" Version="6.0.12" />
+        <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Pages\Counter.razor" />
+      <_ContentIncludedByDefault Remove="Pages\FetchData.razor" />
+      <_ContentIncludedByDefault Remove="Pages\Index.razor" />
+      <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css" />
+      <_ContentIncludedByDefault Remove="wwwroot\css\bootstrap\bootstrap.min.css.map" />
+      <_ContentIncludedByDefault Remove="wwwroot\sample-data\weather.json" />
+      <_ContentIncludedByDefault Remove="docs\appsettings.json" />
+      <_ContentIncludedByDefault Remove="docs\_framework\blazor.boot.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\GalaxyTaxi.Shared\GalaxyTaxi.Shared.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Update="wwwroot\appsettings.Development.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+</Project>

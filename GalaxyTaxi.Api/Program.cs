@@ -37,7 +37,11 @@ await scope.ServiceProvider.GetRequiredService<Db>().Database.MigrateAsync();
 app.UseRouting();
 app.UseCors();
 app.UseGrpcBrowser();
-app.UseGrpcWeb(new GrpcWebOptions() { DefaultEnabled = true });
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseEndpoints(options =>
 {
     options.MapGrpcService<AccountService>().AddToGrpcBrowserWithService<IAccountService>();

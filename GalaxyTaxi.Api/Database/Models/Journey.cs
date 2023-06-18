@@ -16,5 +16,5 @@ public class Journey
     
     public VendorCompany VendorCompany { get; set; } = null!;
 
-    public ICollection<Stop> Destinations { get; set; } = null!;
+    public ICollection<Stop> Jobs { get; set; } = null!;
 }

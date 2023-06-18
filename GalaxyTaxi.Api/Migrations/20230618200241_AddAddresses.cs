@@ -5,10 +5,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace GalaxyTaxi.Api.Migrations
 {
-    public partial class AddTables : Migration
+    public partial class AddAddresses : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.RenameColumn(
+                name: "AccountType",
+                table: "Accounts",
+                newName: "AccountTypeId");
+
             migrationBuilder.CreateTable(
                 name: "Addresses",
                 columns: table => new
@@ -23,21 +28,6 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     table.PrimaryKey("PK_Addresses", x => x.Id);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "Employees",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    Mobile = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Employees", x => x.Id);
-                });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -45,8 +35,10 @@ namespace GalaxyTaxi.Api.Migrations
             migrationBuilder.DropTable(
                 name: "Addresses");
 
-            migrationBuilder.DropTable(
-                name: "Employees");
+            migrationBuilder.RenameColumn(
+                name: "AccountTypeId",
+                table: "Accounts",
+                newName: "AccountType");
         }
     }
 }

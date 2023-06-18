@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230618200826_AddAuctions")]
+    partial class AddAuctions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,7 +169,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasIndex("AccountId1");
 
-                    b.ToTable("CustomerCompanies");
+                    b.ToTable("CustomerCompany");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Employee", b =>
@@ -337,7 +339,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasIndex("AccountId1");
 
-                    b.ToTable("VendorCompanies");
+                    b.ToTable("VendorCompany");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Auction", b =>

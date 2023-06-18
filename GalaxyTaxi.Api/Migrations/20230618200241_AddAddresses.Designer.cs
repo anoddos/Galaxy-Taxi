@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    [Migration("20220818065435_AddTables")]
-    partial class AddTables
+    [Migration("20230618200241_AddAddresses")]
+    partial class AddAddresses
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -30,7 +30,7 @@ namespace GalaxyTaxi.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccountType")
+                    b.Property<int>("AccountTypeId")
                         .HasColumnType("integer");
 
                     b.Property<string>("CompanyName")
@@ -71,31 +71,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Addresses");
-                });
-
-            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Employee", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Mobile")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Employees");
                 });
 #pragma warning restore 612, 618
         }

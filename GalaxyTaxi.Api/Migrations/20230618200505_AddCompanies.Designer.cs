@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    [Migration("20220818065748_AddEmpoyeeAddressesAndOffices")]
-    partial class AddEmpoyeeAddressesAndOffices
+    [Migration("20230618200505_AddCompanies")]
+    partial class AddCompanies
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -30,7 +30,7 @@ namespace GalaxyTaxi.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("AccountType")
+                    b.Property<int>("AccountTypeId")
                         .HasColumnType("integer");
 
                     b.Property<string>("CompanyName")
@@ -73,6 +73,38 @@ namespace GalaxyTaxi.Api.Migrations
                     b.ToTable("Addresses");
                 });
 
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.CustomerCompany", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("AccountId1")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IdentificationCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("MaxAmountPerEmployee")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId1");
+
+                    b.ToTable("CustomerCompany");
+                });
+
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Employee", b =>
                 {
                     b.Property<long>("Id")
@@ -80,6 +112,9 @@ namespace GalaxyTaxi.Api.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CustomerCompanyId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -93,9 +128,16 @@ namespace GalaxyTaxi.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<long>("OfficeId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Employees");
+                    b.HasIndex("CustomerCompanyId");
+
+                    b.HasIndex("OfficeId");
+
+                    b.ToTable("Employee");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.EmployeeAddress", b =>
@@ -121,7 +163,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasIndex("EmployeeId");
 
-                    b.ToTable("EmployeeAddresses");
+                    b.ToTable("EmployeeAddress");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Office", b =>
@@ -135,6 +177,9 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("AddressId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("CustomerCompanyId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("WorkingEndTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -145,7 +190,68 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasIndex("AddressId");
 
-                    b.ToTable("Offices");
+                    b.HasIndex("CustomerCompanyId");
+
+                    b.ToTable("Office");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.VendorCompany", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("AccountId1")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IdentificationCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId1");
+
+                    b.ToTable("VendorCompany");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.CustomerCompany", b =>
+                {
+                    b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Employee", b =>
+                {
+                    b.HasOne("GalaxyTaxi.Api.Database.Models.CustomerCompany", "CustomerCompany")
+                        .WithMany("Employees")
+                        .HasForeignKey("CustomerCompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GalaxyTaxi.Api.Database.Models.Office", "Office")
+                        .WithMany("Employees")
+                        .HasForeignKey("OfficeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomerCompany");
+
+                    b.Navigation("Office");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.EmployeeAddress", b =>
@@ -157,7 +263,7 @@ namespace GalaxyTaxi.Api.Migrations
                         .IsRequired();
 
                     b.HasOne("GalaxyTaxi.Api.Database.Models.Employee", "Employee")
-                        .WithMany()
+                        .WithMany("Addresses")
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -175,7 +281,43 @@ namespace GalaxyTaxi.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GalaxyTaxi.Api.Database.Models.CustomerCompany", "CustomerCompany")
+                        .WithMany("Offices")
+                        .HasForeignKey("CustomerCompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Address");
+
+                    b.Navigation("CustomerCompany");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.VendorCompany", b =>
+                {
+                    b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.CustomerCompany", b =>
+                {
+                    b.Navigation("Employees");
+
+                    b.Navigation("Offices");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Employee", b =>
+                {
+                    b.Navigation("Addresses");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Office", b =>
+                {
+                    b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
         }

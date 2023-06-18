@@ -8,13 +8,17 @@ public class Db : DbContext
     
     public DbSet<Address> Addresses { get; set; } = null!;
     
+    public DbSet<CustomerCompany> CustomerCompanies { get; set; } = null!;
+    
+    public DbSet<VendorCompany> VendorCompanies { get; set; } = null!;
+    
     public DbSet<Employee> Employees { get; set; } = null!;
     
     public DbSet<EmployeeAddress> EmployeeAddresses { get; set; } = null!;
     
     public DbSet<Office> Offices { get; set; } = null!;
     
-    public DbSet<Stop> Destinations { get; set; } = null!;
+    public DbSet<Stop> Stops { get; set; } = null!;
 
     public DbSet<Journey> Journeys { get; set; } = null!;
     

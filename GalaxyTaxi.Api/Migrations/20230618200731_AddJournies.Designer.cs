@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230618200731_AddJournies")]
+    partial class AddJournies
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,73 +73,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.ToTable("Addresses");
                 });
 
-            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Auction", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<long>("CurrentWinnerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("EndTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsFinished")
-                        .HasColumnType("boolean");
-
-                    b.Property<long>("JourneyId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CurrentWinnerId");
-
-                    b.HasIndex("JourneyId");
-
-                    b.ToTable("Auctions");
-                });
-
-            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Bid", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid>("AccountId1")
-                        .HasColumnType("uuid");
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("double precision");
-
-                    b.Property<long>("AuctionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("TimeStamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId1");
-
-                    b.HasIndex("AuctionId");
-
-                    b.ToTable("Bids");
-                });
-
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.CustomerCompany", b =>
                 {
                     b.Property<long>("Id")
@@ -167,7 +102,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasIndex("AccountId1");
 
-                    b.ToTable("CustomerCompanies");
+                    b.ToTable("CustomerCompany");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Employee", b =>
@@ -337,45 +272,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasIndex("AccountId1");
 
-                    b.ToTable("VendorCompanies");
-                });
-
-            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Auction", b =>
-                {
-                    b.HasOne("GalaxyTaxi.Api.Database.Models.VendorCompany", "CurrentWinner")
-                        .WithMany()
-                        .HasForeignKey("CurrentWinnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GalaxyTaxi.Api.Database.Models.Journey", "Journey")
-                        .WithMany()
-                        .HasForeignKey("JourneyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CurrentWinner");
-
-                    b.Navigation("Journey");
-                });
-
-            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Bid", b =>
-                {
-                    b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GalaxyTaxi.Api.Database.Models.Auction", "Auction")
-                        .WithMany("Bids")
-                        .HasForeignKey("AuctionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Auction");
+                    b.ToTable("VendorCompany");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.CustomerCompany", b =>
@@ -501,11 +398,6 @@ namespace GalaxyTaxi.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Auction", b =>
-                {
-                    b.Navigation("Bids");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.CustomerCompany", b =>

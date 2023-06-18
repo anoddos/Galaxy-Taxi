@@ -12,7 +12,7 @@ public class Bid
 
     public DateTime TimeStamp { get; set; }
 
-    public Account Account { get; set; }
+    public Account Account { get; set; } = null!;
 
-    public Auction Auction { get; set; }
+    public Auction Auction { get; set; } = null!;
 }

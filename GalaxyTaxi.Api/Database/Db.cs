@@ -14,7 +14,7 @@ public class Db : DbContext
     
     public DbSet<Office> Offices { get; set; } = null!;
     
-    public DbSet<Destination> Destinations { get; set; } = null!;
+    public DbSet<Stop> Destinations { get; set; } = null!;
 
     public DbSet<Journey> Journeys { get; set; } = null!;
     

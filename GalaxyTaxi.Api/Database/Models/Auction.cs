@@ -14,9 +14,11 @@ public class Auction
 
     public long CurrentWinnerId { get; set; }
 
-    public Account? CurrentWinner { get; set; }
+    public VendorCompany? CurrentWinner { get; set; }
 
     public Journey Journey { get; set; } = null!;
 
     public bool IsFinished { get; set; }
+    
+    public ICollection<Bid> Bids { get; set; } = null!;
 }

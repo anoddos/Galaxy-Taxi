@@ -1,12 +1,10 @@
 namespace GalaxyTaxi.Api.Database.Models;
 
-public class Address
+public class VendorCompany
 {
     public long Id { get; set; }
-
+    
     public string Name { get; set; } = null!;
 
-    public decimal Latitude { get; set; }
-
-    public decimal Longitude { get; set; }
+    public string IdentificationCode { get; set; } = null!;
 }

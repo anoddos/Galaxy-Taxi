@@ -2,6 +2,7 @@
 
 public enum AccountType
 {
+    Admin,
     CustomerCompany,
     VendorCompany
 }

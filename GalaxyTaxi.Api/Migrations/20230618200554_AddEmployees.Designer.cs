@@ -28,7 +28,7 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
 
                     b.Property<int>("AccountTypeId")
                         .HasColumnType("integer");
@@ -84,9 +84,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("AccountId")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid>("AccountId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("IdentificationCode")
                         .IsRequired()
                         .HasColumnType("text");
@@ -99,8 +96,6 @@ namespace GalaxyTaxi.Api.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountId1");
 
                     b.ToTable("CustomerCompany");
                 });
@@ -206,9 +201,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("AccountId")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid>("AccountId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("IdentificationCode")
                         .IsRequired()
                         .HasColumnType("text");
@@ -219,8 +211,6 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId1");
-
                     b.ToTable("VendorCompany");
                 });
 
@@ -228,7 +218,6 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
                         .WithMany()
-                        .HasForeignKey("AccountId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -296,7 +285,6 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
                         .WithMany()
-                        .HasForeignKey("AccountId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

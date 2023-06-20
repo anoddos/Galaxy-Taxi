@@ -50,17 +50,10 @@ namespace GalaxyTaxi.Api.Migrations
                     AuctionId = table.Column<long>(type: "bigint", nullable: false),
                     Amount = table.Column<double>(type: "double precision", nullable: false),
                     TimeStamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    AccountId1 = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Bids", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Bids_Accounts_AccountId1",
-                        column: x => x.AccountId1,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Bids_Auctions_AuctionId",
                         column: x => x.AuctionId,
@@ -78,11 +71,6 @@ namespace GalaxyTaxi.Api.Migrations
                 name: "IX_Auctions_JourneyId",
                 table: "Auctions",
                 column: "JourneyId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Bids_AccountId1",
-                table: "Bids",
-                column: "AccountId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Bids_AuctionId",

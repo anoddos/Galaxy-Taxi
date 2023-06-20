@@ -24,9 +24,11 @@ namespace GalaxyTaxi.Api.Migrations
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Account", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<int>("AccountTypeId")
                         .HasColumnType("integer");
@@ -117,9 +119,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("AccountId")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid>("AccountId1")
-                        .HasColumnType("uuid");
-
                     b.Property<double>("Amount")
                         .HasColumnType("double precision");
 
@@ -131,7 +130,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId1");
+                    b.HasIndex("AccountId");
 
                     b.HasIndex("AuctionId");
 
@@ -149,9 +148,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("AccountId")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid>("AccountId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("IdentificationCode")
                         .IsRequired()
                         .HasColumnType("text");
@@ -165,7 +161,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId1");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("CustomerCompanies");
                 });
@@ -322,9 +318,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("AccountId")
                         .HasColumnType("bigint");
 
-                    b.Property<Guid>("AccountId1")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("IdentificationCode")
                         .IsRequired()
                         .HasColumnType("text");
@@ -335,7 +328,7 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId1");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("VendorCompanies");
                 });
@@ -363,7 +356,7 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
                         .WithMany()
-                        .HasForeignKey("AccountId1")
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -382,7 +375,7 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
                         .WithMany()
-                        .HasForeignKey("AccountId1")
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -496,7 +489,7 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     b.HasOne("GalaxyTaxi.Api.Database.Models.Account", "Account")
                         .WithMany()
-                        .HasForeignKey("AccountId1")
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

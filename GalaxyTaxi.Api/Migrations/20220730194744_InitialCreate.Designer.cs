@@ -28,7 +28,7 @@ namespace GalaxyTaxi.Api.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("bigint");
 
                     b.Property<int>("AccountType")
                         .HasColumnType("integer");

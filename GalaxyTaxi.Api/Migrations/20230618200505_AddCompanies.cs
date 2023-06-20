@@ -20,17 +20,10 @@ namespace GalaxyTaxi.Api.Migrations
                     IdentificationCode = table.Column<string>(type: "text", nullable: false),
                     MaxAmountPerEmployee = table.Column<double>(type: "double precision", nullable: false),
                     AccountId = table.Column<long>(type: "bigint", nullable: false),
-                    AccountId1 = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CustomerCompany", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_CustomerCompany_Accounts_AccountId1",
-                        column: x => x.AccountId1,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -42,17 +35,10 @@ namespace GalaxyTaxi.Api.Migrations
                     Name = table.Column<string>(type: "text", nullable: false),
                     AccountId = table.Column<long>(type: "bigint", nullable: false),
                     IdentificationCode = table.Column<string>(type: "text", nullable: false),
-                    AccountId1 = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VendorCompany", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_VendorCompany_Accounts_AccountId1",
-                        column: x => x.AccountId1,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -140,11 +126,6 @@ namespace GalaxyTaxi.Api.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CustomerCompany_AccountId1",
-                table: "CustomerCompany",
-                column: "AccountId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Employee_CustomerCompanyId",
                 table: "Employee",
                 column: "CustomerCompanyId");
@@ -174,10 +155,6 @@ namespace GalaxyTaxi.Api.Migrations
                 table: "Office",
                 column: "CustomerCompanyId");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_VendorCompany_AccountId1",
-                table: "VendorCompany",
-                column: "AccountId1");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

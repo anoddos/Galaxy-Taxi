@@ -13,10 +13,6 @@ namespace GalaxyTaxi.Api.Migrations
                 table: "Auctions");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_CustomerCompany_Accounts_AccountId1",
-                table: "CustomerCompany");
-
-            migrationBuilder.DropForeignKey(
                 name: "FK_Employees_CustomerCompany_CustomerCompanyId",
                 table: "Employees");
 
@@ -31,10 +27,6 @@ namespace GalaxyTaxi.Api.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Offices_CustomerCompany_CustomerCompanyId",
                 table: "Offices");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_VendorCompany_Accounts_AccountId1",
-                table: "VendorCompany");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_VendorCompany",
@@ -52,16 +44,6 @@ namespace GalaxyTaxi.Api.Migrations
                 name: "CustomerCompany",
                 newName: "CustomerCompanies");
 
-            migrationBuilder.RenameIndex(
-                name: "IX_VendorCompany_AccountId1",
-                table: "VendorCompanies",
-                newName: "IX_VendorCompanies_AccountId1");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_CustomerCompany_AccountId1",
-                table: "CustomerCompanies",
-                newName: "IX_CustomerCompanies_AccountId1");
-
             migrationBuilder.AddPrimaryKey(
                 name: "PK_VendorCompanies",
                 table: "VendorCompanies",
@@ -77,14 +59,6 @@ namespace GalaxyTaxi.Api.Migrations
                 table: "Auctions",
                 column: "CurrentWinnerId",
                 principalTable: "VendorCompanies",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_CustomerCompanies_Accounts_AccountId1",
-                table: "CustomerCompanies",
-                column: "AccountId1",
-                principalTable: "Accounts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
@@ -120,13 +94,6 @@ namespace GalaxyTaxi.Api.Migrations
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_VendorCompanies_Accounts_AccountId1",
-                table: "VendorCompanies",
-                column: "AccountId1",
-                principalTable: "Accounts",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -134,10 +101,6 @@ namespace GalaxyTaxi.Api.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Auctions_VendorCompanies_CurrentWinnerId",
                 table: "Auctions");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_CustomerCompanies_Accounts_AccountId1",
-                table: "CustomerCompanies");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Employees_CustomerCompanies_CustomerCompanyId",
@@ -155,10 +118,6 @@ namespace GalaxyTaxi.Api.Migrations
                 name: "FK_Offices_CustomerCompanies_CustomerCompanyId",
                 table: "Offices");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_VendorCompanies_Accounts_AccountId1",
-                table: "VendorCompanies");
-
             migrationBuilder.DropPrimaryKey(
                 name: "PK_VendorCompanies",
                 table: "VendorCompanies");
@@ -174,16 +133,6 @@ namespace GalaxyTaxi.Api.Migrations
             migrationBuilder.RenameTable(
                 name: "CustomerCompanies",
                 newName: "CustomerCompany");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_VendorCompanies_AccountId1",
-                table: "VendorCompany",
-                newName: "IX_VendorCompany_AccountId1");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_CustomerCompanies_AccountId1",
-                table: "CustomerCompany",
-                newName: "IX_CustomerCompany_AccountId1");
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_VendorCompany",
@@ -204,14 +153,6 @@ namespace GalaxyTaxi.Api.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_CustomerCompany_Accounts_AccountId1",
-                table: "CustomerCompany",
-                column: "AccountId1",
-                principalTable: "Accounts",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
                 name: "FK_Employees_CustomerCompany_CustomerCompanyId",
                 table: "Employees",
                 column: "CustomerCompanyId",
@@ -240,14 +181,6 @@ namespace GalaxyTaxi.Api.Migrations
                 table: "Offices",
                 column: "CustomerCompanyId",
                 principalTable: "CustomerCompany",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_VendorCompany_Accounts_AccountId1",
-                table: "VendorCompany",
-                column: "AccountId1",
-                principalTable: "Accounts",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }

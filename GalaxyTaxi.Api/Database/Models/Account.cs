@@ -4,7 +4,7 @@ namespace GalaxyTaxi.Api.Database.Models;
 
 public class Account
 {
-    public Guid Id { get; set; }
+    public long Id { get; set; }
 
     public AccountType AccountTypeId { get; set; }
     

@@ -27,7 +27,7 @@ public class AccountService : IAccountService
         var alreadyExists =  await _db.Accounts.AnyAsync(x => x.Email == request.CompanyEmail);
         if (alreadyExists)
         {
-            throw new RpcException(new Status(StatusCode.AlreadyExists, "Email Already Taken"));
+            //throw new RpcException(new Status(StatusCode.AlreadyExists, "Email Already Taken"));
         }
     }
 

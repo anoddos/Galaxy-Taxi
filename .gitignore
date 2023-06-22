@@ -3,3 +3,4 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+/GalaxyTaxi.Api/appsettings.Development.json

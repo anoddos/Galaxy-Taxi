@@ -1,5 +1,3 @@
-using GalaxyTaxi.Shared.Api.Models.Common;
-
 namespace GalaxyTaxi.Api.Database.Models;
 
 public class CustomerCompany
@@ -14,11 +12,7 @@ public class CustomerCompany
 
     public long AccountId { get; set; }
     
-    public long SubscriptionId { get; set; }
-
     public Account Account { get; set; } = null!;
-
-    public Subscription Subscription { get; set; } = null!;
 
     public ICollection<Employee> Employees { get; set; } = null!;
 

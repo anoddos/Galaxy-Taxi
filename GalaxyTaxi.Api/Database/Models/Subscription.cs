@@ -5,6 +5,8 @@ namespace GalaxyTaxi.Api.Database.Models;
 public class Subscription
 {
     public long Id { get; set; }
+
+    public long CustomerCompanyId { get; set; }
     
     public SubscriptionPlanType SubscriptionPlanTypeId { get; set; }
     
@@ -12,5 +14,9 @@ public class Subscription
     
     public DateTime EndDate { get; set; }
     
+    public DateTime? DeactivationTime { get; set; }
+    
     public SubscriptionStatusId SubscriptionStatusId { get; set; }
+
+    public CustomerCompany CustomerCompany { get; set; } = null!;
 }

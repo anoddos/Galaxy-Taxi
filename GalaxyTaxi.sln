@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GalaxyTaxi.Web", "GalaxyTax
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GalaxyTaxi.Shared", "GalaxyTaxi.Shared\GalaxyTaxi.Shared.csproj", "{22BD9DB3-7E54-426C-B7C0-29778CB7C6E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyTaxiTests", "GalaxyTaxiTests\GalaxyTaxiTests.csproj", "{3D412EF4-7485-4FCC-A325-A95968C30B0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyTaxi.Test", "GalaxyTaxi.Test\GalaxyTaxi.Test.csproj", "{3D412EF4-7485-4FCC-A325-A95968C30B0E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

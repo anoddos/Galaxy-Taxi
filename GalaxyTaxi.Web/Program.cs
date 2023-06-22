@@ -19,5 +19,6 @@ builder.Services.AddGrpcServiceClient<IAddressDetectorService>();
 builder.Services.AddGrpcServiceClient<IAuctionService>();
 builder.Services.AddGrpcServiceClient<IPaymentService>();
 builder.Services.AddGrpcServiceClient<IRouteGeneratorService>();
+builder.Services.AddGrpcServiceClient<IEmployeeManagementService>();
 
 await builder.Build().RunAsync();

@@ -26,7 +26,7 @@ namespace GalaxyTaxi.Api.Migrations
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Account", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 

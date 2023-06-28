@@ -12,6 +12,8 @@ var services = builder.Services;
 services.AddCodeFirstGrpc();
 services.AddCodeFirstGrpcReflection();
 services.AddGrpcBrowser();
+services.AddHttpContextAccessor(); // Add IHttpContextAccessor
+services.AddSession(); // Add session support
 
 services.AddDbContext<Db>(options => { options.UseNpgsql(builder.Configuration.GetConnectionString("GalaxyTaxiDb")); });
 
@@ -38,6 +40,15 @@ app.UseRouting();
 app.UseCors();
 app.UseGrpcBrowser();
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+app.UseSession(); // Enable session
+
+app.Use((context, next) =>
+{
+    context.RequestServices.GetRequiredService<IHttpContextAccessor>()
+        .HttpContext = context;
+
+    return next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -45,7 +56,7 @@ app.UseAuthorization();
 app.UseEndpoints(options =>
 {
     options.MapGrpcService<AccountService>().AddToGrpcBrowserWithService<IAccountService>();
-    
+
     options.MapGrpcBrowser();
     options.MapCodeFirstGrpcReflectionService();
     options.MapGet("/", () => Results.Redirect("/grpc"));

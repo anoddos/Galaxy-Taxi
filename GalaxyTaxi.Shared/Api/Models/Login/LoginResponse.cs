@@ -7,5 +7,9 @@ namespace GalaxyTaxi.Shared.Api.Models.Login;
 [ProtoContract]
 public class LoginResponse
 {
-    public static AccountType LoggedInAs { get; set; }
+    [ProtoMember(1)]
+    public AccountType LoggedInAs { get; set; }
+
+    [ProtoMember(2)]
+    public long AccountId { get; set; }
 }

@@ -1,11 +1,9 @@
 ﻿using GalaxyTaxi.Api.Database;
 using GalaxyTaxi.Api.Database.Models;
 using GalaxyTaxi.Shared.Api.Interfaces;
-using GalaxyTaxi.Shared.Api.Models.Common;
 using GalaxyTaxi.Shared.Api.Models.Login;
 using GalaxyTaxi.Shared.Api.Models.Register;
 using Grpc.Core;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
 using System.Security.Cryptography;
@@ -36,11 +34,11 @@ public class AccountService : IAccountService
             AccountTypeId = request.Type
         };
 
-
-        await _db.Accounts.AddAsync(account);
         try
         {
-            _db.SaveChanges();
+            await _db.Accounts.AddAsync(account);
+
+            await _db.SaveChangesAsync();
         }
         catch (Exception ex)
         {

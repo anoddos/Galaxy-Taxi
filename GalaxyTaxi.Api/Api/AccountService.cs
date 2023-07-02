@@ -7,6 +7,7 @@ using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
 using System.Security.Cryptography;
+using BCrypt.Net;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -69,21 +70,9 @@ public class AccountService : IAccountService
 
     private string SaltAndHashPassword(string password)
     {
-        byte[] salt = new byte[16];
-
-        using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
-        {
-            rng.GetBytes(salt);
-        }
-
-        var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 100000);
-        byte[] hash = pbkdf2.GetBytes(20);
-
-        byte[] hashBytes = new byte[36];
-        Array.Copy(salt, 0, hashBytes, 0, 16);
-        Array.Copy(hash, 0, hashBytes, 16, 20);
-
-        return Convert.ToBase64String(hashBytes); ;
+        string salt = BCrypt.Net.BCrypt.GenerateSalt();
+        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
+        return hashedPassword;
     }
 
     public async Task ValidateEmailAsync(ValidateEmailRequest request, CallContext context = default)
@@ -106,13 +95,12 @@ public class AccountService : IAccountService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request, CallContext context = default)
     {
-        var account = await _db.Accounts.SingleOrDefaultAsync(x => x.Email == request.Email && x.PasswordHash == SaltAndHashPassword(request.Password));
-        if (account == null)
+        var account = await _db.Accounts.SingleOrDefaultAsync(x => x.Email == request.Email);
+
+        if (account != null && !BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Wrong email or password"));
         }
-
-        await _db.SaveChangesAsync();
 
         SetSessionValue("AccountId", account.Id.ToString());
         SetSessionValue("LoggedInAs", account.AccountTypeId.ToString());

@@ -18,7 +18,5 @@ public class Auction
 
     public Journey Journey { get; set; } = null!;
 
-    public bool IsFinished { get; set; }
-    
     public ICollection<Bid> Bids { get; set; } = null!;
 }

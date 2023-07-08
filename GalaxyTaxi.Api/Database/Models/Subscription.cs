@@ -16,7 +16,7 @@ public class Subscription
     
     public DateTime? DeactivationTime { get; set; }
     
-    public SubscriptionStatusId SubscriptionStatusId { get; set; }
+    public SubscriptionStatus SubscriptionStatus { get; set; }
 
     public CustomerCompany CustomerCompany { get; set; } = null!;
 }

@@ -50,31 +50,6 @@ public class AccountService : IAccountService
         SetSessionValue("LoggedInAs", account.AccountTypeId.ToString());
     }
 
-    private void SetSessionValue(string key, string value)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        httpContext?.Session.SetString(key, value);
-    }
-
-    private string GetSessionValue(string key)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        return httpContext?.Session.GetString(key) ?? "";
-    }
-
-    private void ClearSessionValue(string key)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        httpContext?.Session.Remove(key);
-    }
-
-    private string SaltAndHashPassword(string password)
-    {
-        string salt = BCrypt.Net.BCrypt.GenerateSalt();
-        string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
-        return hashedPassword;
-    }
-
     public async Task ValidateEmailAsync(ValidateEmailRequest request, CallContext context = default)
     {
         var alreadyExists =  await _db.Accounts.AnyAsync(x => x.Email == request.CompanyEmail);
@@ -118,7 +93,7 @@ public class AccountService : IAccountService
         // Get the user ID from the session
         var accountId = GetSessionValue("AccountId");
 
-        if (String.IsNullOrWhiteSpace(accountId))
+        if (string.IsNullOrWhiteSpace(accountId))
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
         }
@@ -126,5 +101,30 @@ public class AccountService : IAccountService
         //Clear the user ID from the session
 
         ClearSessionValue("AccountId");
+    }
+    
+    private void SetSessionValue(string key, string value)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        httpContext?.Session.SetString(key, value);
+    }
+
+    private string GetSessionValue(string key)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        return httpContext?.Session.GetString(key) ?? "";
+    }
+
+    private void ClearSessionValue(string key)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        httpContext?.Session.Remove(key);
+    }
+
+    private string SaltAndHashPassword(string password)
+    {
+        var salt = BCrypt.Net.BCrypt.GenerateSalt();
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
+        return hashedPassword;
     }
 }

@@ -21,10 +21,10 @@ public class Db : DbContext
     public DbSet<Stop> Stops { get; set; } = null!;
 
     public DbSet<Journey> Journeys { get; set; } = null!;
+
+    public DbSet<Bid> Bids { get; set; } = null!;
     
     public DbSet<Auction> Auctions { get; set; } = null!;
-    
-    public DbSet<Bid> Bids { get; set; } = null!;
     
     public Db(DbContextOptions options) : base(options)
     {

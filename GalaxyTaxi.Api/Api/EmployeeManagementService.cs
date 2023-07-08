@@ -15,4 +15,9 @@ public class EmployeeManagementService : IEmployeeManagementService
     {
         throw new NotImplementedException();
     }
+
+    public Task DeleteEmployee(DeleteEmployeeRequest request, CallContext context = default)
+    {
+        throw new NotImplementedException();
+    }
 }

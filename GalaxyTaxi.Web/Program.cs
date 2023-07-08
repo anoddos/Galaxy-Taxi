@@ -15,7 +15,7 @@ builder.Services.AddMudBlazorSnackbar();
 
 builder.Services.AddGrpcChannel();
 builder.Services.AddGrpcServiceClient<IAccountService>();
-builder.Services.AddGrpcServiceClient<IAddressDetectorService>();
+builder.Services.AddGrpcServiceClient<IAddressDetectionService>();
 builder.Services.AddGrpcServiceClient<IAuctionService>();
 builder.Services.AddGrpcServiceClient<IPaymentService>();
 builder.Services.AddGrpcServiceClient<IJourneyGeneratorService>();

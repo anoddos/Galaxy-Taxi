@@ -57,7 +57,7 @@ app.UseEndpoints(options =>
 {
     options.MapGrpcService<AccountService>().AddToGrpcBrowserWithService<IAccountService>();
     options.MapGrpcService<EmployeeManagementService>().AddToGrpcBrowserWithService<IEmployeeManagementService>();
-    options.MapGrpcService<AddressDetectorService>().AddToGrpcBrowserWithService<IAddressDetectorService>();
+    options.MapGrpcService<AddressDetectionService>().AddToGrpcBrowserWithService<IAddressDetectionService>();
     options.MapGrpcService<AuctionService>().AddToGrpcBrowserWithService<IAuctionService>();
     options.MapGrpcService<PaymentService>().AddToGrpcBrowserWithService<IPaymentService>();
     options.MapGrpcService<JourneyGeneratorService>().AddToGrpcBrowserWithService<IJourneyGeneratorService>();

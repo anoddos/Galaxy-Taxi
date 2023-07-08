@@ -4,7 +4,7 @@ using ProtoBuf.Grpc;
 
 namespace GalaxyTaxi.Api.Api;
 
-public class AddressDetectorService : IAddressDetectorService
+public class AddressDetectionService : IAddressDetectionService
 {
     public Task DetectAddressCoordinates(DetectAddressCoordinatesRequest request, CallContext context = default)
     {

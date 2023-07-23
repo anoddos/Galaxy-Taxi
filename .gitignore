@@ -26,3 +26,5 @@ riderModule.iml
 /.vs/GalaxyTaxi/v17/.futdcache.v2
 /.vs/ProjectEvaluation/galaxytaxi.metadata.v7.bin
 /.vs/ProjectEvaluation/galaxytaxi.projects.v7.bin
+/GalaxyTaxi.Api/appsettings.Development.json
+/.vs/GalaxyTaxi/FileContentIndex

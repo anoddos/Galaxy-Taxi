@@ -44,8 +44,10 @@
         try
         {
             await AccountService.LoginAsync(model);
-            var returnUrl = "";//NavigationManager.QueryString("returnUrl") ?? "";
-            NavigationManager.NavigateTo(returnUrl);
+            //var returnUrl = NavigationManager.("returnUrl") ?? "";
+            //NavigationManager.NavigateTo(returnUrl);
+            //aq jer employee infoze gadadis, mere zogad url unda davubrunot account typeis mixedvit
+            NavigationManager.NavigateTo("/account/eEmployeesInfo");
         }
         catch (Exception ex)
         {

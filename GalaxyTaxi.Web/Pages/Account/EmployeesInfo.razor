@@ -18,7 +18,7 @@
 </MudTabs>
 
 
-<MudDataGrid T="EmployeeJourneyInfo" MultiSelection="true" Items="@employees"
+<MudDataGrid T="EmployeeJourneyInfo" MultiSelection="true" Items="@_employees"
              SortMode="SortMode.Multiple" Filterable="true" Hideable="true">
 
     <ToolBarContent>
@@ -58,9 +58,7 @@
         }
     </MudExpansionPanel>*@
 @*</MudExpansionPanels*@
-@code{
-     private IEnumerable<EmployeeJourneyInfo> employees = new List<EmployeeJourneyInfo>();
-}
+
 @*
 @code {
     private IEnumerable<EmployeeJourneyInfo> employees = new List<EmployeeJourneyInfo>();

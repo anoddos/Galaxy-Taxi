@@ -80,7 +80,6 @@ public class AccountService : IAccountService
         SetSessionValue("AccountId", account.Id.ToString());
         SetSessionValue("LoggedInAs", account.AccountTypeId.ToString());
 
-
         return new LoginResponse
         {
             LoggedInAs = account.AccountTypeId,

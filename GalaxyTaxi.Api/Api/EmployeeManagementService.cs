@@ -3,13 +3,11 @@ using GalaxyTaxi.Shared.Api.Interfaces;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.Filters;
 using ProtoBuf.Grpc;
-using System.Net.Http;
 
 namespace GalaxyTaxi.Api.Api;
 
 public class EmployeeManagementService : IEmployeeManagementService
 {
-
     private readonly Db _db;
 
     public EmployeeManagementService(Db db)

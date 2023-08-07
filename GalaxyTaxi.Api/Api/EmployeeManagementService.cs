@@ -19,6 +19,11 @@ public class EmployeeManagementService : IEmployeeManagementService
 
     public Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
     {
+             if (request == null) throw new ArgumentNullException(nameof(request));
+        if (request.employeesInfo == null || request.employeesInfo.Count == 0) return Task.CompletedTask;
+
+        Console.WriteLine("to implement");
+        //implement insert here
         throw new NotImplementedException();
     }
 
@@ -36,4 +41,5 @@ public class EmployeeManagementService : IEmployeeManagementService
     {
         throw new NotImplementedException();
     }
+
 }

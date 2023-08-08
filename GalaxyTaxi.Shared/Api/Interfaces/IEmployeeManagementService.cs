@@ -12,4 +12,5 @@ public interface IEmployeeManagementService
     Task EditEmployeeDetails(AddEmployeesRequest request, CallContext context = default);
     Task DeleteEmployee(DeleteEmployeeRequest request, CallContext context = default);
     Task<GetEmployeesResponse> GetEmployees(EmployeeManagementFilter? filter = null, CallContext context = default);
+
 }

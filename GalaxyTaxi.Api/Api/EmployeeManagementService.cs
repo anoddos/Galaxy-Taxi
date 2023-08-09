@@ -8,13 +8,11 @@ using GalaxyTaxi.Shared.Api.Models.Filters;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf;
 using ProtoBuf.Grpc;
-using System.Net.Http;
 
 namespace GalaxyTaxi.Api.Api;
 
 public class EmployeeManagementService : IEmployeeManagementService
 {
-
     private readonly Db _db;
     private readonly IAddressDetectionService _addressDetectionService;
 

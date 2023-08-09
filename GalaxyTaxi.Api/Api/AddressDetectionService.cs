@@ -6,7 +6,7 @@ namespace GalaxyTaxi.Api.Api;
 
 public class AddressDetectionService : IAddressDetectionService
 {
-    public Task DetectAddressCoordinates(DetectAddressCoordinatesRequest request, CallContext context = default)
+    public Task<DetectAddressCoordinatesResponse> DetectAddressCoordinates(DetectAddressCoordinatesRequest request, CallContext context = default)
     {
         throw new NotImplementedException();
     }

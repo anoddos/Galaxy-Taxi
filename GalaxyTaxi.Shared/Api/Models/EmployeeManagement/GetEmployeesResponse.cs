@@ -13,6 +13,6 @@ namespace GalaxyTaxi.Shared.Api.Models.EmployeeManagement
         public static implicit operator List<object>(GetEmployeesResponse v)
         {
             throw new NotImplementedException();
-        }
+        }   
     }
 }

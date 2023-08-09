@@ -5,6 +5,7 @@ using GrpcBrowser.Configuration;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc.Server;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 var services = builder.Services;
@@ -16,6 +17,9 @@ services.AddHttpContextAccessor(); // Add IHttpContextAccessor
 services.AddSession(); // Add session support
 
 services.AddDbContext<Db>(options => { options.UseNpgsql(builder.Configuration.GetConnectionString("GalaxyTaxiDb")); });
+
+services.AddSingleton<IAddressDetectionService, AddressDetectionService>();
+
 
 services.AddCors(o =>
 {

@@ -7,5 +7,5 @@ namespace GalaxyTaxi.Shared.Api.Interfaces;
 [Service("AddressDetection")]
 public interface IAddressDetectionService
 {
-    Task DetectAddressCoordinates(DetectAddressCoordinatesRequest request, CallContext context = default);
+    Task<DetectAddressCoordinatesResponse> DetectAddressCoordinates(DetectAddressCoordinatesRequest request, CallContext context = default);
 }

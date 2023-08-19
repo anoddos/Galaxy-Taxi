@@ -18,6 +18,8 @@ namespace GalaxyTaxi.Web.Pages.Account
         private List<string> _events = new();
         private bool _isImporting;
         private IBrowserFile file;
+        public string EmployeeNameFilter { get; set; }
+        public string OfficeFilter { get; set; }
         // custom sort by name length
         protected override async Task OnInitializedAsync()
         {

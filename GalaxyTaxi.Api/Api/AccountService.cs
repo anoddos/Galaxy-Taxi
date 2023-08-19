@@ -72,7 +72,8 @@ public class AccountService : IAccountService
     {
         var account = await _db.Accounts.SingleOrDefaultAsync(x => x.Email == request.Email);
 
-        if (account != null && !BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash))
+
+        if (account == null || (account != null && !BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash)))
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Wrong email or password"));
         }

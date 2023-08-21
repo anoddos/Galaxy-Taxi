@@ -1,5 +1,6 @@
 ﻿@page "/account/employeesInfo"
 @using GalaxyTaxi.Shared.Api.Models.EmployeeManagement
+@using GalaxyTaxi.Web.Pages.Maps
 
 
 <div class="wrapper" style="display:flex;">
@@ -7,7 +8,11 @@
         <MudTextField @bind-Value="EmployeeNameFilter" Label="Employee Name" Variant="Variant.Outlined"></MudTextField>
         <MudTextField @bind-Value="OfficeFilter" Label="Office Address" Variant="Variant.Outlined"></MudTextField>
 
+        <GoogleMaps />
+
     </div>
+
+    
 
     <div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
         <div style="display: flex; align-items: center;">

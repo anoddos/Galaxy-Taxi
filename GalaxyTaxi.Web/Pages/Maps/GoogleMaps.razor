@@ -1,0 +1,48 @@
+﻿@page "/googlemaps"
+
+<h3>Choose a Location on the Map</h3>
+
+<div id="googleMap" style="width: 100%; height: 100%;"></div>
+
+<button @onclick="ChooseLocation">Choose Location</button>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; }
+
+    private bool choosingLocation = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeMap");
+        }
+    }
+
+    private async Task ChooseLocation()
+    {
+        if (!choosingLocation)
+        {
+            choosingLocation = true;
+            await JSRuntime.InvokeVoidAsync("enableMapClick");
+        }
+        else
+        {
+            choosingLocation = false;
+            await JSRuntime.InvokeVoidAsync("disableMapClick");
+        }
+    }
+
+    [JSInvokable]
+    public static async Task LocationSelected(double latitude, double longitude)
+    {
+        // Handle the selected location
+        // For example, display the latitude and longitude to the user
+        Console.WriteLine($"Selected Location: Latitude: {latitude}, Longitude: {longitude}");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await JSRuntime.InvokeVoidAsync("loadGoogleMapsScript");
+    }
+}
+

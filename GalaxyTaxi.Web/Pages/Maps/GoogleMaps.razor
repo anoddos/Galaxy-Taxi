@@ -1,4 +1,5 @@
 ﻿@page "/googlemaps"
+<script src="js/googlemaps.js" @onload="loadGoogleMaps"></script>
 
 <h3>Choose a Location on the Map</h3>
 
@@ -15,8 +16,17 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("initializeMap");
+            // await JSRuntime.InvokeVoidAsync("loadGoogleMapsScript");
+            // await JSRuntime.InvokeVoidAsync("initializeMap");
+            // StateHasChanged();
         }
+    }
+
+    public async void loadGoogleMaps()
+    {
+        await JSRuntime.InvokeVoidAsync("loadGoogleMapsScript");
+        await JSRuntime.InvokeVoidAsync("initializeMap");
+        StateHasChanged();
     }
 
     private async Task ChooseLocation()
@@ -42,7 +52,7 @@
     }
     protected override async Task OnInitializedAsync()
     {
-        await JSRuntime.InvokeVoidAsync("loadGoogleMapsScript");
+        // await JSRuntime.InvokeVoidAsync("loadGoogleMapsScript");
     }
 }
 

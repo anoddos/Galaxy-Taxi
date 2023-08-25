@@ -8,6 +8,7 @@ using GalaxyTaxi.Shared.Api.Models.Filters;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf;
 using ProtoBuf.Grpc;
+using System.Linq;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -88,7 +89,8 @@ public class EmployeeManagementService : IEmployeeManagementService
             }
 
             await _db.SaveChangesAsync();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
@@ -155,9 +157,35 @@ public class EmployeeManagementService : IEmployeeManagementService
         throw new NotImplementedException();
     }
 
-    public Task<GetEmployeesResponse> GetEmployees(EmployeeManagementFilter? filter = null, CallContext context = default)
+    public async Task<GetEmployeesResponse> GetEmployees(EmployeeManagementFilter? filter = null, CallContext context = default)
     {
-        throw new NotImplementedException();
+        //to implement in more detail, for testing purposes now
+        if (filter == null) return null;
+
+        var employees = from employee in _db.Employees.Include(x => x.Office)
+                   where employee.CustomerCompanyId == filter.CustomerCompanyId
+                   let address = employee.Addresses.First(a => a.IsActive)
+                   select  new EmployeeJourneyInfo
+                   {
+                       FirstName = employee.FirstName,
+                       LastName = employee.LastName,
+                       Mobile = employee.Mobile,
+                       From = new EmployeeAddressInfo
+                       {
+                           Name = address.Address.Name,
+                           Latitude = address.Address.Latitude,
+                           Longitude = address.Address.Longitude
+                       },
+                       To = new EmployeeAddressInfo 
+                       { 
+                           Name = employee.Office.Address.Name,
+                           Latitude = employee.Office.Address.Latitude,
+                           Longitude = employee.Office.Address.Longitude
+                       }
+                   };
+
+        return new GetEmployeesResponse { Employees = await employees.ToListAsync()};
+
     }
 
 }

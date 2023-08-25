@@ -1,4 +1,5 @@
 ﻿using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+using GalaxyTaxi.Shared.Api.Models.Filters;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using OfficeOpenXml;
@@ -17,16 +18,15 @@ namespace GalaxyTaxi.Web.Pages.Account
         public string EmployeeNameFilter { get; set; }
         public string OfficeFilter { get; set; }
         // custom sort by name length
-        protected override Task OnInitializedAsync()
+        protected override async Task OnInitializedAsync()
         {
-            //GetEmployeesResponse response =  await _employeeManagement.GetEmployees();
-            //if (response != null)
-            //{
-            //    _employees = response.Employees;
-            //}
-            
+            GetEmployeesResponse response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { CustomerCompanyId = 5});
+            if (response != null)
+            {
+                _employees = response.Employees;
+            }
+
             _loaded = true;
-            return Task.CompletedTask;
         }
 
         private void OnFileChange(IBrowserFile selectedFile)

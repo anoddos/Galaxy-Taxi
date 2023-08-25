@@ -1,5 +1,9 @@
-@page "/account/subscriptions"
-
+@page "/subscription/chooseSubscription"
+@using GalaxyTaxi.Shared.Api.Models.Subscription
+@using GalaxyTaxi.Shared.Api.Models.Common;
+@using GalaxyTaxi.Shared.Api.Interfaces
+@inject ISubscriptionService SubscriptionService
+@inject NavigationManager NavigationManager
 
 <MudContainer Class="mt-16">
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Subscriptions</MudText>
@@ -29,7 +33,7 @@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
-                    <MudButton Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
+                    <MudButton OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Week)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
@@ -58,7 +62,7 @@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
-                    <MudButton Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
+                    <MudButton OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Month)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
@@ -87,7 +91,7 @@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
-                    <MudButton Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
+                    <MudButton OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Year)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
@@ -95,5 +99,13 @@
 </MudContainer>
 
 @code {
+    private SubscriptionRequest model = new SubscriptionRequest();
     
+    private async Task ChoseSubscription(SubscriptionPlanType type)
+    {
+        model.SubscriptionPlanType = type;
+        await SubscriptionService.ChoseSubscriptionType(model);
+        
+        NavigationManager.NavigateTo("/subscription/payment");
+    }
 }

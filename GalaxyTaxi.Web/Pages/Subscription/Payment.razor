@@ -1,0 +1,33 @@
+@page "/subscription/payment"
+@using GalaxyTaxi.Shared.Api.Models.Common;
+@using GalaxyTaxi.Shared.Api.Interfaces
+@inject ISubscriptionService SubscriptionService
+@inject NavigationManager NavigationManager
+
+<MudCard Class="mud-card-subscription">
+    <MudCardContent>
+        <h2>Select a Subscription Plan</h2>
+        <MudSelect Label="Subscription Type" @bind-Value="selectedSubscription">
+            <MudSelectItem Value="SubscriptionPlanType.Week">Weekly</MudSelectItem>
+            <MudSelectItem Value="SubscriptionPlanType.Month">Monthly</MudSelectItem>
+            <MudSelectItem Value="SubscriptionPlanType.Year">Annual</MudSelectItem>
+        </MudSelect>
+
+        <MudTextField Label="Card Number" @bind-Value="cardNumber" />
+        <MudTextField Label="Expiration Date" @bind-Value="expirationDate" />
+        <MudTextField Label="CVV" @bind-Value="cvv" />
+
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ProcessPayment">Subscribe</MudButton>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private SubscriptionPlanType selectedSubscription = SubscriptionPlanType.Month;
+    private string cardNumber = "";
+    private string expirationDate = "";
+    private string cvv = "";
+
+    private async Task ProcessPayment()
+    {
+    }
+}

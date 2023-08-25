@@ -1,11 +1,7 @@
-﻿using BlazorInputFile;
-using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
-using Microsoft.AspNetCore.Authorization;
+﻿using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using OfficeOpenXml;
-using System.Net;
-using System.Net.Http;
 
 namespace GalaxyTaxi.Web.Pages.Account
 {
@@ -21,7 +17,7 @@ namespace GalaxyTaxi.Web.Pages.Account
         public string EmployeeNameFilter { get; set; }
         public string OfficeFilter { get; set; }
         // custom sort by name length
-        protected override async Task OnInitializedAsync()
+        protected override Task OnInitializedAsync()
         {
             //GetEmployeesResponse response =  await _employeeManagement.GetEmployees();
             //if (response != null)
@@ -30,6 +26,7 @@ namespace GalaxyTaxi.Web.Pages.Account
             //}
             
             _loaded = true;
+            return Task.CompletedTask;
         }
 
         private void OnFileChange(IBrowserFile selectedFile)
@@ -52,17 +49,17 @@ namespace GalaxyTaxi.Web.Pages.Account
                         await package.LoadAsync(stream);
 
                         var worksheet = package.Workbook.Worksheets[0];
-                        List<SingleEmployeeInfo> importedData = new List<SingleEmployeeInfo>();
+                        var importedData = new List<SingleEmployeeInfo>();
 
                         for (int row = worksheet.Dimension.Start.Row + 1; row <= worksheet.Dimension.End.Row; row++)
                         {
 
-                            string firstName = worksheet.Cells[row, 1].GetValue<string>();
-                            string lastName = worksheet.Cells[row, 2].GetValue<string>();
-                            string Mobile = worksheet.Cells[row, 3].GetValue<string>();
-                            long CustomerCompanyId = worksheet.Cells[row, 4].GetValue<long>();
-                            long OfficeId = worksheet.Cells[row, 5].GetValue<long>();
-                            string Address = worksheet.Cells[row, 6].GetValue<string>();
+                            var firstName = worksheet.Cells[row, 1].GetValue<string>();
+                            var lastName = worksheet.Cells[row, 2].GetValue<string>();
+                            var Mobile = worksheet.Cells[row, 3].GetValue<string>();
+                            var CustomerCompanyId = worksheet.Cells[row, 4].GetValue<long>();
+                            var OfficeId = worksheet.Cells[row, 5].GetValue<long>();
+                            var Address = worksheet.Cells[row, 6].GetValue<string>();
 
                             SingleEmployeeInfo employee = new SingleEmployeeInfo
                             {
@@ -98,7 +95,7 @@ namespace GalaxyTaxi.Web.Pages.Account
         }
 
 
-        private Func<EmployeeJourneyInfo, object> _sortBy => x =>
+        private Func<EmployeeJourneyInfo, object> SortBy => x =>
         {
             if (_sortNameByLength)
                 return x.FirstName.Length;
@@ -106,7 +103,7 @@ namespace GalaxyTaxi.Web.Pages.Account
                 return x.FirstName;
         };
         // quick filter - filter gobally across multiple columns with the same input
-        private Func<EmployeeJourneyInfo, bool> _quickFilter => x =>
+        private Func<EmployeeJourneyInfo, bool> QuickFilter => x =>
         {
             //if (string.IsNullOrWhiteSpace(_searchString))
             //    return true;

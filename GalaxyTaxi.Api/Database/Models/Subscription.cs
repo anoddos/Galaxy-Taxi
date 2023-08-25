@@ -10,9 +10,9 @@ public class Subscription
     
     public SubscriptionPlanType SubscriptionPlanTypeId { get; set; }
     
-    public DateTime StartDate { get; set; }
+    public DateTime? StartDate { get; set; }
     
-    public DateTime EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
     
     public DateTime? DeactivationTime { get; set; }
     

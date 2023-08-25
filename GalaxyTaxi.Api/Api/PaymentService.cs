@@ -6,11 +6,6 @@ namespace GalaxyTaxi.Api.Api;
 
 public class PaymentService : IPaymentService
 {
-    public Task<PaymentResponse> PayForRides(PayForRidesRequest request, CallContext context = default)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<PaymentResponse> PayForSubscription(PayForSubscriptionRequest request, CallContext context = default)
     {
         throw new NotImplementedException();

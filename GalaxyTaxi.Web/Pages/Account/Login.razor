@@ -1,5 +1,7 @@
 ﻿@page "/account/login"
 @using GalaxyTaxi.Shared.Api.Models.Login
+@using GalaxyTaxi.Shared.Api.Models
+@using GalaxyTaxi.Shared.Api.Models.Common
 @using Microsoft.AspNetCore.Components
 @inject IAccountService AccountService
 @inject NavigationManager NavigationManager
@@ -36,7 +38,7 @@
 @code {
     private LoginRequest model = new LoginRequest();
     private bool loading;
-
+    
     private async void OnValidSubmit()
     {
 

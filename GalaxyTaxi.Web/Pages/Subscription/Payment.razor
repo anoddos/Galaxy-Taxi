@@ -1,9 +1,11 @@
 @page "/subscription/payment"
-@using GalaxyTaxi.Shared.Api.Models.Common;
 @using GalaxyTaxi.Shared.Api.Interfaces
 @inject ISubscriptionService SubscriptionService
 @inject NavigationManager NavigationManager
 @using System.Globalization
+@using GalaxyTaxi.Shared.Api.Models.Payment
+
+<link href="/payment.razor.css" rel="stylesheet" />
 
 <MudCard Class="payment-card">
     <MudCardContent>
@@ -13,17 +15,17 @@
 
         <div class="subscription-details">
             <MudTypography Variant="TypographyVariant.Subtitle1" Class="mb-1">Subscription Type:</MudTypography>
-            <MudTypography Variant="TypographyVariant.Body1">@SelectedSubscriptionType</MudTypography>
+            <MudTypography Variant="TypographyVariant.Body1">@model.SelectedSubscriptionType</MudTypography>
 
             <MudTypography Variant="TypographyVariant.Subtitle1" Class="mt-3 mb-1">Price:</MudTypography>
-            <MudTypography Variant="TypographyVariant.Body1">@SubscriptionPrice.ToString("C", CultureInfo.CurrentCulture)</MudTypography>
+            <MudTypography Variant="TypographyVariant.Body1">@model.SubscriptionPrice.ToString("C", CultureInfo.CurrentCulture)</MudTypography>
         </div>
 
         <div class="payment-form">
-            <MudTextField Label="Card Number" Class="mb-2" @bind-Value="CardNumber" />
+            <MudTextField Label="Card Number" Class="mb-2" @bind-Value="@model.CardNumber" />
             <div class="expiration-cvc">
-                <MudTextField Label="Expiration Date" Class="mb-2" @bind-Value="ExpirationDate" />
-                <MudTextField Label="CVC" Class="mb-2" @bind-Value="CVC" />
+                <MudTextField Label="Expiration Date" Class="mb-2" @bind-Value="@model.ExpirationDate" />
+                <MudTextField Label="CVC" Class="mb-2" @bind-Value="@model.CVC" />
             </div>
 
             <div class="pay-button">
@@ -33,31 +35,53 @@
     </MudCardContent>
 </MudCard>
 
+<style>
+    .payment-card {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subscription-details {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .payment-form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .expiration-cvc {
+        display: flex;
+        gap: 10px;
+    }
+
+    .pay-button {
+        align-self: flex-end;
+    }
+</style>
+
 @code {
-    private SubscriptionPlanType SelectedSubscriptionType;
-    private decimal SubscriptionPrice; 
-
-    private string CardNumber;
-    private string ExpirationDate;
-    private string CVC;
-
+    private PayForSubscriptionRequest model = new PayForSubscriptionRequest();
+    
     protected override async Task OnInitializedAsync()
     {
         var subscriptionDetails = await SubscriptionService.GetSubscriptionDetailsAsync();
 
-        SubscriptionPrice = subscriptionDetails.Price;
-        SelectedSubscriptionType = subscriptionDetails.SubscriptionPlanType;
+        model.SubscriptionPrice = subscriptionDetails.Price;
+        model.SelectedSubscriptionType = subscriptionDetails.SubscriptionPlanType;
     }
     
     private async Task ProcessPayment()
     {
-    // You would handle the payment processing here, integrating with a payment gateway.
-    // This is a placeholder and you should replace it with the actual payment logic.
-    // After successful payment, you can navigate the user to a success page or perform other actions.
-    // Example:
-    // if (PaymentSuccessful)
-    // {
-    //     NavigationManager.NavigateTo("/payment-success");
-    // }
+    
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
 using System.Security.Cryptography;
 using BCrypt.Net;
+using GalaxyTaxi.Shared.Api.Models.Common;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -34,11 +35,33 @@ public class AccountService : IAccountService
             PasswordHash = SaltAndHashPassword(request.Password),
             AccountTypeId = request.Type
         };
-
+        
         try
         {
-            await _db.Accounts.AddAsync(account);
-
+            var addedAccount = await _db.Accounts.AddAsync(account);
+            
+            await _db.SaveChangesAsync();
+            if (request.Type == AccountType.CustomerCompany)
+            {
+                var customerCompany = new CustomerCompany
+                {
+                    AccountId = addedAccount.Entity.Id,
+                    Name = request.CompanyName,
+                    MaxAmountPerEmployee = 0,
+                    IdentificationCode = "sdf"
+                };
+                await _db.CustomerCompanies.AddAsync(customerCompany);
+            }
+            else
+            {
+                var vendorCompany = new VendorCompany
+                {
+                    AccountId = addedAccount.Entity.Id,
+                    Name = request.CompanyName,
+                };
+                await _db.VendorCompanies.AddAsync(vendorCompany);
+            }
+            
             await _db.SaveChangesAsync();
         }
         catch (Exception ex)

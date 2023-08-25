@@ -1,8 +1,10 @@
 ﻿@page "/account/register"
 @using GalaxyTaxi.Shared.Api.Models.Register
 @using Microsoft.AspNetCore.Components
+@using GalaxyTaxi.Shared.Api.Models.Common
 @inject IAccountService AccountService
 @inject NavigationManager NavigationManager
+
 <div class="col-md-6 offset-md-3 mt-5">
     <div class="card">
         <h4 class="card-header">Register</h4>
@@ -10,25 +12,26 @@
             <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
                 <DataAnnotationsValidator />
                 <div class="form-group">
-                    <label>First Name</label>
+                    <label>Company Name</label>
                     <InputText @bind-Value="model.CompanyName" class="form-control" />
                     <ValidationMessage For="@(() => model.CompanyName)" />
                 </div>
                 <div class="form-group">
-                    <label>Last Name</label>
+                    <label>Company Email</label>
                     <InputText @bind-Value="model.CompanyEmail" class="form-control" />
                     <ValidationMessage For="@(() => model.CompanyEmail)" />
                 </div>
-                @* ra tipis equntia dropdown unda gaichitos aq
-                <div class="form-group">
-                    <label>Username</label>
-                    <InputText @bind-Value="model.Type" class="form-control" />
-                    <ValidationMessage For="@(() => model.Type)" />
-                </div>*@ 
                 <div class="form-group">
                     <label>Password</label>
                     <InputText @bind-Value="model.Password" type="password" class="form-control" />
                     <ValidationMessage For="@(() => model.Password)" />
+                </div>
+                <div class="form-group">
+                    <label>Company Type</label>
+                    <MudSelect @bind-Value="model.Type">
+                        <MudSelectItem Value="AccountType.CustomerCompany">Customer Company</MudSelectItem>
+                        <MudSelectItem Value="AccountType.VendorCompany">Vendor Company</MudSelectItem>
+                    </MudSelect>
                 </div>
                 <button disabled="@loading" class="btn btn-primary">
                     @if (loading) 
@@ -44,10 +47,13 @@
 </div>
 
 @code {
-    private RegisterRequest model = new RegisterRequest();
+    private RegisterRequest model = new RegisterRequest
+    {
+        Type = AccountType.CustomerCompany
+    };
     private bool loading;
 
-    private async void OnValidSubmit()
+    private async Task OnValidSubmit()
     {
         loading = true;
         try

@@ -27,17 +27,34 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task ChoseSubscriptionType(SubscriptionRequest request, CallContext context = default)
     {
-        var subscription = new Subscription
-        {
-            CustomerCompanyId = 1, //todo
-            SubscriptionStatus = SubscriptionStatus.Chosen,
-            SubscriptionPlanTypeId = request.SubscriptionPlanType
-        };
+        var subscriptionInDb = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == 13);
 
+        if (subscriptionInDb != null)
+        {
+            if (subscriptionInDb.SubscriptionStatus == SubscriptionStatus.Active)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, "Company Already Has Active Subscription"));
+            }
+            
+            subscriptionInDb.SubscriptionPlanTypeId = request.SubscriptionPlanType;
+            subscriptionInDb.SubscriptionStatus = SubscriptionStatus.Chosen;
+
+            _db.Subscriptions.Update(subscriptionInDb);
+        }
+        else
+        {
+            var subscription = new Subscription
+            {
+                CustomerCompanyId = 13, //todo
+                SubscriptionStatus = SubscriptionStatus.Chosen,
+                SubscriptionPlanTypeId = request.SubscriptionPlanType
+            };
+
+            await _db.Subscriptions.AddAsync(subscription);
+        }
+        
         try
         {
-            await _db.Subscriptions.AddAsync(subscription);
-
             await _db.SaveChangesAsync();
         }
         catch (Exception ex)
@@ -48,7 +65,7 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<GetSubscriptionDetailResponse> GetSubscriptionDetailsAsync(CallContext context = default)
     {
-        var subscription = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == 1);
+        var subscription = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == 13);
 
         if (subscription != null)
         {

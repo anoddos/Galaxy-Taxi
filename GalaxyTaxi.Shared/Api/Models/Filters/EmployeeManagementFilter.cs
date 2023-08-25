@@ -12,6 +12,6 @@ namespace GalaxyTaxi.Shared.Api.Models.Filters
     public class EmployeeManagementFilter
     {
         [ProtoMember(1)]
-        public long CustomerCompanyId { get; set; }
+        public long CustomerCompanyId { get; set; } // todo es arasworia frontidan ar unda wavides
     }
 }

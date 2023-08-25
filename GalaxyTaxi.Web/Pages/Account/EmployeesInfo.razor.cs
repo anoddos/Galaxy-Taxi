@@ -20,7 +20,7 @@ namespace GalaxyTaxi.Web.Pages.Account
         // custom sort by name length
         protected override async Task OnInitializedAsync()
         {
-            GetEmployeesResponse response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { CustomerCompanyId = 5});
+            var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { CustomerCompanyId = 5});
             if (response != null)
             {
                 _employees = response.Employees;

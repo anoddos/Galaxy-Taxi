@@ -1,3 +1,4 @@
+using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
 using GalaxyTaxi.Shared.Api.Models.RouteGenerator;
 using ProtoBuf.Grpc;
 using ProtoBuf.Grpc.Configuration;

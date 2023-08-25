@@ -1,6 +1,6 @@
 using ProtoBuf;
 
-namespace GalaxyTaxi.Shared.Api.Models.RouteGenerator;
+namespace GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
 
 [ProtoContract]
 [Serializable]

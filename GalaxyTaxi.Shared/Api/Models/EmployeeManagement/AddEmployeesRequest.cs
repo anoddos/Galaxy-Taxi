@@ -1,13 +1,12 @@
 using ProtoBuf;
 using System.Collections.Generic;
 
-namespace GalaxyTaxi.Shared.Api.Models.EmployeeManagement
+namespace GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+
+[Serializable]
+[ProtoContract]
+public class AddEmployeesRequest
 {
-    [Serializable]
-    [ProtoContract]
-    public class AddEmployeesRequest
-    {
-        [ProtoMember(1)]
-        public List<SingleEmployeeInfo> employeesInfo { get; set; }
-    }
+    [ProtoMember(1)]
+    public List<SingleEmployeeInfo> employeesInfo { get; set; }
 }

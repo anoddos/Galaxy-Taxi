@@ -1,0 +1,31 @@
+.payment-card {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.subscription-details {
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.payment-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.expiration-cvc {
+    display: flex;
+    gap: 10px;
+}
+
+.pay-button {
+    align-self: flex-end;
+}

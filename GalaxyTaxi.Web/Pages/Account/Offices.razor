@@ -1,5 +1,16 @@
-﻿<h3>Offices</h3>
+﻿@page "/account/offices"
+@using GalaxyTaxi.Shared.Api.Models.OfficeManagement
 
-@code {
+<h3>Offices</h3>
 
-}
+
+<div class="wrapper" style="display:flex;">
+	<div class="officeListContainer" style="width:30%;">
+        <MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+            @foreach (var office in _offices)
+            {
+                <MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </div>
+</div>

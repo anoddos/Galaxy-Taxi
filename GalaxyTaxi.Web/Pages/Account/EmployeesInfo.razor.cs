@@ -1,5 +1,6 @@
 ﻿using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.Filters;
+using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using OfficeOpenXml;
@@ -9,6 +10,7 @@ namespace GalaxyTaxi.Web.Pages.Account
     public partial class EmployeesInfo
     {
         private List<EmployeeJourneyInfo> _employees = new();
+        private List<OfficeInfo> _offices = new();
         private bool _loaded;
         //private string _searchString;
         private bool _sortNameByLength;
@@ -16,14 +18,19 @@ namespace GalaxyTaxi.Web.Pages.Account
         private bool _isImporting;
         private IBrowserFile file;
         public string EmployeeNameFilter { get; set; }
-        public string OfficeFilter { get; set; }
+        public OfficeInfo OfficeFilter { get; set; }
         // custom sort by name length
         protected override async Task OnInitializedAsync()
         {
-            var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { CustomerCompanyId = 5});
+            var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter());
+            var officeResponse = await _officeManagement.GetOffices(new OfficeManagementFilter());
             if (response != null)
             {
                 _employees = response.Employees;
+            }
+            if (officeResponse != null)
+            {
+                _offices = officeResponse.Offices;
             }
 
             _loaded = true;
@@ -34,6 +41,18 @@ namespace GalaxyTaxi.Web.Pages.Account
             file = selectedFile;
         }
 
+
+        private async Task OfficeValueChanged(OfficeInfo currentOffice)
+        {
+            StateHasChanged();
+
+            var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = currentOffice });
+            if (response != null)
+            {
+                _employees = response.Employees;
+            }
+            StateHasChanged();
+        }
 
         private async Task ImportFromExcel()
         {

@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using GalaxyTaxi.Web;
 using MudBlazor.Services;
 using GalaxyTaxi.Web.Extensions;
+using OfficeOpenXml;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 builder.Services.AddMudServices();
 builder.Services.AddMudBlazorDialog();
@@ -21,5 +23,6 @@ builder.Services.AddGrpcServiceClient<IPaymentService>();
 builder.Services.AddGrpcServiceClient<IJourneyGeneratorService>();
 builder.Services.AddGrpcServiceClient<IEmployeeManagementService>();
 builder.Services.AddGrpcServiceClient<ISubscriptionService>();
+builder.Services.AddGrpcServiceClient<IOfficeManagementService>();
 
 await builder.Build().RunAsync();

@@ -9,7 +9,7 @@ namespace GalaxyTaxi.Shared.Api.Models.AddressDetection
 {
     [Serializable]
     [ProtoContract]
-    public class EmployeeAddressInfo
+    public class AddressInfo
     {
         [ProtoMember(1)]
         public string Name { get; set; } = null!;

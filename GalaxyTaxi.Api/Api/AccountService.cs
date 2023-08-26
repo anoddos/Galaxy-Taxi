@@ -35,6 +35,7 @@ public class AccountService : IAccountService
             PasswordHash = SaltAndHashPassword(request.Password),
             AccountTypeId = request.Type
         };
+        long companyId = 0;
         
         try
         {
@@ -51,6 +52,7 @@ public class AccountService : IAccountService
                     IdentificationCode = "sdf"
                 };
                 await _db.CustomerCompanies.AddAsync(customerCompany);
+                companyId = customerCompany.Id;
             }
             else
             {
@@ -60,8 +62,10 @@ public class AccountService : IAccountService
                     Name = request.CompanyName,
                 };
                 await _db.VendorCompanies.AddAsync(vendorCompany);
+                companyId = vendorCompany.Id;
+
             }
-            
+
             await _db.SaveChangesAsync();
         }
         catch (Exception ex)
@@ -71,6 +75,15 @@ public class AccountService : IAccountService
 
         SetSessionValue("AccountId", account.Id.ToString());
         SetSessionValue("LoggedInAs", account.AccountTypeId.ToString());
+        if (account.AccountTypeId == AccountType.CustomerCompany)
+        {
+            SetSessionValue("CustomerCompanyId", companyId.ToString());
+        }
+        else if (account.AccountTypeId == AccountType.VendorCompany)
+        {
+            SetSessionValue("VendorCompanyId", companyId.ToString());
+        }
+
     }
 
     public async Task ValidateEmailAsync(ValidateEmailRequest request, CallContext context = default)
@@ -103,6 +116,16 @@ public class AccountService : IAccountService
 
         SetSessionValue("AccountId", account.Id.ToString());
         SetSessionValue("LoggedInAs", account.AccountTypeId.ToString());
+
+        if (account.AccountTypeId == AccountType.CustomerCompany)
+        {
+            var company = await _db.CustomerCompanies.FirstOrDefaultAsync(c => c.AccountId == account.Id);
+            SetSessionValue("CustomerCompanyId", company.Id.ToString());
+        } else if (account.AccountTypeId == AccountType.VendorCompany)
+        {
+            var company = await _db.VendorCompanies.FirstOrDefaultAsync(c => c.AccountId == account.Id);
+            SetSessionValue("VendorCompanyId", company.Id.ToString());
+        }
 
         return new LoginResponse
         {

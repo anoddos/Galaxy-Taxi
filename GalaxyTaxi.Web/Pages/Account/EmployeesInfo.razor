@@ -1,12 +1,20 @@
 ﻿@page "/account/employeesInfo"
 @using GalaxyTaxi.Shared.Api.Models.EmployeeManagement
+@using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @using GalaxyTaxi.Web.Pages.Maps
 
 
 <div class="wrapper" style="display:flex;">
     <div class="employeeFilterContainer" style="width:30%;">
         <MudTextField @bind-Value="EmployeeNameFilter" Label="Employee Name" Variant="Variant.Outlined"></MudTextField>
-        <MudTextField @bind-Value="OfficeFilter" Label="Office Address" Variant="Variant.Outlined"></MudTextField>
+        <MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined"
+                   AnchorOrigin="Origin.BottomCenter" ValueChanged="@((OfficeInfo currentOffice) => OfficeValueChanged(currentOffice))">
+            <MudSelectItem T="OfficeInfo" Value="@(null)">Select an option:</MudSelectItem>
+            @foreach (var office in _offices)
+            {
+                <MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+            }
+        </MudSelect>
 
         <GoogleMaps />
 
@@ -59,7 +67,7 @@
         </MudTabs>
 
 
-        <MudDataGrid T="EmployeeJourneyInfo" MultiSelection="true" Items="@_employees"
+        <MudDataGrid T="EmployeeJourneyInfo" Items="@_employees"
                      SortMode="SortMode.Multiple" Filterable="true" Hideable="true">
 
             <ToolBarContent>
@@ -71,7 +79,7 @@
                 <PropertyColumn  Property="x => x.FirstName" Title="First Name"/>
                 <PropertyColumn Property="x => x.LastName" Title="Last Name"/>
                 <PropertyColumn Property="x => x.From.Name" Title="From" />
-                <PropertyColumn Property="x => x.To.Name" Title="To"/>
+                <PropertyColumn Property="x => x.To.Address.Name" Title="To"/>
                 <PropertyColumn Property="x => x.Mobile" Title="Mobile" />
             </Columns>
             <PagerContent>

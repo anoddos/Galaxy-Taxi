@@ -66,6 +66,7 @@ app.UseEndpoints(options =>
     options.MapGrpcService<PaymentService>().AddToGrpcBrowserWithService<IPaymentService>();
     options.MapGrpcService<JourneyGeneratorService>().AddToGrpcBrowserWithService<IJourneyGeneratorService>();
     options.MapGrpcService<SubscriptionService>().AddToGrpcBrowserWithService<ISubscriptionService>();
+    options.MapGrpcService<OfficeManagementService>().AddToGrpcBrowserWithService<IOfficeManagementService>();
 
     options.MapGrpcBrowser();
     options.MapCodeFirstGrpcReflectionService();

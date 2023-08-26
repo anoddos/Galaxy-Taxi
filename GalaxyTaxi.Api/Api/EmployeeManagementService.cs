@@ -181,7 +181,7 @@ public class EmployeeManagementService : IEmployeeManagementService
 
         var employees = from employee in _db.Employees.Include(e => e.Office)
                    where employee.CustomerCompanyId == customerCompanyId
-                   let address = employee.Addresses.First(a => a.IsActive)
+                   let address = employee.Addresses.FirstOrDefault(a => a.IsActive)
                    select  new EmployeeJourneyInfo
                    {
                        FirstName = employee.FirstName,
@@ -193,6 +193,7 @@ public class EmployeeManagementService : IEmployeeManagementService
                            Name = address.Address.Name,
                            Latitude = address.Address.Latitude,
                            Longitude = address.Address.Longitude
+
                        },
                        To = new OfficeInfo 
                        { 

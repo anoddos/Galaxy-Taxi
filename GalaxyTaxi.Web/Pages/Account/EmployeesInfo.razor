@@ -2,92 +2,95 @@
 @using GalaxyTaxi.Shared.Api.Models.EmployeeManagement
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @using GalaxyTaxi.Web.Pages.Maps
+@inject IDialogService DialogService
 
 
 <div class="wrapper" style="display:flex;">
-    <div class="employeeFilterContainer" style="width:30%;">
-        <MudTextField @bind-Value="EmployeeNameFilter" Label="Employee Name" Variant="Variant.Outlined"></MudTextField>
-        <MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined"
-                   AnchorOrigin="Origin.BottomCenter" ValueChanged="@((OfficeInfo currentOffice) => OfficeValueChanged(currentOffice))">
-            <MudSelectItem T="OfficeInfo" Value="@(null)">Select an option:</MudSelectItem>
-            @foreach (var office in _offices)
-            {
-                <MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
-            }
-        </MudSelect>
-
-        <GoogleMaps />
-
-    </div>
-
-    
-
-    <div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
-        <div style="display: flex; align-items: center;">
-            <MudButton DisableElevation Variant="Variant.Filled" OnClick="async () => await ImportFromExcel()" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Import</MudButton>
-
-            <MudFileUpload T="IBrowserFile" FilesChanged="OnFileChange" class="mud-button-root mud-button-contained mud-theme-themePrimary" style="margin-left: 5px;">
-                <ButtonTemplate>
-                    <MudButton HtmlTag="label"
-                               Variant="Variant.Filled"
-                               Color="Color.Primary"
-                               StartIcon="@Icons.Material.Filled.CloudUpload"
-                               for="@context">
-                        Upload File
-                    </MudButton>
-                </ButtonTemplate>
-            </MudFileUpload>
-
-            @if (file != null)
-            {
-                <MudListItem Icon="@Icons.Material.Filled.AttachFile" @key="@file">
-                    @file.Name <code>@file.Size bytes</code>
-                </MudListItem>
-            }
-
-        </div>
-
-        @*<code>@file.Size bytes</code>*@
+	<div class="employeeFilterContainer" style="width:30%;">
+		<MudTextField @bind-Value="EmployeeNameFilter" Label="Employee Name" Variant="Variant.Outlined"></MudTextField>
+		<MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined"
+				   AnchorOrigin="Origin.BottomCenter" ValueChanged="@((OfficeInfo currentOffice) => OfficeValueChanged(currentOffice))">
+			<MudSelectItem T="OfficeInfo" Value="@(null)">Select an option:</MudSelectItem>
+			@foreach (var office in _offices)
+			{
+				<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+			}
+		</MudSelect>
+	</div>
 
 
 
-        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
-            <MudTabPanel Text="All">
-                <MudText>Content One</MudText>
-            </MudTabPanel>
-            <MudTabPanel Text="Current">
-                <MudText>Content Two</MudText>
-            </MudTabPanel>
-            <MudTabPanel Text="Planned">
-                <MudText>Content Three</MudText>
-            </MudTabPanel>
-            <MudTabPanel Text="Cancelled">
-                <MudText>Content Disabled</MudText>
-            </MudTabPanel>
-        </MudTabs>
+
+	<div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
+		<div style="display: flex; align-items: center;">
+			<MudButton DisableElevation Variant="Variant.Filled" OnClick="async () => await ImportFromExcel()" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Import</MudButton>
+
+				<MudFileUpload T="IBrowserFile" FilesChanged="OnFileChange" class="mud-button-root mud-button-contained mud-theme-themePrimary" style="margin-left: 5px;">
+					<ButtonTemplate>
+						<MudButton HtmlTag="label"
+								   Variant="Variant.Filled"
+								   Color="Color.Primary"
+								   StartIcon="@Icons.Material.Filled.CloudUpload"
+								   for="@context">
+							Upload File
+						</MudButton>
+					</ButtonTemplate>
+				</MudFileUpload>
+
+				@if (file != null)
+			{
+				<MudListItem Icon="@Icons.Material.Filled.AttachFile" @key="@file">
+					@file.Name <code>@file.Size bytes</code>
+				</MudListItem>
+			}
+
+		</div>
+
+		@*<code>@file.Size bytes</code>*@
 
 
-        <MudDataGrid T="EmployeeJourneyInfo" Items="@_employees"
-                     SortMode="SortMode.Multiple" Filterable="true" Hideable="true">
 
-            <ToolBarContent>
-                <MudText Typo="Typo.h6">Employees</MudText>
-            </ToolBarContent>
-
-            <Columns>
-                <SelectColumn T="EmployeeJourneyInfo" />
-                <PropertyColumn  Property="x => x.FirstName" Title="First Name"/>
-                <PropertyColumn Property="x => x.LastName" Title="Last Name"/>
-                <PropertyColumn Property="x => x.From.Name" Title="From" />
-                <PropertyColumn Property="x => x.To.Address.Name" Title="To"/>
-                <PropertyColumn Property="x => x.Mobile" Title="Mobile" />
-            </Columns>
-            <PagerContent>
-                <MudDataGridPager T="EmployeeJourneyInfo" />
-            </PagerContent>
-
-        </MudDataGrid>
+		<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+			<MudTabPanel Text="All">
+				<MudText>Content One</MudText>
+			</MudTabPanel>
+			<MudTabPanel Text="Current">
+				<MudText>Content Two</MudText>
+			</MudTabPanel>
+			<MudTabPanel Text="Planned">
+				<MudText>Content Three</MudText>
+			</MudTabPanel>
+			<MudTabPanel Text="Cancelled">
+				<MudText>Content Disabled</MudText>
+			</MudTabPanel>
+		</MudTabs>
 
 
-    </div>
+		<MudDataGrid T="EmployeeJourneyInfo" Items="@_employees"
+					 SortMode="SortMode.Multiple" Filterable="true" Hideable="true">
+
+			<ToolBarContent>
+				<MudText Typo="Typo.h6">Employees</MudText>
+			</ToolBarContent>
+
+
+			<Columns>
+				<PropertyColumn Property="x => x.FirstName" Title="First Name" />
+				<PropertyColumn Property="x => x.LastName" Title="Last Name" />
+				<PropertyColumn Property="x => x.LastName" Title="Last Name" />
+				<PropertyColumn Property="x => x.From.Name" Title="From" />
+				<PropertyColumn Property="x => x.To.Address.Name" Title="To" />
+				<PropertyColumn Property="x => x.Mobile" Title="Mobile" />
+				<TemplateColumn CellClass="d-flex justify-end">
+					<CellTemplate>
+						<MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenEditPopup(context.Item))" />
+					</CellTemplate>
+				</TemplateColumn>
+			</Columns>
+			<PagerContent>
+				<MudDataGridPager T="EmployeeJourneyInfo" />
+			</PagerContent>
+
+		</MudDataGrid>
+	</div>
 </div>

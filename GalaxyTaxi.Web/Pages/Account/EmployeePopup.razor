@@ -1,0 +1,47 @@
+﻿@using GalaxyTaxi.Shared.Api.Models.AddressDetection;
+@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+@using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
+@using GalaxyTaxi.Web.Pages.Maps
+<MudDialog DialogTitle="Edit Employee" Width="30%" @ref="dialog">
+    <DialogContent>
+        <MudTextField Label="First Name" @bind-Value="Employee.FirstName" />
+        <MudTextField Label="Last Name" @bind-Value="Employee.LastName" />
+        <MudTextField Label="Mobile" @bind-Value="Employee.Mobile" />
+        <MudTextField Label="From Address" ReadOnly="true" @bind-Value="Employee.From.Name" />
+        
+        <MudSelect T="OfficeInfo" Items="OfficeList" Label="Office"
+                   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
+            @foreach (var office in OfficeList)
+            {
+                <MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="SaveChanges">Save</MudButton>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public EmployeeJourneyInfo Employee { get; set; }
+    [Parameter]
+    public List<OfficeInfo> OfficeList{ get; set; }
+    private MudDialog dialog;
+    private OfficeInfo SelectedOffice;
+
+    protected override void OnInitialized()
+    {
+        SelectedOffice = OfficeList.FirstOrDefault(office => office.OfficeId == Employee.To.OfficeId);
+    }
+
+    private async Task SaveChanges()
+    {
+        dialog.Close(DialogResult.Ok(SelectedOffice));
+    }
+
+    private void CloseDialog()
+    {
+        dialog.Close(DialogResult.Ok(SelectedOffice));
+    }
+}

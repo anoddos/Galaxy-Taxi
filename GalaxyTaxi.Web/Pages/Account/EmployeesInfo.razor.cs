@@ -4,6 +4,7 @@ using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using OfficeOpenXml;
+using static MudBlazor.CategoryTypes;
 
 namespace GalaxyTaxi.Web.Pages.Account
 {
@@ -17,8 +18,13 @@ namespace GalaxyTaxi.Web.Pages.Account
         private List<string> _events = new();
         private bool _isImporting;
         private IBrowserFile file;
+        private bool _isOpen;
+        private MudDialog dialog;
         public string EmployeeNameFilter { get; set; }
         public OfficeInfo OfficeFilter { get; set; }
+
+        private EmployeeJourneyInfo selectedEmployeeForEdit;
+
         // custom sort by name length
         protected override async Task OnInitializedAsync()
         {
@@ -34,6 +40,7 @@ namespace GalaxyTaxi.Web.Pages.Account
             }
 
             _loaded = true;
+            _isOpen = false;
         }
 
         private void OnFileChange(IBrowserFile selectedFile)
@@ -52,6 +59,15 @@ namespace GalaxyTaxi.Web.Pages.Account
                 _employees = response.Employees;
             }
             StateHasChanged();
+        }
+
+
+        private async void OpenEditPopup(EmployeeJourneyInfo employee)
+        {
+            selectedEmployeeForEdit = employee;
+            var parameters = new DialogParameters { ["Employee"] = selectedEmployeeForEdit, ["OfficeList"] = _offices };
+            var dialog = DialogService.Show<EmployeePopup>("Edit Employee", parameters);
+            var result = await dialog.Result;
         }
 
         private async Task ImportFromExcel()

@@ -17,5 +17,7 @@ namespace GalaxyTaxi.Shared.Api.Models.AddressDetection
         public decimal? Latitude { get; set; }
         [ProtoMember(3)]
         public decimal? Longitude { get; set; }
+        [ProtoMember(4)]
+        public long Id { get; set; }
     }
 }

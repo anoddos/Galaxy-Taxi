@@ -9,6 +9,9 @@ using ProtoBuf.Grpc;
 using System.Security.Cryptography;
 using BCrypt.Net;
 using GalaxyTaxi.Shared.Api.Models.Common;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -17,13 +20,46 @@ public class AccountService : IAccountService
     private readonly Db _db;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AccountService(Db db, IHttpContextAccessor httpContextAccessor)
+
+	public AccountService(Db db, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _httpContextAccessor = httpContextAccessor;
-    }
-        
-    public async Task RegisterAsync(RegisterRequest request, CallContext context = default)
+
+	}
+	private async Task LoginSession(AccountType accountType, long accountId, long companyId, CallContext context = default)
+	{
+		var httpContext = _httpContextAccessor.HttpContext;
+		var principal = new ClaimsPrincipal();
+		var claims = new List<Claim>()
+		{
+			new Claim(AuthenticationKey.LoggedInAs, accountType.ToString()),
+			new Claim(AuthenticationKey.AccountId, accountId.ToString())
+		};
+		if (accountType != AccountType.Admin)
+		{
+			claims.Add(new Claim(AuthenticationKey.CompanyId, companyId.ToString()));
+		}
+		var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
+		principal.AddIdentity(claimsIdentity);
+		await httpContext?.SignInAsync(principal);
+	}
+
+	private string GetSessionValue(string key, CallContext context = default)
+	{
+		var httpContext = _httpContextAccessor.HttpContext;
+        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+
+        return res == null ? "" : res.Value.ToString();
+	}
+
+	private async Task ClearSession(CallContext context = default)
+	{
+		var httpContext = _httpContextAccessor.HttpContext;
+		await httpContext?.SignOutAsync();
+	}
+
+	public async Task RegisterAsync(RegisterRequest request, CallContext context = default)
     {
         await ValidateEmailAsync(new ValidateEmailRequest { CompanyEmail = request.CompanyEmail });
         await ValidateCompanyNameAsync(new ValidateCompanyNameRequest{ CompanyName = request.CompanyName});
@@ -73,17 +109,7 @@ public class AccountService : IAccountService
             throw new RpcException(new Status(StatusCode.Internal, "Could not insert into db"));
         }
 
-        SetSessionValue("AccountId", account.Id.ToString());
-        SetSessionValue("LoggedInAs", account.AccountTypeId.ToString());
-        if (account.AccountTypeId == AccountType.CustomerCompany)
-        {
-            SetSessionValue("CustomerCompanyId", companyId.ToString());
-        }
-        else if (account.AccountTypeId == AccountType.VendorCompany)
-        {
-            SetSessionValue("VendorCompanyId", companyId.ToString());
-        }
-
+        await LoginSession(account.AccountTypeId, account.Id, companyId);
     }
 
     public async Task ValidateEmailAsync(ValidateEmailRequest request, CallContext context = default)
@@ -113,20 +139,18 @@ public class AccountService : IAccountService
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Wrong email or password"));
         }
-
-        SetSessionValue("AccountId", account.Id.ToString());
-        SetSessionValue("LoggedInAs", account.AccountTypeId.ToString());
-
-        if (account.AccountTypeId == AccountType.CustomerCompany)
+        long companyId = 0;
+        if (account?.AccountTypeId == AccountType.CustomerCompany)
         {
             var company = await _db.CustomerCompanies.FirstOrDefaultAsync(c => c.AccountId == account.Id);
-            SetSessionValue("CustomerCompanyId", company.Id.ToString());
-        } else if (account.AccountTypeId == AccountType.VendorCompany)
+            companyId = company.Id;
+        }
+        else if (account?.AccountTypeId == AccountType.VendorCompany)
         {
             var company = await _db.VendorCompanies.FirstOrDefaultAsync(c => c.AccountId == account.Id);
-            SetSessionValue("VendorCompanyId", company.Id.ToString());
+            companyId = company.Id;
         }
-
+        await LoginSession(account.AccountTypeId, account.Id, companyId);
         return new LoginResponse
         {
             LoggedInAs = account.AccountTypeId,
@@ -137,35 +161,17 @@ public class AccountService : IAccountService
     public async Task LogoutAsync( CallContext context = default)
     {
         // Get the user ID from the session
-        var accountId = GetSessionValue("AccountId");
+        var accountId = GetSessionValue(AuthenticationKey.AccountId);
 
         if (string.IsNullOrWhiteSpace(accountId))
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
         }
 
-        //Clear the user ID from the session
-
-        ClearSessionValue("AccountId");
+        await ClearSession();
     }
     
-    private void SetSessionValue(string key, string value)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        httpContext?.Session.SetString(key, value);
-    }
 
-    private string GetSessionValue(string key)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        return httpContext?.Session.GetString(key) ?? "";
-    }
-
-    private void ClearSessionValue(string key)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        httpContext?.Session.Remove(key);
-    }
 
     private string SaltAndHashPassword(string password)
     {

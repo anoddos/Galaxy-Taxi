@@ -2,6 +2,7 @@ using GalaxyTaxi.Api.Api;
 using GalaxyTaxi.Api.Database;
 using GalaxyTaxi.Shared.Api.Interfaces;
 using GrpcBrowser.Configuration;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc.Server;
 
@@ -15,6 +16,7 @@ services.AddCodeFirstGrpcReflection();
 services.AddGrpcBrowser();
 services.AddHttpContextAccessor(); // Add IHttpContextAccessor
 services.AddSession(); // Add session support
+services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
 
 services.AddDbContext<Db>(options => { options.UseNpgsql(builder.Configuration.GetConnectionString("GalaxyTaxiDb")); });
 

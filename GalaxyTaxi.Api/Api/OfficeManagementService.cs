@@ -1,6 +1,7 @@
 ﻿using GalaxyTaxi.Api.Database;
 using GalaxyTaxi.Shared.Api.Interfaces;
 using GalaxyTaxi.Shared.Api.Models.AddressDetection;
+using GalaxyTaxi.Shared.Api.Models.Common;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
@@ -16,26 +17,29 @@ namespace GalaxyTaxi.Api.Api
         private readonly IAddressDetectionService _addressDetectionService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public OfficeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
+
+		public OfficeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
         {
             _db = db;
             _addressDetectionService = addressDetectionService;
             _httpContextAccessor = httpContextAccessor;
-        }
+		}
         public Task EditOfficeDetails(EditOfficeRequest request, CallContext context = default)
         {
             throw new NotImplementedException();
         }
 
+		private string? GetSessionValue(string key, CallContext context = default)
+		{
+			var httpContext = _httpContextAccessor.HttpContext;
+            var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
 
-        private string GetSessionValue(string key)
-        {
-            return _httpContextAccessor.HttpContext?.Session.GetString(key) ?? "";
+            return res == null ? "" : res.Value.ToString();
         }
 
-        public async Task<GetOfficesResponse> GetOffices(OfficeManagementFilter? filter = null, CallContext context = default)
+		public async Task<GetOfficesResponse> GetOffices(OfficeManagementFilter? filter = null, CallContext context = default)
         {
-            long customerCompanyId = long.Parse(GetSessionValue("CustomerCompanyId"));
+            long customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
             var offices = from office in _db.Offices.Include(o => o.Address)
                             where office.CustomerCompanyId == customerCompanyId

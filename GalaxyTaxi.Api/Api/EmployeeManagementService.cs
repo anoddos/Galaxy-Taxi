@@ -20,24 +20,29 @@ public class EmployeeManagementService : IEmployeeManagementService
     private readonly IAddressDetectionService _addressDetectionService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public EmployeeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
+	public EmployeeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _addressDetectionService = addressDetectionService;
         _httpContextAccessor = httpContextAccessor;
+
+	}
+
+	private string? GetSessionValue(string key, CallContext context = default)
+	{
+		var httpContext = _httpContextAccessor.HttpContext;
+        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+
+        return res == null ? "" : res.Value.ToString();
     }
 
 
-    private string GetSessionValue(string key)
-    {
-        return _httpContextAccessor.HttpContext?.Session.GetString(key) ?? "";
-    }
-    public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
+	public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
         if (request.employeesInfo == null || request.employeesInfo.Count == 0) return;
         var httpContext = _httpContextAccessor.HttpContext;
-        long customerCompanyId = long.Parse(GetSessionValue("CustomerCompanyId"));
+        long customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
         try
         {
 
@@ -172,7 +177,7 @@ public class EmployeeManagementService : IEmployeeManagementService
     {
         //to implement in more detail, for testing purposes now
 
-        long customerCompanyId = long.Parse(GetSessionValue("CustomerCompanyId"));
+        long customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
         var employees = from employee in _db.Employees.Include(e => e.Office)
                    where employee.CustomerCompanyId == customerCompanyId

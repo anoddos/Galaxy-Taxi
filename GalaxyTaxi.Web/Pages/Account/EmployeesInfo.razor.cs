@@ -9,8 +9,8 @@ namespace GalaxyTaxi.Web.Pages.Account;
 
 public partial class EmployeesInfo
 {
-    private List<EmployeeJourneyInfo> _employees = new();
-    private List<OfficeInfo> _offices = new();
+    private List<EmployeeJourneyInfo> _employees = new List<EmployeeJourneyInfo>();
+    private List<OfficeInfo> _offices = new List<OfficeInfo>();
     private bool _loaded;
     //private string _searchString;
     private bool _sortNameByLength;
@@ -29,11 +29,11 @@ public partial class EmployeesInfo
     {
         var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter());
         var officeResponse = await _officeManagement.GetOffices(new OfficeManagementFilter());
-        if (response != null)
+        if (response != null && response.Employees != null)
         {
             _employees = response.Employees;
         }
-        if (officeResponse != null)
+        if (officeResponse != null && officeResponse.Offices != null)
         {
             _offices = officeResponse.Offices;
         }

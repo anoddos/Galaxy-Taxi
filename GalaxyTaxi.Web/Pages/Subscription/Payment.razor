@@ -1,87 +1,30 @@
 @page "/subscription/payment"
 @using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Payment
 @inject ISubscriptionService SubscriptionService
 @inject NavigationManager NavigationManager
-@using System.Globalization
-@using GalaxyTaxi.Shared.Api.Models.Payment
+@inject IPaymentService PaymentClient
 
-<link href="/payment.razor.css" rel="stylesheet" />
+@page "/payment"
 
-<MudCard Class="payment-card">
-    <MudCardContent>
-        <div class="header">
-            <MudTypography Variant="TypographyVariant.H5">Subscription Payment</MudTypography>
-        </div>
 
-        <div class="subscription-details">
-            <MudTypography Variant="TypographyVariant.Subtitle1" Class="mb-1">Subscription Type:</MudTypography>
-            <MudTypography Variant="TypographyVariant.Body1">@model.SelectedSubscriptionType</MudTypography>
-
-            <MudTypography Variant="TypographyVariant.Subtitle1" Class="mt-3 mb-1">Price:</MudTypography>
-            <MudTypography Variant="TypographyVariant.Body1">@model.SubscriptionPrice.ToString("C", CultureInfo.CurrentCulture)</MudTypography>
-        </div>
-
-        <div class="payment-form">
-            <MudTextField Label="Card Number" Class="mb-2" @bind-Value="@model.CardNumber" />
-            <div class="expiration-cvc">
-                <MudTextField Label="Expiration Date" Class="mb-2" @bind-Value="@model.ExpirationDate" />
-                <MudTextField Label="CVC" Class="mb-2" @bind-Value="@model.CVC" />
-            </div>
-
-            <div class="pay-button">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3" OnClick="ProcessPayment">Pay Now</MudButton>
-            </div>
-        </div>
-    </MudCardContent>
-</MudCard>
-
-<style>
-    .payment-card {
-        max-width: 400px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-
-    .header {
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .subscription-details {
-        background-color: #f5f5f5;
-        padding: 10px;
-        border-radius: 4px;
-        margin-bottom: 20px;
-    }
-
-    .payment-form {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .expiration-cvc {
-        display: flex;
-        gap: 10px;
-    }
-
-    .pay-button {
-        align-self: flex-end;
-    }
-</style>
+<MudForm>
+    <MudTextField Label="Amount" @bind-Value="paymentAmount" />
+    <MudButton @onclick="ProcessPayment">Process Payment</MudButton>
+</MudForm>
 
 @code {
-    private PayForSubscriptionRequest model = new PayForSubscriptionRequest();
-    
-    protected override async Task OnInitializedAsync()
-    {
-        var subscriptionDetails = await SubscriptionService.GetSubscriptionDetailsAsync();
+    private decimal paymentAmount;
 
-        model.SubscriptionPrice = subscriptionDetails.Price;
-        model.SelectedSubscriptionType = subscriptionDetails.SubscriptionPlanType;
-    }
-    
     private async Task ProcessPayment()
     {
-    
+        var paymentRequest = new PaymentRequest()
+        {
+            Amount = (int)(paymentAmount * 100) // Convert to cents
+        };
+
+        var paymentResponse = await PaymentClient.ProcessPayment(paymentRequest);
+
+    // Payment failed, display an error message or perform other actions
     }
-}
+}}

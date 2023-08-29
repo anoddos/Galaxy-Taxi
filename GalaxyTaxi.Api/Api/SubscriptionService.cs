@@ -12,7 +12,8 @@ namespace GalaxyTaxi.Api.Api;
 public class SubscriptionService : ISubscriptionService
 {
     private readonly Db _db;
-
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    
     private readonly Dictionary<SubscriptionPlanType, decimal> _prices = new()
     {
         { SubscriptionPlanType.Weekly, 7m },
@@ -20,14 +21,15 @@ public class SubscriptionService : ISubscriptionService
         { SubscriptionPlanType.Annual, 200m }
     };
 
-    public SubscriptionService(Db db)
+    public SubscriptionService(Db db, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task ChoseSubscriptionType(SubscriptionRequest request, CallContext context = default)
     {
-        var subscriptionInDb = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == 13);
+        var subscriptionInDb = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == GetCompanyId());
 
         if (subscriptionInDb != null)
         {
@@ -45,7 +47,7 @@ public class SubscriptionService : ISubscriptionService
         {
             var subscription = new Subscription
             {
-                CustomerCompanyId = 13, //todo
+                CustomerCompanyId = GetCompanyId(),
                 SubscriptionStatus = SubscriptionStatus.Chosen,
                 SubscriptionPlanTypeId = request.SubscriptionPlanType
             };
@@ -79,5 +81,25 @@ public class SubscriptionService : ISubscriptionService
         {
             throw new RpcException(new Status(StatusCode.Internal, "Subscription Not Chosen"));
         }
+    }
+    
+    private string GetSessionValue(string key, CallContext context = default)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+
+        return res == null ? "" : res.Value;
+    }
+    
+    private long GetCompanyId()
+    {
+        var companyId = GetSessionValue(AuthenticationKey.CompanyId);
+        
+        if (string.IsNullOrWhiteSpace(companyId))
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+        }
+
+        return long.Parse(companyId);
     }
 }

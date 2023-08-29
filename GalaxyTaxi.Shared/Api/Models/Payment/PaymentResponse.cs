@@ -6,5 +6,6 @@ namespace GalaxyTaxi.Shared.Api.Models.Payment;
 [Serializable]
 public class PaymentResponse
 {
-    
+    [ProtoMember(1)]
+    public string PaymentIntentId { get; set; }
 }

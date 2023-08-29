@@ -7,5 +7,5 @@ namespace GalaxyTaxi.Shared.Api.Interfaces;
 [Service("Payment")]
 public interface IPaymentService
 {
-    Task<PaymentResponse> PayForSubscription(PayForSubscriptionRequest request, CallContext context = default);
+    Task<PaymentResponse> ProcessPayment(PaymentRequest request, CallContext context = default);
 }

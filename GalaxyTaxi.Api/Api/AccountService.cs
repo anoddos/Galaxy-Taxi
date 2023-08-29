@@ -6,12 +6,9 @@ using GalaxyTaxi.Shared.Api.Models.Register;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
-using System.Security.Cryptography;
-using BCrypt.Net;
 using GalaxyTaxi.Shared.Api.Models.Common;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -20,28 +17,30 @@ public class AccountService : IAccountService
     private readonly Db _db;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-
 	public AccountService(Db db, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _httpContextAccessor = httpContextAccessor;
-
 	}
+    
 	private async Task LoginSession(AccountType accountType, long accountId, long companyId, CallContext context = default)
 	{
 		var httpContext = _httpContextAccessor.HttpContext;
 		var principal = new ClaimsPrincipal();
-		var claims = new List<Claim>()
-		{
+		var claims = new List<Claim>
+        {
 			new Claim(AuthenticationKey.LoggedInAs, accountType.ToString()),
 			new Claim(AuthenticationKey.AccountId, accountId.ToString())
 		};
+        
 		if (accountType != AccountType.Admin)
 		{
 			claims.Add(new Claim(AuthenticationKey.CompanyId, companyId.ToString()));
 		}
+        
 		var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
 		principal.AddIdentity(claimsIdentity);
+        
 		await httpContext?.SignInAsync(principal);
 	}
 
@@ -50,7 +49,7 @@ public class AccountService : IAccountService
 		var httpContext = _httpContextAccessor.HttpContext;
         var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
 
-        return res == null ? "" : res.Value.ToString();
+        return res == null ? "" : res.Value;
 	}
 
 	private async Task ClearSession(CallContext context = default)
@@ -99,7 +98,6 @@ public class AccountService : IAccountService
                 };
                 await _db.VendorCompanies.AddAsync(vendorCompany);
                 companyId = vendorCompany.Id;
-
             }
 
             await _db.SaveChangesAsync();
@@ -171,8 +169,6 @@ public class AccountService : IAccountService
         await ClearSession();
     }
     
-
-
     private string SaltAndHashPassword(string password)
     {
         var salt = BCrypt.Net.BCrypt.GenerateSalt();

@@ -8,4 +8,6 @@ namespace GalaxyTaxi.Shared.Api.Interfaces;
 public interface IAuctionService
 {
     Task Bid(BidRequest request, CallContext context = default);
+    
+    Task<GetAuctionsResponse> GetAuction(GetAuctionsRequest request, CallContext context = default);
 }

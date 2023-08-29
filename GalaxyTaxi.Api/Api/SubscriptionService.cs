@@ -13,7 +13,7 @@ public class SubscriptionService : ISubscriptionService
 {
     private readonly Db _db;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    
+
     private readonly Dictionary<SubscriptionPlanType, decimal> _prices = new()
     {
         { SubscriptionPlanType.Weekly, 7m },
@@ -37,7 +37,7 @@ public class SubscriptionService : ISubscriptionService
             {
                 throw new RpcException(new Status(StatusCode.Internal, "Company Already Has Active Subscription"));
             }
-            
+
             subscriptionInDb.SubscriptionPlanTypeId = request.SubscriptionPlanType;
             subscriptionInDb.SubscriptionStatus = SubscriptionStatus.Chosen;
 
@@ -54,7 +54,7 @@ public class SubscriptionService : ISubscriptionService
 
             await _db.Subscriptions.AddAsync(subscription);
         }
-        
+
         try
         {
             await _db.SaveChangesAsync();
@@ -82,7 +82,7 @@ public class SubscriptionService : ISubscriptionService
             throw new RpcException(new Status(StatusCode.Internal, "Subscription Not Chosen"));
         }
     }
-    
+
     private string GetSessionValue(string key, CallContext context = default)
     {
         var httpContext = _httpContextAccessor.HttpContext;
@@ -90,11 +90,11 @@ public class SubscriptionService : ISubscriptionService
 
         return res == null ? "" : res.Value;
     }
-    
+
     private long GetCompanyId()
     {
         var companyId = GetSessionValue(AuthenticationKey.CompanyId);
-        
+
         if (string.IsNullOrWhiteSpace(companyId))
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));

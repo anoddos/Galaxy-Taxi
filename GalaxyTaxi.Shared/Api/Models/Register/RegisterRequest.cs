@@ -16,6 +16,6 @@ public class RegisterRequest
     [ProtoMember(3)]
     public string Password { get; set; } = null!;
 
-    [ProtoMember(4)] 
+    [ProtoMember(4)]
     public AccountType Type { get; set; }
 }

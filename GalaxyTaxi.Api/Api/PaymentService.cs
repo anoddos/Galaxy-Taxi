@@ -7,11 +7,11 @@ namespace GalaxyTaxi.Api.Api;
 
 public class PaymentService : IPaymentService
 {
-    private readonly string stripeSecretKey = "your_stripe_secret_key";
+    private const string StripeSecretKey = "your_stripe_secret_key";
 
     public Task<PaymentResponse> ProcessPayment(PaymentRequest request, CallContext context)
     {
-        StripeConfiguration.ApiKey = stripeSecretKey;
+        StripeConfiguration.ApiKey = StripeSecretKey;
 
         // Use Stripe SDK to create a payment intent
         var options = new PaymentIntentCreateOptions
@@ -30,4 +30,3 @@ public class PaymentService : IPaymentService
         });
     }
 }
-

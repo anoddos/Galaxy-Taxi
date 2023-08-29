@@ -9,7 +9,7 @@ public class GetSubscriptionDetailResponse
 {
     [ProtoMember(1)]
     public SubscriptionPlanType SubscriptionPlanType { get; set; }
-    
+
     [ProtoMember(2)]
     public decimal Price { get; set; }
 }

@@ -1,4 +1,3 @@
-using GalaxyTaxi.Shared.Api.Models.Register;
 using ProtoBuf;
 
 namespace GalaxyTaxi.Shared.Api.Models.VendorCompany;

@@ -6,5 +6,5 @@ namespace GalaxyTaxi.Shared.Api.Models.RouteGenerator;
 [Serializable]
 public class GenerateJourneysResponse
 {
-    
+
 }

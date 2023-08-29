@@ -15,7 +15,7 @@ public static class ServiceCollectionGrpcExtensions
             var configuration = sp.GetRequiredService<IConfiguration>();
             var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new CookieEnabledClientHandler()));
             var backendUrl = configuration["BackendUrl"] ?? sp.GetRequiredService<NavigationManager>().BaseUri;
-            var channel = GrpcChannel.ForAddress(backendUrl, new GrpcChannelOptions {HttpClient = httpClient});
+            var channel = GrpcChannel.ForAddress(backendUrl, new GrpcChannelOptions { HttpClient = httpClient });
 
             return channel;
         });

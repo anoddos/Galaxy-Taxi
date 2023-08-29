@@ -17,51 +17,16 @@ public class AccountService : IAccountService
     private readonly Db _db;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-	public AccountService(Db db, IHttpContextAccessor httpContextAccessor)
+    public AccountService(Db db, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _httpContextAccessor = httpContextAccessor;
-	}
-    
-	private async Task LoginSession(AccountType accountType, long accountId, long companyId, CallContext context = default)
-	{
-		var httpContext = _httpContextAccessor.HttpContext;
-		var principal = new ClaimsPrincipal();
-		var claims = new List<Claim>
-        {
-			new Claim(AuthenticationKey.LoggedInAs, accountType.ToString()),
-			new Claim(AuthenticationKey.AccountId, accountId.ToString())
-		};
-        
-		if (accountType != AccountType.Admin)
-		{
-			claims.Add(new Claim(AuthenticationKey.CompanyId, companyId.ToString()));
-		}
-        
-		var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
-		principal.AddIdentity(claimsIdentity);
-        
-		await httpContext?.SignInAsync(principal);
-	}
+    }
 
-	private string GetSessionValue(string key, CallContext context = default)
-	{
-		var httpContext = _httpContextAccessor.HttpContext;
-        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
-
-        return res == null ? "" : res.Value;
-	}
-
-	private async Task ClearSession(CallContext context = default)
-	{
-		var httpContext = _httpContextAccessor.HttpContext;
-		await httpContext?.SignOutAsync();
-	}
-
-	public async Task RegisterAsync(RegisterRequest request, CallContext context = default)
+    public async Task RegisterAsync(RegisterRequest request, CallContext context = default)
     {
         await ValidateEmailAsync(new ValidateEmailRequest { CompanyEmail = request.CompanyEmail });
-        await ValidateCompanyNameAsync(new ValidateCompanyNameRequest{ CompanyName = request.CompanyName});
+        await ValidateCompanyNameAsync(new ValidateCompanyNameRequest { CompanyName = request.CompanyName });
 
         var account = new Account
         {
@@ -70,12 +35,12 @@ public class AccountService : IAccountService
             PasswordHash = SaltAndHashPassword(request.Password),
             AccountTypeId = request.Type
         };
-        long companyId = 0;
-        
+        long companyId;
+
         try
         {
             var addedAccount = await _db.Accounts.AddAsync(account);
-            
+
             await _db.SaveChangesAsync();
             if (request.Type == AccountType.CustomerCompany)
             {
@@ -112,7 +77,7 @@ public class AccountService : IAccountService
 
     public async Task ValidateEmailAsync(ValidateEmailRequest request, CallContext context = default)
     {
-        var alreadyExists =  await _db.Accounts.AnyAsync(x => x.Email == request.CompanyEmail);
+        var alreadyExists = await _db.Accounts.AnyAsync(x => x.Email == request.CompanyEmail);
         if (alreadyExists)
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Email Already Taken"));
@@ -121,7 +86,7 @@ public class AccountService : IAccountService
 
     public async Task ValidateCompanyNameAsync(ValidateCompanyNameRequest request, CallContext context = default)
     {
-        var alreadyExists =  await _db.Accounts.AnyAsync(x => x.CompanyName == request.CompanyName);
+        var alreadyExists = await _db.Accounts.AnyAsync(x => x.CompanyName == request.CompanyName);
         if (alreadyExists)
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Company Name Already Exists"));
@@ -132,12 +97,13 @@ public class AccountService : IAccountService
     {
         var account = await _db.Accounts.SingleOrDefaultAsync(x => x.Email == request.Email);
 
-
         if (account == null || (account != null && !BCrypt.Net.BCrypt.Verify(request.Password, account.PasswordHash)))
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Wrong email or password"));
         }
-        long companyId = 0;
+
+        long companyId = default;
+
         if (account?.AccountTypeId == AccountType.CustomerCompany)
         {
             var company = await _db.CustomerCompanies.FirstOrDefaultAsync(c => c.AccountId == account.Id);
@@ -148,7 +114,9 @@ public class AccountService : IAccountService
             var company = await _db.VendorCompanies.FirstOrDefaultAsync(c => c.AccountId == account.Id);
             companyId = company.Id;
         }
+
         await LoginSession(account.AccountTypeId, account.Id, companyId);
+
         return new LoginResponse
         {
             LoggedInAs = account.AccountTypeId,
@@ -156,7 +124,7 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task LogoutAsync( CallContext context = default)
+    public async Task LogoutAsync(CallContext context = default)
     {
         // Get the user ID from the session
         var accountId = GetSessionValue(AuthenticationKey.AccountId);
@@ -168,11 +136,46 @@ public class AccountService : IAccountService
 
         await ClearSession();
     }
-    
-    private string SaltAndHashPassword(string password)
+
+    private static string SaltAndHashPassword(string password)
     {
         var salt = BCrypt.Net.BCrypt.GenerateSalt();
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
         return hashedPassword;
+    }
+
+    private async Task LoginSession(AccountType accountType, long accountId, long companyId)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var principal = new ClaimsPrincipal();
+        var claims = new List<Claim>
+        {
+            new(AuthenticationKey.LoggedInAs, accountType.ToString()),
+            new(AuthenticationKey.AccountId, accountId.ToString())
+        };
+
+        if (accountType != AccountType.Admin)
+        {
+            claims.Add(new Claim(AuthenticationKey.CompanyId, companyId.ToString()));
+        }
+
+        var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
+        principal.AddIdentity(claimsIdentity);
+
+        await httpContext?.SignInAsync(principal);
+    }
+
+    private string GetSessionValue(string key)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+
+        return res == null ? "" : res.Value;
+    }
+
+    private async Task ClearSession()
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        await httpContext?.SignOutAsync();
     }
 }

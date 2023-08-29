@@ -6,6 +6,6 @@ namespace GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
 [Serializable]
 public class JourneyInfo
 {
-    
-    
+
+
 }

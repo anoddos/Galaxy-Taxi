@@ -1,5 +1,4 @@
 using ProtoBuf;
-using System.Collections.Generic;
 
 namespace GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 

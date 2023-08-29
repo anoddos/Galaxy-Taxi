@@ -7,10 +7,7 @@ using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using ProtoBuf;
 using ProtoBuf.Grpc;
-using System.Linq;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -20,60 +17,49 @@ public class EmployeeManagementService : IEmployeeManagementService
     private readonly IAddressDetectionService _addressDetectionService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-	public EmployeeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
+    public EmployeeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _addressDetectionService = addressDetectionService;
         _httpContextAccessor = httpContextAccessor;
-	}
-
-	private string? GetSessionValue(string key, CallContext context = default)
-	{
-		var httpContext = _httpContextAccessor.HttpContext;
-        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
-
-        return res == null ? "" : res.Value.ToString();
     }
 
-
-	public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
+    public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
         if (request.EmployeesInfo == null || request.EmployeesInfo.Count == 0) return;
-        
+
         var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
-        
+
         try
         {
-            foreach (var employeeinfo in request.EmployeesInfo)
+            foreach (var employeeInfo in request.EmployeesInfo)
             {
-                // validate officeid and companyid
-                var addressRes = await ValidateEmployeeAndGetAddress(employeeinfo, customerCompanyId);
+                var addressRes = await ValidateEmployeeAndGetAddress(employeeInfo, customerCompanyId);
 
                 var address = _db.Addresses.FirstOrDefault(a => a.Latitude == addressRes.Lat & a.Longitude == addressRes.Long);
                 if (address == null)
                 {
-                    address = new Address { Name = employeeinfo.Address, Latitude = addressRes.Lat, Longitude = addressRes.Long };
+                    address = new Address { Name = employeeInfo.Address, Latitude = addressRes.Lat, Longitude = addressRes.Long };
                     await _db.Addresses.AddAsync(address);
                     await _db.SaveChangesAsync();
                 }
 
                 // validate mobile uniqueness
-                var existingemployee = await _db.Employees.FirstOrDefaultAsync(e => e.Mobile == employeeinfo.Mobile);
+                var existingEmployee = await _db.Employees.FirstOrDefaultAsync(e => e.Mobile == employeeInfo.Mobile);
 
-                if (existingemployee == null)
+                if (existingEmployee == null)
                 {
-                    // Employee doesn't exist, insert a new employee
-                    existingemployee = new Employee
+                    existingEmployee = new Employee
                     {
-                        FirstName = employeeinfo.FirstName,
-                        LastName = employeeinfo.LastName,
-                        Mobile = employeeinfo.Mobile,
-                        CustomerCompanyId = customerCompanyId,//employeeinfo.CustomerCompanyId,
-                        OfficeId = employeeinfo.OfficeId,
+                        FirstName = employeeInfo.FirstName,
+                        LastName = employeeInfo.LastName,
+                        Mobile = employeeInfo.Mobile,
+                        CustomerCompanyId = customerCompanyId,
+                        OfficeId = employeeInfo.OfficeId,
                         Addresses = new List<EmployeeAddress>
                         {
-                            new EmployeeAddress
+                            new()
                             {
                                 Address = address,
                                 IsActive = true
@@ -81,20 +67,20 @@ public class EmployeeManagementService : IEmployeeManagementService
                         }
                     };
 
-                    _db.Employees.Add(existingemployee);
+                    _db.Employees.Add(existingEmployee);
                 }
                 else
                 {
                     // Employee exists, update officeId, mobile and check address
-                    existingemployee.OfficeId = employeeinfo.OfficeId;
-                    existingemployee.Mobile = employeeinfo.Mobile;
-                    var existingAddress = existingemployee.Addresses.FirstOrDefault(a => a.AddressId == address.Id);
+                    existingEmployee.OfficeId = employeeInfo.OfficeId;
+                    existingEmployee.Mobile = employeeInfo.Mobile;
+                    var existingAddress = existingEmployee.Addresses.FirstOrDefault(a => a.AddressId == address.Id);
 
                     if (existingAddress == null)
                     {
-                        existingemployee.Addresses.Add(new EmployeeAddress
+                        existingEmployee.Addresses.Add(new EmployeeAddress
                         {
-                            Employee = existingemployee,
+                            Employee = existingEmployee,
                             Address = address
                         });
                     }
@@ -107,53 +93,6 @@ public class EmployeeManagementService : IEmployeeManagementService
         {
             Console.WriteLine(ex.Message);
         }
-    }
-
-    private async Task<DetectAddressCoordinatesResponse> ValidateEmployeeAndGetAddress(SingleEmployeeInfo employeeInfo, long customerCompanyId)
-    {
-        if (string.IsNullOrEmpty(employeeInfo.FirstName))
-        {
-            throw new InvalidOperationException($"first name cannot be empty");
-        }
-
-        if (string.IsNullOrEmpty(employeeInfo.LastName))
-        {
-            throw new InvalidOperationException($"last name cannot be empty");
-        }
-
-        if (string.IsNullOrEmpty(employeeInfo.Mobile))
-        {
-            throw new InvalidOperationException($"Mobile cannot be empty");
-        }
-
-        if (string.IsNullOrEmpty(employeeInfo.Address))
-        {
-            throw new InvalidOperationException($"Address cannot be empty");
-        }
-        var officeexists = await _db.Offices.AnyAsync(o => o.Id == employeeInfo.OfficeId);
-        var companyexists = await _db.CustomerCompanies.AnyAsync(cc => cc.Id == customerCompanyId);
-
-        if (!officeexists || !companyexists)
-        {
-            throw new InvalidOperationException($"invalid officeid {employeeInfo.OfficeId} or companyid {customerCompanyId}");
-        }
-
-        if (string.IsNullOrEmpty(employeeInfo.Address))
-        {
-            throw new InvalidOperationException($"address cant be empty for employee, mobile - {employeeInfo.Mobile}");
-        }
-
-        var addressRes =
-                    //await _addressDetectionService.DetectAddressCoordinates(
-                    // new DetectAddressCoordinatesRequest { Address = employeeinfo.Address });
-                    new DetectAddressCoordinatesResponse { Lat = 1111, Long = 2222, StatusId = ActionStatus.Success };
-
-        if (addressRes == null)
-        {
-            throw new InvalidOperationException($"address does not exist - {employeeInfo.Address}");
-
-        }
-        return addressRes;
     }
 
     public Task EditEmployeeDetails(AddEmployeesRequest request, CallContext context = default)
@@ -173,39 +112,95 @@ public class EmployeeManagementService : IEmployeeManagementService
         var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
         var employees = from employee in _db.Employees.Include(e => e.Office)
-                   where employee.CustomerCompanyId == customerCompanyId
-                   let address = employee.Addresses.SingleOrDefault(a => a.IsActive)
-                   select  new EmployeeJourneyInfo
-                   {
-                       FirstName = employee.FirstName,
-                       LastName = employee.LastName,
-                       Mobile = employee.Mobile,
-                       EmployeeId = employee.Id,
-                       From = new AddressInfo
-                       {
-                           Name = address.Address.Name,
-                           Latitude = address.Address.Latitude,
-                           Longitude = address.Address.Longitude
-                       },
-                       To = new OfficeInfo 
-                       { 
-                           OfficeId = employee.OfficeId,
-                           WorkingEndTime = employee.Office.WorkingEndTime,
-                           WorkingStartTime = employee.Office.WorkingStartTime,
-                           Address = new AddressInfo
-                           {
-                               Name = employee.Office.Address.Name,
-                               Latitude = employee.Office.Address.Latitude,
-                               Longitude = employee.Office.Address.Longitude
-                           }
-                           
-                       }
-                   };
+                        where employee.CustomerCompanyId == customerCompanyId
+                        let address = employee.Addresses.SingleOrDefault(a => a.IsActive)
+                        select new EmployeeJourneyInfo
+                        {
+                            FirstName = employee.FirstName,
+                            LastName = employee.LastName,
+                            Mobile = employee.Mobile,
+                            EmployeeId = employee.Id,
+                            From = new AddressInfo
+                            {
+                                Name = address.Address.Name,
+                                Latitude = address.Address.Latitude,
+                                Longitude = address.Address.Longitude
+                            },
+                            To = new OfficeInfo
+                            {
+                                OfficeId = employee.OfficeId,
+                                WorkingEndTime = employee.Office.WorkingEndTime,
+                                WorkingStartTime = employee.Office.WorkingStartTime,
+                                Address = new AddressInfo
+                                {
+                                    Name = employee.Office.Address.Name,
+                                    Latitude = employee.Office.Address.Latitude,
+                                    Longitude = employee.Office.Address.Longitude
+                                }
+                            }
+                        };
+
         if (filter?.SelectedOffice != null)
         {
             employees = employees.Where(e => e.To.OfficeId == filter.SelectedOffice.OfficeId);
         }
 
-        return  new GetEmployeesResponse { Employees = await employees.ToListAsync()};
+        return new GetEmployeesResponse { Employees = await employees.ToListAsync() };
+    }
+
+    private async Task<DetectAddressCoordinatesResponse> ValidateEmployeeAndGetAddress(SingleEmployeeInfo employeeInfo, long customerCompanyId)
+    {
+        if (string.IsNullOrEmpty(employeeInfo.FirstName))
+        {
+            throw new InvalidOperationException("first name cannot be empty");
+        }
+
+        if (string.IsNullOrEmpty(employeeInfo.LastName))
+        {
+            throw new InvalidOperationException("last name cannot be empty");
+        }
+
+        if (string.IsNullOrEmpty(employeeInfo.Mobile))
+        {
+            throw new InvalidOperationException("Mobile cannot be empty");
+        }
+
+        if (string.IsNullOrEmpty(employeeInfo.Address))
+        {
+            throw new InvalidOperationException("Address cannot be empty");
+        }
+        var officeExists = await _db.Offices.AnyAsync(o => o.Id == employeeInfo.OfficeId);
+        var companyExists = await _db.CustomerCompanies.AnyAsync(cc => cc.Id == customerCompanyId);
+
+        if (!officeExists || !companyExists)
+        {
+            throw new InvalidOperationException($"invalid officeId {employeeInfo.OfficeId} or companyId {customerCompanyId}");
+        }
+
+        if (string.IsNullOrEmpty(employeeInfo.Address))
+        {
+            throw new InvalidOperationException($"address cant be empty for employee, mobile - {employeeInfo.Mobile}");
+        }
+
+        var addressRes =
+            //await _addressDetectionService.DetectAddressCoordinates(
+            // new DetectAddressCoordinatesRequest { Address = employeeinfo.Address });
+            new DetectAddressCoordinatesResponse { Lat = 1111, Long = 2222, StatusId = ActionStatus.Success };
+
+        if (addressRes == null)
+        {
+            throw new InvalidOperationException($"address does not exist - {employeeInfo.Address}");
+
+        }
+
+        return addressRes;
+    }
+
+    private string GetSessionValue(string key)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+
+        return res == null ? "" : res.Value;
     }
 }

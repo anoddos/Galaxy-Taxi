@@ -1,17 +1,17 @@
 using ProtoBuf;
 
-namespace GalaxyTaxi.Shared.Api.Models.Auction;
+namespace GalaxyTaxi.Shared.Api.Models.Filters;
 
 [ProtoContract]
 [Serializable]
-public class GetAuctionsRequest
+public class AuctionsFilter
 {
     [ProtoMember(1)]
     public bool IsFinished { get; set; }
 
     [ProtoMember(2)]
     public bool IncludesMe { get; set; }
-    
+
     [ProtoMember(3)]
     public bool WonByMe { get; set; }
 }

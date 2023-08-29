@@ -9,7 +9,7 @@ public class PaymentRequest
 {
     [ProtoMember(1)]
     public SubscriptionPlanType SelectedSubscriptionType { get; set; }
-    
+
     [ProtoMember(2)]
     public long Amount { get; set; }
 }

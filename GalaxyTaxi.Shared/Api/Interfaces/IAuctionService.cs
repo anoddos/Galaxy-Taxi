@@ -1,4 +1,5 @@
 using GalaxyTaxi.Shared.Api.Models.Auction;
+using GalaxyTaxi.Shared.Api.Models.Filters;
 using ProtoBuf.Grpc;
 using ProtoBuf.Grpc.Configuration;
 
@@ -9,5 +10,5 @@ public interface IAuctionService
 {
     Task Bid(BidRequest request, CallContext context = default);
     
-    Task<GetAuctionsResponse> GetAuction(GetAuctionsRequest request, CallContext context = default);
+    Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default);
 }

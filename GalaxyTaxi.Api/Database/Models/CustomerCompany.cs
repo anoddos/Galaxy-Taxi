@@ -11,7 +11,7 @@ public class CustomerCompany
     public double MaxAmountPerEmployee { get; set; }
 
     public long AccountId { get; set; }
-    
+
     public Account Account { get; set; } = null!;
 
     public ICollection<Employee> Employees { get; set; } = null!;

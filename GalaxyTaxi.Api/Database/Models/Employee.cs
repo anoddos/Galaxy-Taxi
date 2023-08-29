@@ -11,7 +11,7 @@ public class Employee
     public string Mobile { get; set; } = null!;
 
     public long CustomerCompanyId { get; set; }
-    
+
     public long OfficeId { get; set; }
 
     public CustomerCompany CustomerCompany { get; set; } = null!;

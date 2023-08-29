@@ -13,8 +13,12 @@ public class Auction
     public decimal Amount { get; set; }
 
     public long? CurrentWinnerId { get; set; }
+    
+    public long CustomerCompanyId { get; set; }
 
     public VendorCompany? CurrentWinner { get; set; }
+    
+    public CustomerCompany CustomerCompany { get; set; } = null!;
 
     public Journey Journey { get; set; } = null!;
 

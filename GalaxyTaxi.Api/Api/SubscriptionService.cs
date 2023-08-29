@@ -65,7 +65,7 @@ public class SubscriptionService : ISubscriptionService
         }
     }
 
-    public async Task<GetSubscriptionDetailResponse> GetSubscriptionDetailsAsync(CallContext context = default)
+    public async Task<GetSubscriptionDetailResponse> GetSubscriptionDetails(CallContext context = default)
     {
         var subscription = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == 13);
 

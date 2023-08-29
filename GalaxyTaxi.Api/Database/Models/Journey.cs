@@ -6,15 +6,11 @@ public class Journey
 
     public long CustomerCompanyId { get; set; }
 
-    public long VendorCompanyId { get; set; }
-
     public long OfficeId { get; set; }
 
     public Office Office { get; set; } = null!;
 
     public CustomerCompany CustomerCompany { get; set; } = null!;
 
-    public VendorCompany VendorCompany { get; set; } = null!;
-
-    public ICollection<Stop> Jobs { get; set; } = null!;
+    public ICollection<Stop> Stops { get; set; } = null!;
 }

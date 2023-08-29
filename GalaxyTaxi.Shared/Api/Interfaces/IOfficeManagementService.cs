@@ -3,7 +3,6 @@ using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using ProtoBuf.Grpc;
 using ProtoBuf.Grpc.Configuration;
 
-
 namespace GalaxyTaxi.Shared.Api.Interfaces;
 
 [Service("OfficeManagement")]

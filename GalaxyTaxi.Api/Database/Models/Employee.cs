@@ -13,6 +13,8 @@ public class Employee
     public long CustomerCompanyId { get; set; }
 
     public long OfficeId { get; set; }
+    
+    public bool HasActiveJourney { get; set; }
 
     public CustomerCompany CustomerCompany { get; set; } = null!;
 

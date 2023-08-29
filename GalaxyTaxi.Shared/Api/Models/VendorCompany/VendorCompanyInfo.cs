@@ -10,5 +10,5 @@ public class VendorCompanyInfo
     public long Id { get; set; }
 
     [ProtoMember(2)]
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 }

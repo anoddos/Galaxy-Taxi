@@ -26,5 +26,5 @@ public class AuctionInfo
     public JourneyInfo JourneyInfo { get; set; } = null!;
 
     [ProtoMember(7)]
-    public List<BidInfo> Bids { get; set; } = null!;
+    public IEnumerable<BidInfo> Bids { get; set; } = null!;
 }

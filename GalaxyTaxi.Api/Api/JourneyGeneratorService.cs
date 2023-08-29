@@ -1,14 +1,121 @@
+using GalaxyTaxi.Api.Database;
+using GalaxyTaxi.Api.Database.Models;
 using GalaxyTaxi.Shared.Api.Interfaces;
+using GalaxyTaxi.Shared.Api.Models.AddressDetection;
+using GalaxyTaxi.Shared.Api.Models.Common;
+using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
-using GalaxyTaxi.Shared.Api.Models.RouteGenerator;
+using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
+using Grpc.Core;
+using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
 
 namespace GalaxyTaxi.Api.Api;
 
 public class JourneyGeneratorService : IJourneyGeneratorService
 {
-    public Task<GenerateJourneysResponse> GenerateRoutesForCompany(GenerateJourneysRequest request, CallContext context = default)
+    private readonly Db _db;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public JourneyGeneratorService(Db db, IHttpContextAccessor httpContextAccessor)
     {
-        throw new NotImplementedException();
+        _db = db;
+        _httpContextAccessor = httpContextAccessor;
+    }
+    
+    public async Task<GenerateJourneysResponse> GenerateRoutesForCompany(GenerateJourneysRequest request, CallContext context = default)
+    {
+        var companyId = GetCompanyId();
+        
+        var companyEmployeesWithoutJourneys = await _db.Employees.Where(x => x.CustomerCompanyId == companyId && !x.HasActiveJourney).ToListAsync();
+
+        var journeys = await GenerateJourneysForEmployees(companyId, companyEmployeesWithoutJourneys);
+        
+        return new GenerateJourneysResponse
+        {
+            Journeys = journeys.Select(x => new JourneyInfo
+            {
+                Office = new OfficeInfo
+                {
+                    OfficeId = x.OfficeId,
+                    WorkingEndTime = x.Office.WorkingEndTime,
+                    WorkingStartTime = x.Office.WorkingStartTime,
+                    Address = new AddressInfo
+                    {
+                        Id = x.Office.Address.Id,
+                        Name = x.Office.Address.Name,
+                        Latitude = x.Office.Address.Latitude,
+                        Longitude = x.Office.Address.Longitude
+                    }
+                },
+                Stops = x.Stops.Select(xx => new StopInfo
+                {
+                    Id = xx.Id,
+                    Address = new AddressInfo
+                    {
+                        Id = xx.EmployeeAddress.Address.Id,
+                        Name = xx.EmployeeAddress.Address.Name,
+                        Latitude = xx.EmployeeAddress.Address.Latitude,
+                        Longitude = xx.EmployeeAddress.Address.Longitude
+                    },
+                    EmployeeDetails = new SingleEmployeeInfo
+                    {
+                        Mobile = xx.EmployeeAddress.Employee.Mobile,
+                        FirstName = xx.EmployeeAddress.Employee.FirstName,
+                        LastName = xx.EmployeeAddress.Employee.LastName
+                    }
+                })
+            }).ToList()
+        };
+    }
+
+    private async Task<List<Journey>> GenerateJourneysForEmployees(long companyId, List<Employee> companyEmployeesWithoutJourneys)
+    {
+        var result = new List<Journey>();
+
+        result.Add( new Journey
+        {
+            CustomerCompanyId = companyId,
+            OfficeId = companyEmployeesWithoutJourneys.First().OfficeId,
+            Stops = new List<Stop>
+            {
+                new Stop
+                {
+                    EmployeeAddressId = companyEmployeesWithoutJourneys.First().Addresses.Single(x => x.IsActive).Id
+                },
+                new Stop
+                {
+                    EmployeeAddressId = companyEmployeesWithoutJourneys[1].Addresses.Single(x => x.IsActive).Id
+                },
+                new Stop
+                {
+                    EmployeeAddressId = companyEmployeesWithoutJourneys[2].Addresses.Single(x => x.IsActive).Id
+                }
+            }
+        });
+
+        await Task.CompletedTask;
+        
+        return result;
+    }
+
+    private string GetSessionValue(string key, CallContext context = default)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+
+        return res == null ? "" : res.Value;
+    }
+
+    private long GetCompanyId()
+    {
+        var companyId = GetSessionValue(AuthenticationKey.CompanyId);
+
+        if (string.IsNullOrWhiteSpace(companyId))
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+        }
+
+        return long.Parse(companyId);
     }
 }

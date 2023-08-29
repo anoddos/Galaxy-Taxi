@@ -8,5 +8,5 @@ namespace GalaxyTaxi.Shared.Api.Interfaces;
 public interface ISubscriptionService
 {
     Task ChoseSubscriptionType(SubscriptionRequest request, CallContext context = default);
-    Task<GetSubscriptionDetailResponse> GetSubscriptionDetailsAsync(CallContext context = default);
+    Task<GetSubscriptionDetailResponse> GetSubscriptionDetails(CallContext context = default);
 }

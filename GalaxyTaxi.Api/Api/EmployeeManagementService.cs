@@ -25,7 +25,6 @@ public class EmployeeManagementService : IEmployeeManagementService
         _db = db;
         _addressDetectionService = addressDetectionService;
         _httpContextAccessor = httpContextAccessor;
-
 	}
 
 	private string? GetSessionValue(string key, CallContext context = default)
@@ -40,16 +39,16 @@ public class EmployeeManagementService : IEmployeeManagementService
 	public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
-        if (request.employeesInfo == null || request.employeesInfo.Count == 0) return;
-        var httpContext = _httpContextAccessor.HttpContext;
-        long customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+        if (request.EmployeesInfo == null || request.EmployeesInfo.Count == 0) return;
+        
+        var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+        
         try
         {
-
-            foreach (var employeeinfo in request.employeesInfo)
+            foreach (var employeeinfo in request.EmployeesInfo)
             {
                 // validate officeid and companyid
-                DetectAddressCoordinatesResponse addressRes = await ValidateEmployeeAndGetAddress(employeeinfo, customerCompanyId);
+                var addressRes = await ValidateEmployeeAndGetAddress(employeeinfo, customerCompanyId);
 
                 var address = _db.Addresses.FirstOrDefault(a => a.Latitude == addressRes.Lat & a.Longitude == addressRes.Long);
                 if (address == null)
@@ -58,7 +57,6 @@ public class EmployeeManagementService : IEmployeeManagementService
                     await _db.Addresses.AddAsync(address);
                     await _db.SaveChangesAsync();
                 }
-
 
                 // validate mobile uniqueness
                 var existingemployee = await _db.Employees.FirstOrDefaultAsync(e => e.Mobile == employeeinfo.Mobile);
@@ -101,7 +99,6 @@ public class EmployeeManagementService : IEmployeeManagementService
                         });
                     }
                 }
-
             }
 
             await _db.SaveChangesAsync();
@@ -111,9 +108,6 @@ public class EmployeeManagementService : IEmployeeManagementService
             Console.WriteLine(ex.Message);
         }
     }
-
-
-
 
     private async Task<DetectAddressCoordinatesResponse> ValidateEmployeeAndGetAddress(SingleEmployeeInfo employeeInfo, long customerCompanyId)
     {
@@ -149,7 +143,7 @@ public class EmployeeManagementService : IEmployeeManagementService
             throw new InvalidOperationException($"address cant be empty for employee, mobile - {employeeInfo.Mobile}");
         }
 
-        DetectAddressCoordinatesResponse addressRes =
+        var addressRes =
                     //await _addressDetectionService.DetectAddressCoordinates(
                     // new DetectAddressCoordinatesRequest { Address = employeeinfo.Address });
                     new DetectAddressCoordinatesResponse { Lat = 1111, Long = 2222, StatusId = ActionStatus.Success };
@@ -160,7 +154,6 @@ public class EmployeeManagementService : IEmployeeManagementService
 
         }
         return addressRes;
-
     }
 
     public Task EditEmployeeDetails(AddEmployeesRequest request, CallContext context = default)
@@ -177,11 +170,11 @@ public class EmployeeManagementService : IEmployeeManagementService
     {
         //to implement in more detail, for testing purposes now
 
-        long customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+        var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
         var employees = from employee in _db.Employees.Include(e => e.Office)
                    where employee.CustomerCompanyId == customerCompanyId
-                   let address = employee.Addresses.FirstOrDefault(a => a.IsActive)
+                   let address = employee.Addresses.SingleOrDefault(a => a.IsActive)
                    select  new EmployeeJourneyInfo
                    {
                        FirstName = employee.FirstName,
@@ -193,7 +186,6 @@ public class EmployeeManagementService : IEmployeeManagementService
                            Name = address.Address.Name,
                            Latitude = address.Address.Latitude,
                            Longitude = address.Address.Longitude
-
                        },
                        To = new OfficeInfo 
                        { 
@@ -214,9 +206,6 @@ public class EmployeeManagementService : IEmployeeManagementService
             employees = employees.Where(e => e.To.OfficeId == filter.SelectedOffice.OfficeId);
         }
 
-
-        var response =  new GetEmployeesResponse { Employees = await employees.ToListAsync()};
-        return response;
+        return  new GetEmployeesResponse { Employees = await employees.ToListAsync()};
     }
-
 }

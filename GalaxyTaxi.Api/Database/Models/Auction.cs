@@ -12,7 +12,7 @@ public class Auction
 
     public decimal Amount { get; set; }
 
-    public long CurrentWinnerId { get; set; }
+    public long? CurrentWinnerId { get; set; }
 
     public VendorCompany? CurrentWinner { get; set; }
 

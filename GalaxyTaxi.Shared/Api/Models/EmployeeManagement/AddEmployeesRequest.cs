@@ -8,5 +8,5 @@ namespace GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 public class AddEmployeesRequest
 {
     [ProtoMember(1)]
-    public List<SingleEmployeeInfo> employeesInfo { get; set; }
+    public List<SingleEmployeeInfo> EmployeesInfo { get; set; }  = null!;
 }

@@ -3,6 +3,9 @@ using GalaxyTaxi.Api.Database.Models;
 using GalaxyTaxi.Shared.Api.Interfaces;
 using GalaxyTaxi.Shared.Api.Models.Auction;
 using GalaxyTaxi.Shared.Api.Models.Common;
+using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
+using GalaxyTaxi.Shared.Api.Models.Register;
+using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
@@ -44,9 +47,42 @@ public class AuctionService : IAuctionService
         }
     }
 
-    public Task<GetAuctionsResponse> GetAuction(GetAuctionsRequest request, CallContext context = default)
+    public async Task<GetAuctionsResponse> GetAuction(GetAuctionsRequest request, CallContext context = default)
     {
-        throw new NotImplementedException();
+        var accountId = GetAccountId();
+        
+        var auctions = _db.Auctions.Include(x => x.Bids).Where(x => (request.IsFinished == false || x.CurrentWinner != null) && 
+                                                            (request.WonByMe == false || x.CurrentWinnerId == accountId) && 
+                                                            (request.IncludesMe == false || x.Journey.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId)))
+            .Select(x => new AuctionInfo
+            {
+                Id = x.Id,
+                Amount = x.Amount,
+                StartTime = x.StartTime,
+                EndTime = x.EndTime,
+                Bids = x.Bids.Select(xx => new BidInfo
+                {
+                    Id = xx.Id,
+                    TimeStamp = xx.TimeStamp,
+                    Amount = xx.Amount,
+                    Account = new AccountInfo
+                    {
+                        CompanyName = xx.Account.CompanyName,
+                        Id = xx.Account.Id
+                    }
+                }).ToList(),
+                CurrentWinner = x.CurrentWinnerId == null ? null : new VendorCompanyInfo
+                {
+                    Id = (long)x.CurrentWinnerId,
+                    Name = x.CurrentWinner.Name
+                },
+                JourneyInfo = new JourneyInfo
+                {
+                    
+                }
+            });
+
+        return  new GetAuctionsResponse { Auctions = await auctions.ToListAsync()};
     }
 
     private async Task ValidateBidRequestAsync(BidRequest request, CallContext context = default)

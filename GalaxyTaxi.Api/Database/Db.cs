@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 
 namespace GalaxyTaxi.Api.Database;
+
 public class Db : DbContext
 {
     public DbSet<Account> Accounts { get; set; } = null!;
@@ -30,6 +31,14 @@ public class Db : DbContext
 
     public Db(DbContextOptions options) : base(options)
     {
+    }
 
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Office>(entity =>
+        {
+            entity.Property(e => e.WorkingStartTime).HasColumnType("time");
+            entity.Property(e => e.WorkingEndTime).HasColumnType("time");
+        });
     }
 }

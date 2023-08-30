@@ -9,7 +9,6 @@ namespace GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 
 [Serializable]
 [ProtoContract]
-
 public class IsLoggedInResponse
 {
     [ProtoMember(1)]

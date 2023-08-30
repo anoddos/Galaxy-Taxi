@@ -20,6 +20,7 @@ services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).Ad
 
 services.AddDbContext<Db>(options => { options.UseNpgsql(builder.Configuration.GetConnectionString("GalaxyTaxiDb")); });
 
+services.AddScoped<IAddressDetectionService, AddressDetectionService>();
 
 services.AddCors(o =>
 {

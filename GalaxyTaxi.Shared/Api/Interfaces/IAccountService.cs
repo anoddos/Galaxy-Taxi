@@ -1,4 +1,5 @@
-﻿using GalaxyTaxi.Shared.Api.Models.Login;
+﻿using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+using GalaxyTaxi.Shared.Api.Models.Login;
 using GalaxyTaxi.Shared.Api.Models.Register;
 using ProtoBuf.Grpc;
 using ProtoBuf.Grpc.Configuration;
@@ -13,4 +14,6 @@ public interface IAccountService
     Task ValidateCompanyNameAsync(ValidateCompanyNameRequest request, CallContext context = default);
     Task<LoginResponse> LoginAsync(LoginRequest request, CallContext context = default);
     Task LogoutAsync(CallContext context = default);
+    Task<IsLoggedInResponse> IsLoggedIn(CallContext context = default);
+
 }

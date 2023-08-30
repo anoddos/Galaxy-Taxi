@@ -9,6 +9,7 @@ using ProtoBuf.Grpc;
 using GalaxyTaxi.Shared.Api.Models.Common;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -177,5 +178,10 @@ public class AccountService : IAccountService
     {
         var httpContext = _httpContextAccessor.HttpContext;
         await httpContext?.SignOutAsync();
+    }
+
+    public Task<IsLoggedInResponse> IsLoggedIn(CallContext context = default)
+    {
+        return Task.FromResult(new IsLoggedInResponse { IsLoggedIn = !string.IsNullOrEmpty(GetSessionValue(AuthenticationKey.LoggedInAs)) });
     }
 }

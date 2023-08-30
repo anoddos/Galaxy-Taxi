@@ -1,6 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using GalaxyTaxi.Shared.Api.Interfaces;
+@inherits LayoutComponentBase
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject IAccountService accountService
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -53,16 +55,14 @@
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        // TODO: check if the user is already logged in
-        // Set the IsUserLoggedIn property based on the login status
-        IsUserLoggedIn = IsUserLoggedInMethod();
+        await UpdateLoggedInInfo();
     }
 
-    // Example method to check if the user is logged in
-    bool IsUserLoggedInMethod()
+
+    async Task UpdateLoggedInInfo()
     {
-        // TODO: Implement the actual logic to check if the user is logged in
-        return IsUserLoggedIn;
+        var response = await accountService.IsLoggedIn();
+        IsUserLoggedIn = response.IsLoggedIn;
     }
 
     void DrawerToggle()
@@ -81,8 +81,10 @@
         NavigationManager.NavigateTo("account/register");
     }
 
-    private void Logout()
+    private async void Logout()
     {
-        // TODO: Implement Logout logic here
+        await accountService.LogoutAsync();
+        await UpdateLoggedInInfo();
+        NavigationManager.NavigateTo("account/login");
     }
 }

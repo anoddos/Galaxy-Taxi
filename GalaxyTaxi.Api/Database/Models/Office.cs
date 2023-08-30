@@ -1,3 +1,5 @@
+using ProtoBuf.WellKnownTypes;
+
 namespace GalaxyTaxi.Api.Database.Models;
 
 public class Office
@@ -8,9 +10,9 @@ public class Office
 
     public long CustomerCompanyId { get; set; }
 
-    public DateTime WorkingStartTime { get; set; }
+    public TimeSpan WorkingStartTime { get; set; }
 
-    public DateTime WorkingEndTime { get; set; }
+    public TimeSpan WorkingEndTime { get; set; }
 
     public Address Address { get; set; } = null!;
 

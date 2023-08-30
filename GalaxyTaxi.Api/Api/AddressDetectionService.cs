@@ -47,7 +47,7 @@ public class AddressDetectionService : IAddressDetectionService
     {
         var companyId = GetCompanyId();
 
-        var employees = await _db.Employees.Where(x => x.CustomerCompanyId == companyId && !x.Addresses.Single(xx => xx.IsActive).Address.IsDetected).ToListAsync();
+        var employees = await _db.Employees.Include(x => x.Addresses).ThenInclude(x => x.Address).Where(x => x.CustomerCompanyId == companyId && !x.Addresses.Single(xx => xx.IsActive).Address.IsDetected).ToListAsync();
 
         var addresses = await DetectAddressCoordinatesForEmployees(employees);
 
@@ -65,7 +65,7 @@ public class AddressDetectionService : IAddressDetectionService
     private async Task<IEnumerable<Address>> DetectAddressCoordinatesForEmployees(IEnumerable<Employee> employees)
     {
         var result = new List<Address>();
-        var apiKey = "AIzaSyAX3II8hi3iZWlU5qRGJfogk0fQhmRp-QU"; //configebshia gasatani
+        var apiKey = "AIzaSyAX3II8hi3iZWlU5qRGJfogk0fQhmRp-QU"; //todo configebshia gasatani
 
         using (var client = new HttpClient())
         {

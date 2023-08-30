@@ -12,9 +12,10 @@ public class OfficeInfo
 
     [ProtoMember(2)]
     public AddressInfo Address { get; set; }
+    
     [ProtoMember(3)]
-    public DateTime WorkingStartTime { get; set; }
+    public TimeSpan WorkingStartTime { get; set; }
+    
     [ProtoMember(4)]
-    public DateTime WorkingEndTime { get; set; }
-
+    public TimeSpan WorkingEndTime { get; set; }
 }

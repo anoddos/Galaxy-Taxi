@@ -46,7 +46,7 @@ public class AuctionService : IAuctionService
 
             await _db.SaveChangesAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             throw new RpcException(new Status(StatusCode.Internal, "Could not insert into db"));
         }
@@ -80,7 +80,7 @@ public class AuctionService : IAuctionService
                 CurrentWinner = x.CurrentWinnerId == null ? null : new VendorCompanyInfo
                 {
                     Id = (long)x.CurrentWinnerId,
-                    Name = x.CurrentWinner.Name
+                    Name = x.CurrentWinner!.Name
                 },
                 JourneyInfo = new JourneyInfo
                 {
@@ -126,7 +126,7 @@ public class AuctionService : IAuctionService
         return new GetAuctionsResponse { Auctions = await auctions.ToListAsync() };
     }
 
-    private async Task ValidateBidRequestAsync(BidRequest request, CallContext context = default)
+    private async Task ValidateBidRequestAsync(BidRequest request)
     {
         var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;
         if (lastBid <= request.Amount)
@@ -135,7 +135,7 @@ public class AuctionService : IAuctionService
         }
     }
 
-    private string GetSessionValue(string key, CallContext context = default)
+    private string GetSessionValue(string key)
     {
         var httpContext = _httpContextAccessor.HttpContext;
         var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);

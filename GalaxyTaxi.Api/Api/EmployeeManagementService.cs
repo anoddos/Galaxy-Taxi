@@ -14,13 +14,13 @@ namespace GalaxyTaxi.Api.Api;
 public class EmployeeManagementService : IEmployeeManagementService
 {
     private readonly Db _db;
-    private readonly IAddressDetectionService _addressDetectionService;
+    //private readonly IAddressDetectionService _addressDetectionService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public EmployeeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
+    public EmployeeManagementService(Db db, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
-        _addressDetectionService = addressDetectionService;
+        //_addressDetectionService = addressDetectionService;
         _httpContextAccessor = httpContextAccessor;
     }
 

@@ -13,13 +13,12 @@ public class OfficeManagementService : IOfficeManagementService
 {
 
     private readonly Db _db;
-    private readonly IAddressDetectionService _addressDetectionService;
+    //private readonly IAddressDetectionService _addressDetectionService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public OfficeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
+    public OfficeManagementService(Db db, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
-        _addressDetectionService = addressDetectionService;
         _httpContextAccessor = httpContextAccessor;
     }
 
@@ -41,19 +40,19 @@ public class OfficeManagementService : IOfficeManagementService
         var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
         var offices = from office in _db.Offices.Include(o => o.Address)
-            where office.CustomerCompanyId == customerCompanyId
-            select new OfficeInfo
-            {
-                OfficeId = office.Id,
-                WorkingStartTime = office.WorkingStartTime,
-                WorkingEndTime = office.WorkingEndTime,
-                Address = new AddressInfo
-                {
-                    Name = office.Address.Name,
-                    Latitude = office.Address.Latitude,
-                    Longitude = office.Address.Longitude
-                }
-            };
+                      where office.CustomerCompanyId == customerCompanyId
+                      select new OfficeInfo
+                      {
+                          OfficeId = office.Id,
+                          WorkingStartTime = office.WorkingStartTime,
+                          WorkingEndTime = office.WorkingEndTime,
+                          Address = new AddressInfo
+                          {
+                              Name = office.Address.Name,
+                              Latitude = office.Address.Latitude,
+                              Longitude = office.Address.Longitude
+                          }
+                      };
 
         var response = new GetOfficesResponse { Offices = await offices.ToListAsync() };
         return response;

@@ -1,11 +1,15 @@
 ﻿@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
+@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+
 <MudDialog DialogTitle="Edit Employee" Width="30%" @ref="dialog">
     <DialogContent>
         <MudTextField Label="First Name" @bind-Value="Employee.FirstName" />
         <MudTextField Label="Last Name" @bind-Value="Employee.LastName" />
         <MudTextField Label="Mobile" @bind-Value="Employee.Mobile" />
         <MudTextField Label="From Address" ReadOnly="true" @bind-Value="Employee.From.Name" />
+        <GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
         
         <MudSelect T="OfficeInfo" Items="OfficeList" Label="Office"
                    AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
@@ -27,10 +31,22 @@
     public List<OfficeInfo> OfficeList{ get; set; }
     private MudDialog dialog;
     private OfficeInfo SelectedOffice;
+    private GoogleMap map1;
+    private MapOptions mapOptions;
 
     protected override void OnInitialized()
     {
         SelectedOffice = OfficeList.FirstOrDefault(office => office.OfficeId == Employee.To.OfficeId);
+        mapOptions = new MapOptions()
+            {
+                Zoom = 13,
+                Center = new LatLngLiteral()
+                {
+                    Lat = (double)Employee.From.Latitude,
+                    Lng = (double)Employee.From.Longitude
+                },
+                MapTypeId = MapTypeId.Roadmap
+            };
     }
 
     private async Task SaveChanges()

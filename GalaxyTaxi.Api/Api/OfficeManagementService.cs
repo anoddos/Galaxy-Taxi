@@ -25,7 +25,7 @@ namespace GalaxyTaxi.Api.Api
 
 		public async Task EditOfficeDetails(OfficeInfo request, CallContext context = default)
 		{
-			var office = await _db.Offices.Include(o => o.Address).FirstOrDefaultAsync(o => o.Id == request.OfficeId);
+			var office = await _db.Offices.Include(o => o.Address).FirstOrDefaultAsync(o => o.Id == request.OfficeId && o.CustomerCompanyId == GetCompanyId());
 			if (office == null)
 			{
 				throw new InvalidOperationException("Incorrect Office Id");

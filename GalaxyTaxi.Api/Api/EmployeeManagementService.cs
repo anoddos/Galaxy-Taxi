@@ -8,6 +8,7 @@ using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
+using System.Runtime.CompilerServices;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -23,7 +24,6 @@ public class EmployeeManagementService : IEmployeeManagementService
 		_addressDetectionService = addressDetectionService;
 		_httpContextAccessor = httpContextAccessor;
 	}
-
 	public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
 	{
 		if (request == null) throw new ArgumentNullException(nameof(request));
@@ -86,18 +86,20 @@ public class EmployeeManagementService : IEmployeeManagementService
 					}
 					else
 					{
-						if (existingAddress.Address.Name != address.Name || !existingAddress.Address.IsDetected) {
+						if (existingAddress.Address.Name != address.Name || !existingAddress.Address.IsDetected)
+						{
 							isAddressUpdated = true;
 							existingAddress.Address.Name = address.Name;
 						}
-						
+
 					}
 
 				}
 
 				await _db.SaveChangesAsync();
-				if (!employeeExists || !isAddressUpdated) {
-					await _addressDetectionService.DetectSingleAddressCoordinates(new DetectAddressCoordinatesRequest {EmployeeId = existingEmployee.Id});
+				if (!employeeExists || !isAddressUpdated)
+				{
+					await _addressDetectionService.DetectSingleAddressCoordinates(new DetectAddressCoordinatesRequest { EmployeeId = existingEmployee.Id });
 				}
 
 			}
@@ -108,9 +110,26 @@ public class EmployeeManagementService : IEmployeeManagementService
 		}
 	}
 
-	public Task EditEmployeeDetails(AddEmployeesRequest request, CallContext context = default)
+	public async Task EditEmployeeDetails(EmployeeJourneyInfo request, CallContext context = default)
 	{
-		throw new NotImplementedException();
+		var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+
+		var employee = await _db.Employees.FirstOrDefaultAsync(o => o.Id == request.EmployeeId);
+		if (employee == null)
+		{
+			throw new InvalidOperationException("Incorrect employee Id");
+		}
+
+		employee.FirstName = request.FirstName;
+		employee.LastName = request.LastName;
+		employee.Mobile = request.Mobile;
+		employee.OfficeId = request.To.OfficeId;
+		var address = _db.Addresses.SingleOrDefault(a => a.Id == request.From.Id);
+		address.Name = request.From.Name;
+		address.Latitude = (decimal)request.From.Latitude;
+		address.Longitude = (decimal)request.From.Longitude;
+
+		await _db.SaveChangesAsync();
 	}
 
 	public Task DeleteEmployee(DeleteEmployeeRequest request, CallContext context = default)
@@ -120,8 +139,6 @@ public class EmployeeManagementService : IEmployeeManagementService
 
 	public async Task<GetEmployeesResponse> GetEmployees(EmployeeManagementFilter? filter = null, CallContext context = default)
 	{
-		//to implement in more detail, for testing purposes now
-
 		var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
 		var employees = from employee in _db.Employees.Include(e => e.Office)
@@ -137,7 +154,8 @@ public class EmployeeManagementService : IEmployeeManagementService
 							{
 								Name = address.Address.Name,
 								Latitude = address.Address.Latitude,
-								Longitude = address.Address.Longitude
+								Longitude = address.Address.Longitude,
+								Id = address.Address.Id
 							},
 							To = new OfficeInfo
 							{
@@ -148,7 +166,7 @@ public class EmployeeManagementService : IEmployeeManagementService
 								{
 									Name = employee.Office.Address.Name,
 									Latitude = employee.Office.Address.Latitude,
-									Longitude = employee.Office.Address.Longitude
+									Longitude = employee.Office.Address.Longitude,
 								}
 							}
 						};

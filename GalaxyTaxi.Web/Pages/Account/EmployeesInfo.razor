@@ -6,7 +6,7 @@
 
 <div class="wrapper" style="display:flex;">
 	<div class="employeeFilterContainer" style="width:30%;">
-		<MudTextField @bind-Value="EmployeeNameFilter" Label="Employee Name" Variant="Variant.Outlined"></MudTextField>
+		<MudTextField ValueChanged="@((string employeeName) => EmployeeNameChanged(employeeName))" Immediate="true" Label="Employee Name" Variant="Variant.Outlined"></MudTextField>
 		<MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined"
 				   AnchorOrigin="Origin.BottomCenter" ValueChanged="@((OfficeInfo currentOffice) => OfficeValueChanged(currentOffice))">
 			<MudSelectItem T="OfficeInfo" Value="@(null)">Select an option:</MudSelectItem>
@@ -77,9 +77,14 @@
 				<PropertyColumn Property="x => x.From.Name" Title="From" />
 				<PropertyColumn Property="x => x.To.Address.Name" Title="To" />
 				<PropertyColumn Property="x => x.Mobile" Title="Mobile" />
-				<TemplateColumn CellClass="d-flex justify-end">
+				<TemplateColumn>
 					<CellTemplate>
 						<MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenEditPopup(context.Item))" />
+					</CellTemplate>
+				</TemplateColumn>
+				<TemplateColumn CellClass="d-flex justify-end">
+					<CellTemplate>
+						<MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteEmployee(context.Item))" />
 					</CellTemplate>
 				</TemplateColumn>
 			</Columns>

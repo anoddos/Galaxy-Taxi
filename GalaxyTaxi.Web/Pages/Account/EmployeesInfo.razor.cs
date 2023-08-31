@@ -3,6 +3,7 @@ using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
+using MudBlazor.Interfaces;
 using OfficeOpenXml;
 
 namespace GalaxyTaxi.Web.Pages.Account;
@@ -29,7 +30,7 @@ public partial class EmployeesInfo
     // custom sort by name length
     protected override async Task OnInitializedAsync()
     {
-        var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter());
+        var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = OfficeFilter, EmployeeName = EmployeeNameFilter });
         var officeResponse = await _officeManagement.GetOffices(new OfficeManagementFilter());
         if (response != null && response.Employees != null)
         {
@@ -49,10 +50,20 @@ public partial class EmployeesInfo
         file = selectedFile;
     }
 
+    private async Task EmployeeNameChanged(string employeeName)
+    {
+        EmployeeNameFilter = employeeName;
+		var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = OfficeFilter, EmployeeName = EmployeeNameFilter });
+		if (response != null)
+		{
+			_employees = response.Employees;
+		}
+		StateHasChanged();
+	}
+
     private async Task OfficeValueChanged(OfficeInfo currentOffice)
     {
-        StateHasChanged();
-
+        OfficeFilter = currentOffice;
         var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = currentOffice });
         if (response != null)
         {
@@ -61,7 +72,15 @@ public partial class EmployeesInfo
         StateHasChanged();
     }
 
-    private async void OpenEditPopup(EmployeeJourneyInfo employee)
+    private async void DeleteEmployee(EmployeeJourneyInfo employee)
+    {
+        await _employeeManagement.DeleteEmployee(new DeleteEmployeeRequest { EmployeeId = employee.EmployeeId});
+		_employees.RemoveAll(x => x.EmployeeId == employee.EmployeeId);
+		StateHasChanged();
+	}
+
+
+	private async void OpenEditPopup(EmployeeJourneyInfo employee)
     {
         selectedEmployeeForEdit = employee;
         var parameters = new DialogParameters { ["Employee"] = selectedEmployeeForEdit, ["OfficeList"] = _offices };

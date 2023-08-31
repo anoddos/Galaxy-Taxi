@@ -74,14 +74,22 @@ public class EmployeeManagementService : IEmployeeManagementService
 					// Employee exists, update officeId, mobile and check address
 					existingEmployee.OfficeId = employeeInfo.OfficeId;
 					existingEmployee.Mobile = employeeInfo.Mobile;
-					var existingAddress = existingEmployee.Addresses.FirstOrDefault(a => a.AddressId == address.Id);
+					var deactivateAddress = _db.EmployeeAddresses.SingleOrDefault(ea => ea.EmployeeId == existingEmployee.Id);
+					if (deactivateAddress != null)
+					{
+						deactivateAddress.IsActive = false;
+					}
+
+
+					var existingAddress = existingEmployee.Addresses.FirstOrDefault(a => a.AddressId == address.Id && a.EmployeeId == existingEmployee.Id);
 
 					if (existingAddress == null)
 					{
 						existingEmployee.Addresses.Add(new EmployeeAddress
 						{
 							Employee = existingEmployee,
-							Address = address
+							Address = address,
+							IsActive = true
 						});
 					}
 					else
@@ -114,7 +122,7 @@ public class EmployeeManagementService : IEmployeeManagementService
 	{
 		var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
-		var employee = await _db.Employees.FirstOrDefaultAsync(o => o.Id == request.EmployeeId);
+		var employee = await _db.Employees.FirstOrDefaultAsync(o => o.Id == request.EmployeeId && o.CustomerCompanyId == customerCompanyId);
 		if (employee == null)
 		{
 			throw new InvalidOperationException("Incorrect employee Id");
@@ -132,9 +140,21 @@ public class EmployeeManagementService : IEmployeeManagementService
 		await _db.SaveChangesAsync();
 	}
 
-	public Task DeleteEmployee(DeleteEmployeeRequest request, CallContext context = default)
+	public async Task DeleteEmployee(DeleteEmployeeRequest request, CallContext context = default)
 	{
-		throw new NotImplementedException();
+		var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+
+		var employee = await _db.Employees
+			.Include(e => e.Addresses)
+			.FirstOrDefaultAsync(o => o.Id == request.EmployeeId && o.CustomerCompanyId == customerCompanyId);
+
+		if (employee != null)
+		{
+			_db.EmployeeAddresses.RemoveRange(employee.Addresses);
+			_db.Employees.Remove(employee);
+
+			await _db.SaveChangesAsync();
+		}
 	}
 
 	public async Task<GetEmployeesResponse> GetEmployees(EmployeeManagementFilter? filter = null, CallContext context = default)
@@ -174,6 +194,20 @@ public class EmployeeManagementService : IEmployeeManagementService
 		if (filter?.SelectedOffice != null)
 		{
 			employees = employees.Where(e => e.To.OfficeId == filter.SelectedOffice.OfficeId);
+		}
+
+		if (!string.IsNullOrWhiteSpace(filter?.EmployeeName))
+		{
+			string[]? names = filter?.EmployeeName.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+
+			foreach (string namePart in names)
+			{
+				employees = employees.Where(e =>
+					EF.Functions.Like(e.FirstName, $"%{namePart}%") ||
+					EF.Functions.Like(e.LastName, $"%{namePart}%")
+				);
+			}
 		}
 
 		return new GetEmployeesResponse { Employees = await employees.ToListAsync() };

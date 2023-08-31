@@ -6,5 +6,7 @@ namespace GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 [Serializable]
 public class DeleteEmployeeRequest
 {
+    [ProtoMember(1)]
+    public long EmployeeId { get; set; }
     
 }

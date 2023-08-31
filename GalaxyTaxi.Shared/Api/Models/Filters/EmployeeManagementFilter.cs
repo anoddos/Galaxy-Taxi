@@ -9,4 +9,7 @@ public class EmployeeManagementFilter
 {
     [ProtoMember(1)]
     public OfficeInfo? SelectedOffice { get; set; }
+
+    [ProtoMember(2)]
+    public string EmployeeName { get; set; } = "";
 }

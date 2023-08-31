@@ -1,61 +1,91 @@
-﻿@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+﻿@using GalaxyTaxi.Shared.Api.Models.AddressDetection;
+@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
 
-<MudDialog DialogTitle="Edit Employee" Width="30%" @ref="dialog">
-    <DialogContent>
-        <MudTextField Label="First Name" @bind-Value="Employee.FirstName" />
-        <MudTextField Label="Last Name" @bind-Value="Employee.LastName" />
-        <MudTextField Label="Mobile" @bind-Value="Employee.Mobile" />
-        <MudTextField Label="From Address" ReadOnly="true" @bind-Value="Employee.From.Name" />
-        <GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
-        
-        <MudSelect T="OfficeInfo" Items="OfficeList" Label="Office"
-                   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
-            @foreach (var office in OfficeList)
-            {
-                <MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
-            }
-        </MudSelect>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="SaveChanges">Save</MudButton>
-        <MudButton OnClick="CloseDialog">Cancel</MudButton>
-    </DialogActions>
+<MudDialog DialogTitle="Edit Employee" Width="30%">
+	<DialogContent>
+		<MudTextField Label="First Name" @bind-Value="Employee.FirstName" />
+		<MudTextField Label="Last Name" @bind-Value="Employee.LastName" />
+		<MudTextField Label="Mobile" @bind-Value="Employee.Mobile" />
+		<MudTextField Label="From Address" @bind-Value="Employee.From.Name" />
+		<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
+		<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+
+		<MudSelect T="OfficeInfo" Items="OfficeList"  Label="Office"
+				   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
+			@foreach (var office in OfficeList)
+			{
+				<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+			}
+		</MudSelect>
+	</DialogContent>
+	<DialogActions>
+		<MudButton OnClick="SaveChanges">Save</MudButton>
+		<MudButton OnClick="CloseDialog">Cancel</MudButton>
+	</DialogActions>
 </MudDialog>
 
 @code {
-    [Parameter] public EmployeeJourneyInfo Employee { get; set; }
-    [Parameter]
-    public List<OfficeInfo> OfficeList{ get; set; }
-    private MudDialog dialog;
-    private OfficeInfo SelectedOffice;
-    private GoogleMap map1;
-    private MapOptions mapOptions;
+	[Parameter] public EmployeeJourneyInfo Employee { get; set; }
+	[Parameter]
+	public List<OfficeInfo> OfficeList { get; set; }
+	[CascadingParameter] MudDialogInstance dialog { get; set; }
+	private OfficeInfo SelectedOffice { get; set; }
+	private GoogleMap map1;
+	private MapOptions mapOptions;
+	private Marker marker;
 
-    protected override void OnInitialized()
-    {
-        SelectedOffice = OfficeList.FirstOrDefault(office => office.OfficeId == Employee.To.OfficeId);
-        mapOptions = new MapOptions()
-            {
-                Zoom = 13,
-                Center = new LatLngLiteral()
-                {
-                    Lat = (double)Employee.From.Latitude,
-                    Lng = (double)Employee.From.Longitude
-                },
-                MapTypeId = MapTypeId.Roadmap
-            };
-    }
+	protected override async void OnInitialized()
+	{
+		SelectedOffice = OfficeList.FirstOrDefault(office => office.OfficeId == Employee.To.OfficeId);
+		mapOptions = new MapOptions()
+			{
+				Zoom = 13,
+				Center = new LatLngLiteral()
+				{
+					Lat = (double)Employee.From.Latitude,
+					Lng = (double)Employee.From.Longitude
+				},
+				MapTypeId = MapTypeId.Roadmap
+			};
+	}
 
-    private async Task SaveChanges()
-    {
-        dialog.Close(DialogResult.Ok(SelectedOffice));
-    }
+	private async Task AddMarker()
+	{
+		Employee.From = await _addressDetection.DetectAddressCoordinatesFromName(Employee.From);
 
-    private void CloseDialog()
-    {
-        dialog.Close(DialogResult.Ok(SelectedOffice));
-    }
+
+		var position = new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude };
+
+		marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+			{
+				Position = position,
+				Map = map1.InteropObject,
+				Draggable = true
+			});
+
+		await marker.AddListener("dragend", async () =>
+		{
+			var position = await marker.GetPosition();
+			Employee.From.Longitude = (decimal?)position.Lng;
+			Employee.From.Latitude = (decimal?)position.Lat;
+			var detectedAddress = await _addressDetection.DetectAddressNameFromCoordinates(Employee.From);
+			Employee.From.Name = detectedAddress.Name;
+			StateHasChanged();
+		});
+
+	}
+	private async Task SaveChanges()
+	{
+		Employee.To = SelectedOffice;
+		await _employeeManagement.EditEmployeeDetails(Employee);
+		dialog.Close(DialogResult.Ok(true));
+	}
+
+	private void CloseDialog()
+	{
+		dialog.Close(DialogResult.Ok(true));
+	}
 }

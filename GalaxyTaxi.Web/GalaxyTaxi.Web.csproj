@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="BlazorGoogleMaps" Version="3.1.2" />
         <PackageReference Include="BlazorInputFile" Version="0.2.0" />
+        <PackageReference Include="DocumentFormat.OpenXml" Version="2.20.0" />
         <PackageReference Include="EPPlus" Version="6.2.7" />
         <PackageReference Include="Grpc.Net.Client" Version="2.55.0" />
         <PackageReference Include="Grpc.Net.Client.Web" Version="2.55.0" />
@@ -39,10 +40,6 @@
       <Content Update="wwwroot\appsettings.Development.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="wwwroot\js\" />
     </ItemGroup>
 
 

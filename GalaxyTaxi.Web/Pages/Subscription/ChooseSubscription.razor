@@ -99,12 +99,12 @@
 </MudContainer>
 
 @code {
-    private SubscriptionRequest model = new SubscriptionRequest();
+    private SubscriptionRequest _model = new SubscriptionRequest();
     
     private async Task ChoseSubscription(SubscriptionPlanType type)
     {
-        model.SubscriptionPlanType = type;
-        await SubscriptionService.ChoseSubscriptionType(model);
+        _model.SubscriptionPlanType = type;
+        await SubscriptionService.ChoseSubscriptionType(_model);
         
         NavigationManager.NavigateTo("/subscription/payment");
     }

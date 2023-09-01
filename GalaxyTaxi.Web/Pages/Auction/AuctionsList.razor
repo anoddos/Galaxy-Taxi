@@ -4,11 +4,20 @@
 @using GalaxyTaxi.Shared.Api.Models.Filters
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
+@using Size = MudBlazor.Size
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
 
 
+<MudCheckBox @bind-Checked="@_auctionsFilter.IncludesMe" Label="Mine" Color="Color.Primary"></MudCheckBox>
+<MudCheckBox @bind-Checked="@_auctionsFilter.IsFinished" Label="Finished" Color="Color.Primary"></MudCheckBox>
+<MudCheckBox @bind-Checked="@_auctionsFilter.WonByMe" Label="Won By Me" Color="Color.Primary"></MudCheckBox>
+
+<MudButton OnClick="async () => await UpdateGrid()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white;">Search</MudButton>
+
 <MudGrid>
+
+
     @foreach (var item in _auctionItems)
     {
         <MudItem xs="12">
@@ -76,23 +85,24 @@
 
 
 @code {
-    
-    private AuctionsFilter _model = new AuctionsFilter();
-    private readonly List<AuctionItem> _auctionItems;
+
+    private AuctionsFilter _auctionsFilter = new AuctionsFilter
+    {
+        IncludesMe = false,
+        IsFinished = false,
+        WonByMe = false
+    };
+
+    private List<AuctionItem> _auctionItems = new List<AuctionItem>();
     private GoogleMap _map1;
     private MapOptions _mapOptions;
-    
-    public AuctionsList()
-    {
-        _auctionItems = GetAuctionItems();
-    }
 
     protected override async void OnInitialized()
     {
-        _mapOptions = new MapOptions()
+        _mapOptions = new MapOptions
         {
             Zoom = 13,
-            Center = new LatLngLiteral()
+            Center = new LatLngLiteral
             {
                 Lat = 40.333,
                 Lng = 41.33
@@ -100,51 +110,42 @@
             MapTypeId = MapTypeId.Roadmap
         };
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
-        //_auctionItems = (await AuctionService.GetAuction(new AuctionsFilter())).Auctions;
+        await GetAuctionData();
     }
 
-    // Sample data for demonstration purposes
-    List<AuctionItem> GetAuctionItems()
+    private async Task UpdateGrid()
     {
-        return new List<AuctionItem>
+        _auctionItems.Clear();
+
+        await GetAuctionData();
+    }
+
+    private async Task GetAuctionData()
+    {
+        var auctionInfos = (await AuctionService.GetAuction(_auctionsFilter)).Auctions;
+
+        foreach (var auctionInfo in auctionInfos)
         {
-            new AuctionItem
+            _auctionItems.Add(new AuctionItem
             {
-                Title = "Item 1",
-                Locations = new List<string> { "Location A", "Location B", "Location C" },
-                FinalLocation = "Final Location X",
-                Price = "$100",
-                BidCount = 5
-            },
-            new AuctionItem
-            {
-                Title = "Item 2",
-                Locations = new List<string> { "Location A", "Location B", "Location C" },
-                FinalLocation = "Final Location X",
-                Price = "$100",
-                BidCount = 5
-            },
-            new AuctionItem
-            {
-                Title = "Item 3",
-                Locations = new List<string> { "Location A", "Location B", "Location C" },
-                FinalLocation = "Final Location X",
-                Price = "$100",
-                BidCount = 5
-            }
-            // Add more items...
-        };
+                Title = auctionInfo.JourneyInfo.CustomerCompany.Name + "'s Auction",
+                BidCount = auctionInfo.Bids?.Count() ?? 0,
+                FinalLocation = auctionInfo.JourneyInfo.Office.Address.Name,
+                Locations = auctionInfo.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList(),
+                Price = auctionInfo.Amount
+            });
+        }
     }
 
     private class AuctionItem : AuctionInfo
     {
         public string Title { get; set; }
-        public List<string> Locations { get; set; }
+        public List<string>? Locations { get; set; }
         public string FinalLocation { get; set; }
-        public string Price { get; set; }
+        public decimal Price { get; set; }
         public int BidCount { get; set; }
     }
 }

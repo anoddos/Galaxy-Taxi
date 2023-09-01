@@ -60,6 +60,7 @@ public class AuctionService : IAuctionService
             .Where(x => (filter.IsFinished == false || x.CurrentWinner != null) 
                         && (filter.WonByMe == false || x.CurrentWinnerId == accountId) 
                         && (filter.IncludesMe == false || x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId)))
+            .Take(25)
             .Select(x => new AuctionInfo
             {
                 Id = x.Id,

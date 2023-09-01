@@ -2,6 +2,7 @@
 @using GalaxyTaxi.Shared.Api.Models.EmployeeManagement
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @inject IDialogService DialogService
+@inject IJSRuntime js
 
 
 <div class="wrapper" style="display:flex;">
@@ -19,21 +20,24 @@
 
 	<div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
 		<div style="display: flex; align-items: center;">
+
+			<MudButton DisableElevation Variant="Variant.Outlined" OnClick="GenerateExcelFile" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Export</MudButton>
 			<MudButton DisableElevation Variant="Variant.Filled" OnClick="async () => await ImportFromExcel()" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Import</MudButton>
 
-				<MudFileUpload T="IBrowserFile" FilesChanged="OnFileChange" class="mud-button-root mud-button-contained mud-theme-themePrimary" style="margin-left: 5px;">
-					<ButtonTemplate>
-						<MudButton HtmlTag="label"
-								   Variant="Variant.Filled"
-								   Color="Color.Primary"
-								   StartIcon="@Icons.Material.Filled.CloudUpload"
-								   for="@context">
-							Upload File
-						</MudButton>
-					</ButtonTemplate>
-				</MudFileUpload>
 
-				@if (file != null)
+			<MudFileUpload T="IBrowserFile" FilesChanged="OnFileChange" class="mud-button-root mud-button-contained mud-theme-themePrimary" style="margin-left: 5px;">
+				<ButtonTemplate>
+					<MudButton HtmlTag="label"
+								Variant="Variant.Filled"
+								Color="Color.Primary"
+								StartIcon="@Icons.Material.Filled.CloudUpload"
+								for="@context">
+						Upload File
+					</MudButton>
+				</ButtonTemplate>
+			</MudFileUpload>
+
+			@if (file != null)
 			{
 				<MudListItem Icon="@Icons.Material.Filled.AttachFile" @key="@file">
 					@file.Name <code>@file.Size bytes</code>
@@ -45,21 +49,21 @@
 		@*<code>@file.Size bytes</code>*@
 
 
-
+		@*
 		<MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
-			<MudTabPanel Text="All">
-				<MudText>Content One</MudText>
-			</MudTabPanel>
-			<MudTabPanel Text="Current">
-				<MudText>Content Two</MudText>
-			</MudTabPanel>
-			<MudTabPanel Text="Planned">
-				<MudText>Content Three</MudText>
-			</MudTabPanel>
-			<MudTabPanel Text="Cancelled">
-				<MudText>Content Disabled</MudText>
-			</MudTabPanel>
-		</MudTabs>
+		<MudTabPanel Text="All">
+		<MudText>Content One</MudText>
+		</MudTabPanel>
+		<MudTabPanel Text="Current">
+		<MudText>Content Two</MudText>
+		</MudTabPanel>
+		<MudTabPanel Text="Planned">
+		<MudText>Content Three</MudText>
+		</MudTabPanel>
+		<MudTabPanel Text="Cancelled">
+		<MudText>Content Disabled</MudText>
+		</MudTabPanel>
+		</MudTabs> *@
 
 
 		<MudDataGrid T="EmployeeJourneyInfo" Items="@_employees"
@@ -82,7 +86,7 @@
 						<MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenEditPopup(context.Item))" />
 					</CellTemplate>
 				</TemplateColumn>
-				<TemplateColumn CellClass="d-flex justify-end">
+				<TemplateColumn>
 					<CellTemplate>
 						<MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteEmployee(context.Item))" />
 					</CellTemplate>

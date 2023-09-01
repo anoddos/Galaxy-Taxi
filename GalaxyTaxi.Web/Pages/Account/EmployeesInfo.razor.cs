@@ -1,59 +1,76 @@
-﻿using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using GalaxyTaxi.Shared.Api.Models.Common;
+using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using MudBlazor.Interfaces;
 using OfficeOpenXml;
+using ProtoBuf;
+using System.Data;
+using System.IO;
+using System.Net.Http;
+using System.Reflection;
 using static MudBlazor.CategoryTypes;
+using static MudBlazor.Colors;
+using System.Web;
+using System.Net.Http.Headers;
+using System.Net;
+using Microsoft.JSInterop;
 
 namespace GalaxyTaxi.Web.Pages.Account;
 
 public partial class EmployeesInfo
 {
-    private List<EmployeeJourneyInfo> _employees = new List<EmployeeJourneyInfo>();
-    private List<OfficeInfo> _offices = new List<OfficeInfo>();
-    private bool _loaded;
-    //private string _searchString;
-    private bool _sortNameByLength;
-    private List<string> _events = new();
-    private bool _isImporting;
-    private IBrowserFile file;
-    private bool _isOpen;
-    //private MudDialog dialog;
-    public string EmployeeNameFilter { get; set; }
-    public OfficeInfo OfficeFilter { get; set; }
+	private List<EmployeeJourneyInfo> _employees = new List<EmployeeJourneyInfo>();
+	private List<OfficeInfo> _offices = new List<OfficeInfo>();
+	private bool _loaded;
+	//private string _searchString;
+	private bool _sortNameByLength;
+	private List<string> _events = new();
+	private bool _isImporting;
+	private IBrowserFile file;
+	private bool _isOpen;
+	//private MudDialog dialog;
+	public string EmployeeNameFilter { get; set; }
+	public OfficeInfo OfficeFilter { get; set; }
 
-    private IDialogReference dialogReference;
+	private IDialogReference dialogReference;
 
-    private EmployeeJourneyInfo selectedEmployeeForEdit;
+	private EmployeeJourneyInfo selectedEmployeeForEdit;
 
-    // custom sort by name length
-    protected override async Task OnInitializedAsync()
-    {
-        var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = OfficeFilter, EmployeeName = EmployeeNameFilter });
-        var officeResponse = await _officeManagement.GetOffices(new OfficeManagementFilter());
-        if (response != null && response.Employees != null)
-        {
-            _employees = response.Employees;
-        }
-        if (officeResponse != null && officeResponse.Offices != null)
-        {
-            _offices = officeResponse.Offices;
-        }
+	// custom sort by name length
+	protected override async Task OnInitializedAsync()
+	{
+		var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = OfficeFilter, EmployeeName = EmployeeNameFilter });
+		var officeResponse = await _officeManagement.GetOffices(new OfficeManagementFilter());
+		if (response != null && response.Employees != null)
+		{
+			_employees = response.Employees;
+		}
+		if (officeResponse != null && officeResponse.Offices != null)
+		{
+			_offices = officeResponse.Offices;
+		}
 
-        _loaded = true;
-        _isOpen = false;
-    }
+		_loaded = true;
+		_isOpen = false;
+	}
 
-    private void OnFileChange(IBrowserFile selectedFile)
-    {
-        file = selectedFile;
-    }
+	private void OnFileChange(IBrowserFile selectedFile)
+	{
+		file = selectedFile;
+	}
 
-    private async Task EmployeeNameChanged(string employeeName)
-    {
-        EmployeeNameFilter = employeeName;
+	private async Task EmployeeNameChanged(string employeeName)
+	{
+		EmployeeNameFilter = employeeName;
+		ReloadEmployees();
+	}
+
+	private async Task ReloadEmployees()
+	{
 		var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = OfficeFilter, EmployeeName = EmployeeNameFilter });
 		if (response != null)
 		{
@@ -62,128 +79,123 @@ public partial class EmployeesInfo
 		StateHasChanged();
 	}
 
-    private async Task OfficeValueChanged(OfficeInfo currentOffice)
-    {
-        OfficeFilter = currentOffice;
-        var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = currentOffice });
-        if (response != null)
-        {
-            _employees = response.Employees;
-        }
-        StateHasChanged();
-    }
+	private async Task OfficeValueChanged(OfficeInfo currentOffice)
+	{
+		OfficeFilter = currentOffice;
+		ReloadEmployees();
+	}
 
-    private async void DeleteEmployee(EmployeeJourneyInfo employee)
-    {
-        await _employeeManagement.DeleteEmployee(new DeleteEmployeeRequest { EmployeeId = employee.EmployeeId});
+	private async void DeleteEmployee(EmployeeJourneyInfo employee)
+	{
+		await _employeeManagement.DeleteEmployee(new DeleteEmployeeRequest { EmployeeId = employee.EmployeeId });
 		_employees.RemoveAll(x => x.EmployeeId == employee.EmployeeId);
 		StateHasChanged();
 	}
 
 
 	private async void OpenEditPopup(EmployeeJourneyInfo employee)
-    {
-        selectedEmployeeForEdit = employee;
-        var parameters = new DialogParameters { ["Employee"] = selectedEmployeeForEdit, ["OfficeList"] = _offices };
-        dialogReference = DialogService.Show<EmployeePopup>("Edit Employee", parameters);
+	{
+		selectedEmployeeForEdit = employee;
+		var parameters = new DialogParameters { ["Employee"] = selectedEmployeeForEdit, ["OfficeList"] = _offices };
+		dialogReference = DialogService.Show<EmployeePopup>("Edit Employee", parameters);
 		var result = await dialogReference.Result;
-        dialogReference.Close();
-        StateHasChanged();
+		dialogReference.Close();
+		StateHasChanged();
 	}
 
-    private async Task ImportFromExcel()
-    {
-        _isImporting = true; // Set a flag to indicate importing
-        StateHasChanged();
+	private void GenerateExcelFile()
+	{
+		using (var package = new ExcelPackage())
+		{
+			var worksheet = package.Workbook.Worksheets.Add("Employees");
 
-        try
-        {
-            using (var stream = file.OpenReadStream())
-            {
-                using (var package = new ExcelPackage())
-                {
-                    await package.LoadAsync(stream);
+			for (int i = 0; i < ExcelColumnNames.AllColumns.Count; i++)
+			{
+				worksheet.Cells[1, i + 1].Value = ExcelColumnNames.AllColumns[i];
+			}
 
-                    var worksheet = package.Workbook.Worksheets[0];
-                    var importedData = new List<SingleEmployeeInfo>();
+			for (int i = 0; i < _employees.Count; i++)
+			{
+				worksheet.Cells[i + 2, 1].Value = _employees[i].FirstName;
+				worksheet.Cells[i + 2, 2].Value = _employees[i].LastName;
+				worksheet.Cells[i + 2, 3].Value =  _employees[i].Mobile;
+				worksheet.Cells[i + 2, 4].Value = _employees[i].To?.OfficeId;
+				worksheet.Cells[i + 2, 5].Value = _employees[i].From?.Name;
+			}
 
-                    for (int row = worksheet.Dimension.Start.Row + 1; row <= worksheet.Dimension.End.Row; row++)
-                    {
-
-                        var firstName = worksheet.Cells[row, 1].GetValue<string>();
-                        var lastName = worksheet.Cells[row, 2].GetValue<string>();
-                        var mobile = worksheet.Cells[row, 3].GetValue<string>();
-                        var customerCompanyId = worksheet.Cells[row, 4].GetValue<long>();
-                        var officeId = worksheet.Cells[row, 5].GetValue<long>();
-                        var address = worksheet.Cells[row, 6].GetValue<string>();
-
-                        SingleEmployeeInfo employee = new SingleEmployeeInfo
-                        {
-                            FirstName = firstName,
-                            LastName = lastName,
-                            Mobile = mobile,
-                            CustomerCompanyId = customerCompanyId,
-                            OfficeId = officeId,
-                            Address = address
-                        };
-                        Console.WriteLine(firstName);
-
-                        importedData.Add(employee);
-                    }
-                    Console.WriteLine(importedData.Count);
-
-                    var request = new AddEmployeesRequest
-                    {
-                        EmployeesInfo = importedData
-                    };
-                    await _employeeManagement.AddEmployees(request);
-
-                    _isImporting = false; // Reset the flag
-                    StateHasChanged();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-            // Handle exception, if needed
-        }
-    }
+			js.InvokeVoidAsync("saveAsFile", $"Employees_{DateTime.Now.ToString("yyyy:MM:dd_HH:mm")}.xlsx", Convert.ToBase64String(package.GetAsByteArray()));
+		}
+	}
 
 
-    private Func<EmployeeJourneyInfo, object> SortBy => x =>
-    {
-        if (_sortNameByLength)
-            return x.FirstName.Length;
-        else
-            return x.FirstName;
-    };
-    // quick filter - filter gobally across multiple columns with the same input
-    private Func<EmployeeJourneyInfo, bool> QuickFilter => x =>
-    {
-        //if (string.IsNullOrWhiteSpace(_searchString))
-        //    return true;
+	private async Task ImportFromExcel()
+	{
+		_isImporting = true;
 
-        //if (x.Sign.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-        //    return true;
+		try
+		{
+			using (var stream = file.OpenReadStream())
+			{
+				using (var package = new ExcelPackage())
+				{
+					await package.LoadAsync(stream);
 
-        //if (x.Name.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-        //    return true;
+					var worksheet = package.Workbook.Worksheets[0];
+					var importedData = new List<SingleEmployeeInfo>();
 
-        //if ($"{x.Number} {x.Position} {x.Molar}".Contains(_searchString))
-        //    return true;
+					for (int row = worksheet.Dimension.Start.Row + 1; row <= worksheet.Dimension.End.Row; row++)
+					{
+						var employee = new SingleEmployeeInfo();
 
-        return false;
-    };
+						foreach (var column in ExcelColumnNames.AllColumns)
+						{
+							var columnIndex = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column]
+												.FirstOrDefault(cell => cell.Text == column)?.Start.Column ?? 0;
+							var cellValue = worksheet.Cells[row, columnIndex].Text;
 
-    // events
-    void RowClicked(DataGridRowClickEventArgs<EmployeeJourneyInfo> args)
-    {
-        //_events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
-    }
+							switch (column)
+							{
+								case ExcelColumnNames.FirstName:
+									employee.FirstName = cellValue;
+									break;
+								case ExcelColumnNames.LastName:
+									employee.LastName = cellValue;
+									break;
+								case ExcelColumnNames.Mobile:
+									employee.Mobile = cellValue;
+									break;
+								case ExcelColumnNames.OfficeId:
+									employee.OfficeId = long.Parse(cellValue);
+									break;
+								case ExcelColumnNames.Address:
+									employee.Address = cellValue;
+									break;
+							}
+						}
 
-    void SelectedItemsChanged(HashSet<EmployeeJourneyInfo> items)
-    {
-        //_events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
-    }
+						importedData.Add(employee);
+					}
+
+					Console.WriteLine(importedData.Count);
+
+					var request = new AddEmployeesRequest
+					{
+						EmployeesInfo = importedData
+					};
+					await _employeeManagement.AddEmployees(request);
+
+					_isImporting = false; // Reset the flag
+					ReloadEmployees();
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.Message);
+			// Handle exception, if needed
+		}
+
+	}
+
+
 }

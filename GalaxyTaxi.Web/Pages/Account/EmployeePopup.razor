@@ -58,13 +58,19 @@
 
 
 		var position = new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude };
+		mapOptions.Center = position;
 
-		marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
-			{
-				Position = position,
-				Map = map1.InteropObject,
-				Draggable = true
-			});
+
+        if (marker == null)
+        {
+            marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+				{
+					Map = map1.InteropObject,
+					Draggable = true
+				});
+        }
+        await marker.SetPosition(position);
+
 
 		await marker.AddListener("dragend", async () =>
 		{

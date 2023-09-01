@@ -25,6 +25,7 @@ namespace GalaxyTaxi.Api.Api
 
 		public async Task EditOfficeDetails(OfficeInfo request, CallContext context = default)
 		{
+			if (string.IsNullOrWhiteSpace(request.Address.Name)) throw new ArgumentNullException(nameof(request.Address));
 			var office = await _db.Offices.Include(o => o.Address).FirstOrDefaultAsync(o => o.Id == request.OfficeId && o.CustomerCompanyId == GetCompanyId());
 			if (office == null)
 			{
@@ -52,7 +53,8 @@ namespace GalaxyTaxi.Api.Api
 						Name = office.Address.Name,
 						Latitude = office.Address.Latitude,
 						Longitude = office.Address.Longitude
-					}
+					},
+					NumberOfEmployees = _db.Employees.Count(e => e.OfficeId == office.Id)
 				}).ToList()
 			};
 
@@ -80,6 +82,8 @@ namespace GalaxyTaxi.Api.Api
 			{
 				throw new Exception();
 			}
+
+			if (string.IsNullOrWhiteSpace(request.Address.Name)) throw new ArgumentNullException(nameof(request.Address));
 
 			office.CustomerCompanyId = customerCompanyId;
 			office.Address.Name = request.Address.Name;

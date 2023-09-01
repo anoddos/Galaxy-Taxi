@@ -13,7 +13,7 @@
 		<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
 		<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
 
-		<MudSelect T="OfficeInfo" Items="OfficeList"  Label="Office"
+		<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office"
 				   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
 			@foreach (var office in OfficeList)
 			{
@@ -28,10 +28,15 @@
 </MudDialog>
 
 @code {
-	[Parameter] public EmployeeJourneyInfo Employee { get; set; }
+	[Parameter]
+	public EmployeeJourneyInfo Employee { get; set; }
+	
 	[Parameter]
 	public List<OfficeInfo> OfficeList { get; set; }
-	[CascadingParameter] MudDialogInstance dialog { get; set; }
+
+	[CascadingParameter]
+	MudDialogInstance dialog { get; set; }
+
 	private OfficeInfo SelectedOffice { get; set; }
 	private GoogleMap map1;
 	private MapOptions mapOptions;
@@ -58,18 +63,18 @@
 
 
 		var position = new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude };
-		mapOptions.Center = position;
+		// mapOptions.Center = position;
 
 
-        if (marker == null)
-        {
-            marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+		if (marker == null)
+		{
+			marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
 				{
 					Map = map1.InteropObject,
 					Draggable = true
 				});
-        }
-        await marker.SetPosition(position);
+		}
+		await marker.SetPosition(position);
 
 
 		await marker.AddListener("dragend", async () =>

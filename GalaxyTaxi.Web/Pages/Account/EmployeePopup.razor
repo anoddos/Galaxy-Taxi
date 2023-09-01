@@ -4,7 +4,7 @@
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
 
-<MudDialog DialogTitle="Edit Employee" Width="30%">
+<MudDialog DialogTitle="Edit Employee" Width="400px">
 	<DialogContent>
 		<MudTextField Label="First Name" @bind-Value="Employee.FirstName" />
 		<MudTextField Label="Last Name" @bind-Value="Employee.LastName" />
@@ -13,7 +13,7 @@
 		<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
 		<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
 
-		<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office"
+		<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office" Style="width:400px;"
 				   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
 			@foreach (var office in OfficeList)
 			{

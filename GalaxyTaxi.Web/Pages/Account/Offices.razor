@@ -7,7 +7,7 @@
 
 <div class="wrapper" style="display:flex;">
 	<div class="OfficeFilterContainer" style="width:30%;">
-		<MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
+		<MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" 
 			ValueChanged="@((OfficeInfo current) => OfficeValueChanged(current))">
 			<MudSelectItem T="OfficeInfo" Value="@(null)">[Add New Office]</MudSelectItem>
 			@foreach (var office in _offices)

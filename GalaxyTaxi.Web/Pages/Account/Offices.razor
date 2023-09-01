@@ -1,16 +1,36 @@
 ﻿@page "/account/offices"
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement
+@using GoogleMapsComponents;
+@using GoogleMapsComponents.Maps;
 
 <h3>Offices</h3>
 
-
 <div class="wrapper" style="display:flex;">
-	<div class="officeListContainer" style="width:30%;">
-        <MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
-            @foreach (var office in _offices)
-            {
-                <MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
-            }
-        </MudSelect>
-    </div>
+	<div class="OfficeFilterContainer" style="width:30%;">
+		<MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" 
+			ValueChanged="@((OfficeInfo current) => OfficeValueChanged(current))">
+			<MudSelectItem T="OfficeInfo" Value="@(null)">[Add New Office]</MudSelectItem>
+			@foreach (var office in _offices)
+			{
+				<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+			}
+		</MudSelect>
+	</div>
+	<div class="OfficeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
+
+		<MudCard>
+			<MudCardHeader>
+				<MudText Typo="Typo.h6">Office</MudText>
+			</MudCardHeader>
+			<MudCardContent>
+				<MudTextField Label="Office Address" @bind-Value="OfficeFilter.Address.Name" />
+				<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
+				<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+				<MudLink Href="@navigationLink">Number Of Employees : @OfficeFilter.NumberOfEmployees</MudLink>
+			</MudCardContent>
+			<MudCardActions>
+				<MudButton OnClick="SaveChanges">Save Office Info</MudButton>
+			</MudCardActions>
+		</MudCard>
+	</div>
 </div>

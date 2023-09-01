@@ -18,4 +18,7 @@ public class OfficeInfo
 
 	[ProtoMember(4)]
 	public TimeSpan WorkingEndTime { get; set; }
+
+	[ProtoMember(5)]
+	public int NumberOfEmployees { get; set; }
 }

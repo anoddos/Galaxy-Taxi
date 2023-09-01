@@ -2,6 +2,8 @@
 @using GalaxyTaxi.Shared.Api.Interfaces
 @using GalaxyTaxi.Shared.Api.Models.Auction
 @using GalaxyTaxi.Shared.Api.Models.Filters
+@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
 
@@ -9,11 +11,10 @@
 <MudGrid>
     @foreach (var item in _auctionItems)
     {
-        <MudItem xs="12" sm="6" md="4" lg="3"> <!-- Each item occupies 1/4 of the screen on large devices, adjust as needed -->
+        <MudItem xs="12">
             <MudPaper Elevation="3" Padding="16px" Class="auction-item">
                 <div class="auction-item-map">
-                    <!-- Google Map goes here -->
-                    <!-- You can embed a map using an iframe or any other method -->
+                    <GoogleMap @ref="@_map1" Options="@_mapOptions" Class="auction-item"></GoogleMap>
                 </div>
                 <div class="auction-item-details">
                     <h3>@item.Title</h3>
@@ -40,7 +41,7 @@
 .auction-item {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    margin: 20px 100px 20px;
 }
 
 .auction-item-map {
@@ -76,17 +77,32 @@
 
 @code {
     
-    private AuctionsFilter model = new AuctionsFilter();
-    private List<AuctionItem> _auctionItems;
-
+    private AuctionsFilter _model = new AuctionsFilter();
+    private readonly List<AuctionItem> _auctionItems;
+    private GoogleMap _map1;
+    private MapOptions _mapOptions;
+    
     public AuctionsList()
     {
         _auctionItems = GetAuctionItems();
     }
 
+    protected override async void OnInitialized()
+    {
+        _mapOptions = new MapOptions()
+        {
+            Zoom = 13,
+            Center = new LatLngLiteral()
+            {
+                Lat = 40.333,
+                Lng = 41.33
+            },
+            MapTypeId = MapTypeId.Roadmap
+        };
+    }
+    
     protected override async Task OnInitializedAsync()
     {
-        
         //_auctionItems = (await AuctionService.GetAuction(new AuctionsFilter())).Auctions;
     }
 
@@ -105,7 +121,7 @@
             },
             new AuctionItem
             {
-                Title = "Item 1",
+                Title = "Item 2",
                 Locations = new List<string> { "Location A", "Location B", "Location C" },
                 FinalLocation = "Final Location X",
                 Price = "$100",
@@ -113,7 +129,7 @@
             },
             new AuctionItem
             {
-                Title = "Item 1",
+                Title = "Item 3",
                 Locations = new List<string> { "Location A", "Location B", "Location C" },
                 FinalLocation = "Final Location X",
                 Price = "$100",

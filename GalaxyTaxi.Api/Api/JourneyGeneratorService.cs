@@ -26,10 +26,21 @@ public class JourneyGeneratorService : IJourneyGeneratorService
     public async Task<GenerateJourneysResponse> GenerateRoutesForCompany(GenerateJourneysRequest request, CallContext context = default)
     {
         var companyId = GetCompanyId();
-        
-        var companyEmployeesWithoutJourneys = await _db.Employees.Where(x => x.CustomerCompanyId == companyId && !x.HasActiveJourney).ToListAsync();
 
-        var journeys = await GenerateJourneysForEmployees(companyId, companyEmployeesWithoutJourneys);
+        var offices = await _db.Offices.Include(x => x.Address).Where(x => x.CustomerCompanyId == companyId).ToListAsync();
+        
+        var journeys = new List<Journey>();
+
+        foreach (var office in offices)
+        {
+            var officeEmployeesWithoutJourneys = await _db.Employees
+                .Include(x => x.Addresses)
+                .ThenInclude(x => x.Address)
+                .Where(x => x.CustomerCompanyId == companyId && !x.HasActiveJourney && x.Addresses.Any(xx => xx.IsActive && xx.Address.IsDetected)).ToListAsync();
+            
+            journeys.AddRange(await GenerateJourneysForEmployees(companyId, office.Address, officeEmployeesWithoutJourneys));
+        }
+        
         
         return new GenerateJourneysResponse
         {
@@ -69,10 +80,21 @@ public class JourneyGeneratorService : IJourneyGeneratorService
         };
     }
 
-    private async Task<List<Journey>> GenerateJourneysForEmployees(long companyId, List<Employee> companyEmployeesWithoutJourneys)
+    private async Task<List<Journey>> GenerateJourneysForEmployees(long companyId, Address officeAddress, List<Employee> companyEmployeesWithoutJourneys)
     {
         var result = new List<Journey>();
+        
+    /*
+        var employeeLocations = new List<Tuple<decimal, decimal>>();
 
+        foreach (var employee in companyEmployeesWithoutJourneys)
+        {
+            var address = employee.Addresses.Single(x => x.IsActive && x.Address.IsDetected).Address;
+            employeeLocations.Add(Tuple.Create(address.Latitude, address.Latitude));
+        }
+        
+        var officeLocation = Tuple.Create(officeAddress.Latitude, officeAddress.Longitude);  // Office location
+     */   
         result.Add( new Journey
         {
             CustomerCompanyId = companyId,
@@ -81,15 +103,15 @@ public class JourneyGeneratorService : IJourneyGeneratorService
             {
                 new Stop
                 {
-                    EmployeeAddressId = companyEmployeesWithoutJourneys.First().Addresses.Single(x => x.IsActive).Id
+                    EmployeeAddressId = companyEmployeesWithoutJourneys.First().Addresses.Single(x => x.IsActive && x.Address.IsDetected).Id
                 },
                 new Stop
                 {
-                    EmployeeAddressId = companyEmployeesWithoutJourneys[1].Addresses.Single(x => x.IsActive).Id
+                    EmployeeAddressId = companyEmployeesWithoutJourneys[1].Addresses.Single(x => x.IsActive && x.Address.IsDetected).Id
                 },
                 new Stop
                 {
-                    EmployeeAddressId = companyEmployeesWithoutJourneys[2].Addresses.Single(x => x.IsActive).Id
+                    EmployeeAddressId = companyEmployeesWithoutJourneys[2].Addresses.Single(x => x.IsActive  && x.Address.IsDetected).Id
                 }
             }
         });
@@ -115,7 +137,6 @@ public class JourneyGeneratorService : IJourneyGeneratorService
         {
             throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
         }
-
         return long.Parse(companyId);
     }
 }

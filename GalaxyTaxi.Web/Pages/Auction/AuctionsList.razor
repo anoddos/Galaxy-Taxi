@@ -1,0 +1,134 @@
+@page "/auction/AuctionsList"
+@using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Auction
+@using GalaxyTaxi.Shared.Api.Models.Filters
+@inject IAuctionService AuctionService
+@inject NavigationManager NavigationManager
+
+
+<MudGrid>
+    @foreach (var item in _auctionItems)
+    {
+        <MudItem xs="12" sm="6" md="4" lg="3"> <!-- Each item occupies 1/4 of the screen on large devices, adjust as needed -->
+            <MudPaper Elevation="3" Padding="16px" Class="auction-item">
+                <div class="auction-item-map">
+                    <!-- Google Map goes here -->
+                    <!-- You can embed a map using an iframe or any other method -->
+                </div>
+                <div class="auction-item-details">
+                    <h3>@item.Title</h3>
+                    <ul>
+                        @foreach (var location in item.Locations)
+                        {
+                            <li>@location</li>
+                        }
+                    </ul>
+                    <p class="destination-location">@item.FinalLocation</p>
+                </div>
+                <div class="auction-item-price">
+                    <p class="price">@item.Price</p>
+                    <p class="bid-count">Bids: @item.BidCount</p>
+                </div>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<style>
+
+
+.auction-item {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.auction-item-map {
+    height: 200px;
+    width: 200px;
+}
+
+.auction-item-details {
+    flex-grow: 1;
+}
+
+.destination-location {
+    font-weight: bold;
+}
+
+.auction-item-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.price {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.bid-count {
+    font-size: 14px;
+}
+
+</style>
+
+
+@code {
+    
+    private AuctionsFilter model = new AuctionsFilter();
+    private List<AuctionItem> _auctionItems;
+
+    public AuctionsList()
+    {
+        _auctionItems = GetAuctionItems();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        //_auctionItems = (await AuctionService.GetAuction(new AuctionsFilter())).Auctions;
+    }
+
+    // Sample data for demonstration purposes
+    List<AuctionItem> GetAuctionItems()
+    {
+        return new List<AuctionItem>
+        {
+            new AuctionItem
+            {
+                Title = "Item 1",
+                Locations = new List<string> { "Location A", "Location B", "Location C" },
+                FinalLocation = "Final Location X",
+                Price = "$100",
+                BidCount = 5
+            },
+            new AuctionItem
+            {
+                Title = "Item 1",
+                Locations = new List<string> { "Location A", "Location B", "Location C" },
+                FinalLocation = "Final Location X",
+                Price = "$100",
+                BidCount = 5
+            },
+            new AuctionItem
+            {
+                Title = "Item 1",
+                Locations = new List<string> { "Location A", "Location B", "Location C" },
+                FinalLocation = "Final Location X",
+                Price = "$100",
+                BidCount = 5
+            }
+            // Add more items...
+        };
+    }
+
+    private class AuctionItem : AuctionInfo
+    {
+        public string Title { get; set; }
+        public List<string> Locations { get; set; }
+        public string FinalLocation { get; set; }
+        public string Price { get; set; }
+        public int BidCount { get; set; }
+    }
+}

@@ -17,7 +17,7 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <div class="d-flex justify-center">
-                        <MudText Typo="Typo.h3">$7</MudText>
+                        <MudText Typo="Typo.h3">₾20</MudText>
                         <MudText Typo="Typo.h5" Class="ml-1 mt-5" Color="Color.Secondary">/Weekly</MudText>
                     </div>
                     <MudList Class="mx-auto mt-4" Style="width:200px;">
@@ -46,7 +46,7 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <div class="d-flex justify-center">
-                        <MudText Typo="Typo.h3">$20</MudText>
+                        <MudText Typo="Typo.h3">₾60</MudText>
                         <MudText Typo="Typo.h5" Class="ml-1 mt-5" Color="Color.Secondary">/Monthly</MudText>
                     </div>
                     <MudList Class="mx-auto mt-4" Style="width:200px;">
@@ -75,7 +75,7 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <div class="d-flex justify-center">
-                        <MudText Typo="Typo.h3">$200</MudText>
+                        <MudText Typo="Typo.h3">₾500</MudText>
                         <MudText Typo="Typo.h5" Class="ml-1 mt-5" Color="Color.Secondary">/Annual</MudText>
                     </div>
                     <MudList Class="mx-auto mt-4" Style="width:200px;">
@@ -99,13 +99,14 @@
 </MudContainer>
 
 @code {
-    private SubscriptionRequest _model = new SubscriptionRequest();
-    
+    private SubscriptionRequest model = new SubscriptionRequest();
+
     private async Task ChoseSubscription(SubscriptionPlanType type)
     {
-        _model.SubscriptionPlanType = type;
-        await SubscriptionService.ChoseSubscriptionType(_model);
-        
+        model.SubscriptionPlanType = type;
+        await SubscriptionService.ChoseSubscriptionType(model);
+
         NavigationManager.NavigateTo("/subscription/payment");
     }
+
 }

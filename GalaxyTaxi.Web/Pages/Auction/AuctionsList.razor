@@ -8,81 +8,135 @@
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
 
-
-<MudCheckBox @bind-Checked="@_auctionsFilter.IncludesMe" Label="Mine" Color="Color.Primary"></MudCheckBox>
-<MudCheckBox @bind-Checked="@_auctionsFilter.IsFinished" Label="Finished" Color="Color.Primary"></MudCheckBox>
-<MudCheckBox @bind-Checked="@_auctionsFilter.WonByMe" Label="Won By Me" Color="Color.Primary"></MudCheckBox>
-
-<MudButton OnClick="async () => await UpdateGrid()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white;">Search</MudButton>
+<div class="filters-container">
+    <MudCheckBox @bind-Checked="@_auctionsFilter.IncludesMe" Label="Mine" Color="Color.Primary"></MudCheckBox>
+    <MudCheckBox @bind-Checked="@_auctionsFilter.IsFinished" Label="Finished" Color="Color.Primary"></MudCheckBox>
+    <MudCheckBox @bind-Checked="@_auctionsFilter.WonByMe" Label="Won By Me" Color="Color.Primary"></MudCheckBox>
+    <MudButton OnClick="async () => await UpdateGrid()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white; margin-left: 15px;">Search</MudButton>
+</div>
 
 <MudGrid>
-
-
-    @foreach (var item in _auctionItems)
+    @if (_auctionItems != null)
     {
-        <MudItem xs="12">
-            <MudPaper Elevation="3" Padding="16px" Class="auction-item">
-                <div class="auction-item-map">
-                    <GoogleMap @ref="@_map1" Options="@_mapOptions" Class="auction-item"></GoogleMap>
-                </div>
-                <div class="auction-item-details">
-                    <h3>@item.Title</h3>
-                    <ul>
-                        @foreach (var location in item.Locations)
-                        {
-                            <li>@location</li>
-                        }
-                    </ul>
-                    <p class="destination-location">@item.FinalLocation</p>
-                </div>
-                <div class="auction-item-price">
-                    <p class="price">@item.Price</p>
-                    <p class="bid-count">Bids: @item.BidCount</p>
-                </div>
-            </MudPaper>
-        </MudItem>
+        @foreach (var item in _auctionItems)
+        {
+            <MudItem xs="12">
+                <MudPaper Elevation="3" Padding="16px" Class="auction-item">
+                    <div class="auction-item-row">
+                        <div class="auction-item-map">
+                            <GoogleMap @ref="@_map1" Options="@_mapOptions" Height="200px"></GoogleMap>
+                        </div>
+                        <div class="auction-item-details" title="@item.Title">
+                            <h3>@item.Title</h3>
+                            <ul class="locations-list">
+                                @foreach (var location in item.Locations ?? new List<string>())
+                                {
+                                    <li class="location-item">@location</li>
+                                }
+                            </ul>
+                            <p class="destination-location">
+                                <i class="fas fa-map-pin destination-pin"></i> @item.FinalLocation
+                            </p>
+                        </div>
+                        <div class="auction-item-price">
+                            <p class="price">@item.Price</p>
+                            <p class="bid-count">Bids: @item.BidCount</p>
+                        </div>
+                    </div>
+                </MudPaper>
+            </MudItem>
+        }
     }
 </MudGrid>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
 <style>
 
+.filters-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 50px;
+}
 
 .auction-item {
+    margin: 0 50px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+}
+
+.auction-item-row {
     display: flex;
-    flex-direction: column;
-    margin: 20px 100px 20px;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px;
 }
 
 .auction-item-map {
-    height: 200px;
+    flex: 1;
+    height: 200px !important;
     width: 200px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
 }
 
 .auction-item-details {
-    flex-grow: 1;
+    flex: 2;
+    padding: 0 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333;
 }
 
-.destination-location {
-    font-weight: bold;
+.h3 {
+    font-size: 18px;
+    color: #555;
+    margin-top: 0;
 }
 
 .auction-item-price {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    padding-right: 20px;
 }
 
 .price {
     font-size: 18px;
-    font-weight: bold;
+    color: royalblue;
 }
 
 .bid-count {
-    font-size: 14px;
+    color: #777;
 }
 
-</style>
+.locations-list {
+    padding-left: 20px;
+}
 
+.location-item::before {
+    content: "\2022";
+    color: #888;  
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em; 
+}
+
+.destination-location {
+    font-weight: bold;
+    margin-top: 10px; 
+}
+
+.destination-pin {
+    color: royalblue;
+    font-size: 1.5em; 
+    vertical-align: middle;
+    margin-right: 5px; 
+}
+</style>
 
 @code {
 
@@ -119,25 +173,25 @@
     private async Task UpdateGrid()
     {
         _auctionItems.Clear();
-
         await GetAuctionData();
     }
 
     private async Task GetAuctionData()
     {
-        var auctionInfos = (await AuctionService.GetAuction(_auctionsFilter)).Auctions;
+        var auctionInfos = (await AuctionService.GetAuction(_auctionsFilter))?.Auctions;
+
         if (auctionInfos != null)
         {
             foreach (var auctionInfo in auctionInfos)
             {
                 _auctionItems.Add(new AuctionItem
-                    {
-                        Title = auctionInfo.JourneyInfo.CustomerCompany.Name + "'s Auction",
-                        BidCount = auctionInfo.Bids?.Count() ?? 0,
-                        FinalLocation = auctionInfo.JourneyInfo.Office.Address.Name,
-                        Locations = auctionInfo.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList(),
-                        Price = auctionInfo.Amount
-                    });
+                {
+                    Title = auctionInfo.JourneyInfo.CustomerCompany.Name + "'s Auction",
+                    BidCount = auctionInfo.Bids?.Count() ?? 0,
+                    FinalLocation = auctionInfo.JourneyInfo.Office.Address.Name,
+                    Locations = auctionInfo.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList(),
+                    Price = auctionInfo.Amount
+                });
             }
         }
     }

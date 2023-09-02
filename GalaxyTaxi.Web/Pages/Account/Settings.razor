@@ -1,0 +1,87 @@
+﻿@page "/account/settings"
+@using MudBlazor
+
+<MudContainer>
+    <MudCard Class="settings-card">
+        <MudCardContent>
+                <MudTextField @bind-Value="oldPassword" Label="Old Password" Variant="Variant.Filled" InputType="@OldPasswordInput" Adornment="Adornment.End" AdornmentIcon="@oldPasswordIcon" OnAdornmentClick="ToggleOldPasswordVisibility" AdornmentAriaLabel="Show Password" />
+                <MudTextField @bind-Value="newPassword" Label="New Password" Variant="Variant.Filled" InputType="@NewPasswordInput" Adornment="Adornment.End" AdornmentIcon="@newPasswordIcon" OnAdornmentClick="ToggleNewPasswordVisibility" AdornmentAriaLabel="Show Password" />
+                <MudTextField @bind-Value="confirmPassword" Label="Confirm Password" Variant="Variant.Filled" InputType="@ConfirmPasswordInput" Adornment="Adornment.End" AdornmentIcon="@confirmPasswordIcon" OnAdornmentClick="ToggleConfirmPasswordVisibility" AdornmentAriaLabel="Show Password" />
+
+
+                <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="newEmail" />
+
+
+                <MudTextField Label="Company Name" Variant="Variant.Outlined" @bind-Value="newCompanyName" />
+
+
+                <MudNumericField @bind-Value="newMaxPayment" Label="Max Amount Per Employee" Variant="Variant.Outlined" Min="0"Step=".2M" />
+        </MudCardContent>
+        <MudCardActions>
+				<MudButton OnClick="SaveChanges" Variant="Variant.Filled" Color="Color.Primary">Save Office Info</MudButton>
+		</MudCardActions>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private string oldPassword { get; set; } = "";
+    private string newPassword { get; set; } = "";
+    private string confirmPassword { get; set; } = "";
+
+    private bool oldPasswordVisible = false;
+    private bool newPasswordVisible = false;
+    private bool confirmPasswordVisible = false;
+
+    private string oldPasswordIcon = Icons.Material.Filled.Visibility;
+    private string newPasswordIcon = Icons.Material.Filled.Visibility;
+    private string confirmPasswordIcon = Icons.Material.Filled.Visibility;
+
+    private InputType OldPasswordInput => oldPasswordVisible ? InputType.Text : InputType.Password;
+    private InputType NewPasswordInput => newPasswordVisible ? InputType.Text : InputType.Password;
+    private InputType ConfirmPasswordInput => confirmPasswordVisible ? InputType.Text : InputType.Password;
+
+    private string newEmail { get; set; } = "";
+    private string newCompanyName { get; set; } = "";
+    private decimal newMaxPayment { get; set; } = 0;
+
+    private void ToggleOldPasswordVisibility()
+    {
+        oldPasswordVisible = !oldPasswordVisible;
+        oldPasswordIcon = oldPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
+    }
+
+    private void ToggleNewPasswordVisibility()
+    {
+        newPasswordVisible = !newPasswordVisible;
+        newPasswordIcon = newPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
+    }
+
+    private void ToggleConfirmPasswordVisibility()
+    {
+        confirmPasswordVisible = !confirmPasswordVisible;
+        confirmPasswordIcon = confirmPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
+    }
+
+    private async Task SaveChanges()
+    {
+        // Implement password change logic
+    }
+
+}
+
+<style>
+    .settings-card {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+
+    .form-divider {
+        margin-top: 20px;
+        border-top: 1px solid #ccc;
+        padding-top: 20px;
+    }
+</style

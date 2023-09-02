@@ -10,6 +10,7 @@ using GalaxyTaxi.Shared.Api.Models.Common;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+using GalaxyTaxi.Shared.Api.Models.AccountSettings;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -182,6 +183,22 @@ public class AccountService : IAccountService
 
     public Task<IsLoggedInResponse> IsLoggedIn(CallContext context = default)
     {
-        return Task.FromResult(new IsLoggedInResponse { IsLoggedIn = !string.IsNullOrEmpty(GetSessionValue(AuthenticationKey.LoggedInAs)) });
+        var loggedInAs = GetSessionValue(AuthenticationKey.LoggedInAs);
+        return Task.FromResult(new IsLoggedInResponse { IsLoggedIn = !string.IsNullOrEmpty(loggedInAs) });
+    }
+
+    public Task<PasswordValidationResponse> ValidateNewPassword(PasswordValidationRequest request, CallContext context = default)
+    {
+        var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+
+        if (customerCompanyId == -1) throw new InvalidOperationException("Not Logged In");
+
+        if (request.NewPassword == request.OldPassword) return Task.FromResult(new PasswordValidationResponse { IsValid = false });
+
+        var oldPasswordEncrypt = SaltAndHashPassword(request.OldPassword);
+
+        var oldPasswordFromDb = _db.Accounts.SingleOrDefault(a => a.Id == customerCompanyId)?.PasswordHash;
+        if (oldPasswordEncrypt != oldPasswordFromDb) return Task.FromResult(new PasswordValidationResponse { IsValid = false });
+        return Task.FromResult(new PasswordValidationResponse { IsValid = true });
     }
 }

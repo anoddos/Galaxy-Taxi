@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using GalaxyTaxi.Shared.Api.Models.Common;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;

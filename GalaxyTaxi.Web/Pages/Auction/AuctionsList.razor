@@ -126,17 +126,19 @@
     private async Task GetAuctionData()
     {
         var auctionInfos = (await AuctionService.GetAuction(_auctionsFilter)).Auctions;
-
-        foreach (var auctionInfo in auctionInfos)
+        if (auctionInfos != null)
         {
-            _auctionItems.Add(new AuctionItem
+            foreach (var auctionInfo in auctionInfos)
             {
-                Title = auctionInfo.JourneyInfo.CustomerCompany.Name + "'s Auction",
-                BidCount = auctionInfo.Bids?.Count() ?? 0,
-                FinalLocation = auctionInfo.JourneyInfo.Office.Address.Name,
-                Locations = auctionInfo.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList(),
-                Price = auctionInfo.Amount
-            });
+                _auctionItems.Add(new AuctionItem
+                    {
+                        Title = auctionInfo.JourneyInfo.CustomerCompany.Name + "'s Auction",
+                        BidCount = auctionInfo.Bids?.Count() ?? 0,
+                        FinalLocation = auctionInfo.JourneyInfo.Office.Address.Name,
+                        Locations = auctionInfo.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList(),
+                        Price = auctionInfo.Amount
+                    });
+            }
         }
     }
 

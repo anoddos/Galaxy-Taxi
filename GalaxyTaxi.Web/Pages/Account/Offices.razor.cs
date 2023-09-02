@@ -38,7 +38,6 @@ public partial class Offices
 	}
 	private async Task AddMarker()
 	{
-
 		OfficeFilter.Address = await _addressDetection.DetectAddressCoordinatesFromName(OfficeFilter.Address);
 
 		var position = new LatLngLiteral { Lat = (double)OfficeFilter.Address.Latitude, Lng = (double)OfficeFilter.Address.Longitude };

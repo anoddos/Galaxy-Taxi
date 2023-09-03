@@ -39,6 +39,9 @@
                             <p class="price">@item.Amount</p>
                             <p class="bid-count">Bids: @(item.Bids?.Count() ?? 0)</p>
                         </div>
+
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Details" OnClick="@(() => NavigateToAuctionDetails(item.AuctionId))" />
+
                     </div>
                 </MudPaper>
             </MudItem>

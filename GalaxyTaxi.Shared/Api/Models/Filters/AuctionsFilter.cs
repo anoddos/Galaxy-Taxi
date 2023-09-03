@@ -20,4 +20,7 @@ public class AuctionsFilter
     
     [ProtoMember(5)]
     public int PageIndex { get; set; }
+
+    [ProtoMember(6)]
+    public long AuctionId { get; set; } = -1;
 }

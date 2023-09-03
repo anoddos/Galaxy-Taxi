@@ -1,0 +1,104 @@
+﻿@page "/auction/{Id:long}"
+@using GalaxyTaxi.Shared.Api.Interfaces;
+@using GalaxyTaxi.Shared.Api.Models.AddressDetection;
+@using GalaxyTaxi.Shared.Api.Models.Auction;
+@using GalaxyTaxi.Shared.Api.Models.Filters;
+@using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
+@using GoogleMapsComponents;
+@using GoogleMapsComponents.Maps;
+
+@inject IAuctionService AuctionService
+@inject NavigationManager NavigationManager
+
+<MudCardContent>
+	@if (CurrentAuction != null && CurrentAuction.JourneyInfo != null && CurrentAuction.JourneyInfo.CustomerCompany != null)
+	{
+		<MudTextField Label="Company Name" Disabled="true" @bind-Value="CurrentAuction.JourneyInfo.CustomerCompany.Name" />
+		<MudTextField Label="Start Time" Disabled="true" @bind-Value="CurrentAuction.StartTime" />
+		<MudTextField Label="End Time" Disabled="true" @bind-Value="CurrentAuction.EndTime" />
+		@if (mapOptions != null)
+		{
+			<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+		}
+	}
+</MudCardContent>
+
+
+
+
+@code {
+	[Parameter]
+	public long Id { get; set; }
+
+	public AuctionInfo CurrentAuction { get; set; }
+	private GoogleMap map1;
+	private MapOptions mapOptions { get; set; } = new MapOptions();
+
+	private List<Marker> markerList { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		var response = await AuctionService.GetAuction(new AuctionsFilter { AuctionId = Id });
+		if (response != null)
+		{
+			CurrentAuction = response.Auctions?.FirstOrDefault();
+			await GenerateMapMarkers();
+		}
+
+	}
+
+	// protected override async Task OnAfterRenderAsync(bool firstRender)
+	private async Task GenerateMapMarkers()
+	{
+		if (CurrentAuction != null)
+		{
+			mapOptions = new MapOptions()
+				{
+					Zoom = 13,
+					Center = new LatLngLiteral()
+					{
+						Lat = (double)CurrentAuction.JourneyInfo.Office.Address.Latitude,
+						Lng = (double)CurrentAuction.JourneyInfo.Office.Address.Longitude  // Fixed typo from Latitude to Longitude
+					},
+					MapTypeId = MapTypeId.Roadmap
+				};
+
+			markerList = new List<Marker>();
+			if (CurrentAuction.JourneyInfo?.Office?.Address != null)
+			{
+				await createMarker(CurrentAuction.JourneyInfo.Office.Address);
+			}
+
+			if (CurrentAuction.JourneyInfo?.Stops != null)
+			{
+				foreach (var stop in CurrentAuction.JourneyInfo.Stops)
+				{
+					if (stop?.Address != null)
+					{
+						var marker = await createMarker(stop.Address);
+						markerList.Add(marker);
+					}
+				}
+			}
+		}
+		StateHasChanged();
+	}
+
+	private async Task<Marker> createMarker(AddressInfo address)
+	{
+		if (address == null || map1 == null)
+		{
+			return null; // Do nothing if address or map1 is null
+		}
+
+		var position = new LatLngLiteral { Lat = (double)address.Latitude, Lng = (double)address.Longitude };
+		var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+			{
+				Map = map1.InteropObject,
+				Draggable = false
+			});
+		await marker.SetPosition(position);
+		return marker;
+	}
+
+}

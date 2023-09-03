@@ -19,38 +19,38 @@ namespace GalaxyTaxi.Api.Api;
 
 public class AuctionService : IAuctionService
 {
-    private readonly Db _db;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+	private readonly Db _db;
+	private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuctionService(Db db, IHttpContextAccessor httpContextAccessor)
-    {
-        _db = db;
-        _httpContextAccessor = httpContextAccessor;
-    }
+	public AuctionService(Db db, IHttpContextAccessor httpContextAccessor)
+	{
+		_db = db;
+		_httpContextAccessor = httpContextAccessor;
+	}
 
-    public async Task Bid(BidRequest request, CallContext context = default)
-    {
-        await ValidateBidRequestAsync(request);
+	public async Task Bid(BidRequest request, CallContext context = default)
+	{
+		await ValidateBidRequestAsync(request);
 
-        var bid = new Bid
-        {
-            Amount = request.Amount,
-            AccountId = GetAccountId(),
-            AuctionId = request.AuctionId,
-            TimeStamp = DateTime.UtcNow
-        };
+		var bid = new Bid
+		{
+			Amount = request.Amount,
+			AccountId = GetAccountId(),
+			AuctionId = request.AuctionId,
+			TimeStamp = DateTime.UtcNow
+		};
 
-        try
-        {
-            await _db.Bids.AddAsync(bid);
+		try
+		{
+			await _db.Bids.AddAsync(bid);
 
-            await _db.SaveChangesAsync();
-        }
-        catch (Exception)
-        {
-            throw new RpcException(new Status(StatusCode.Internal, "Could not insert into db"));
-        }
-    }
+			await _db.SaveChangesAsync();
+		}
+		catch (Exception)
+		{
+			throw new RpcException(new Status(StatusCode.Internal, "Could not insert into db"));
+		}
+	}
 
     public async Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default)
     {
@@ -144,22 +144,22 @@ public class AuctionService : IAuctionService
         return await Task.FromResult(new GetAuctionsCountResponse { TotalCount = count });
     }
 
-    private async Task ValidateBidRequestAsync(BidRequest request)
-    {
-        var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;
-        if (lastBid <= request.Amount)
-        {
-            throw new RpcException(new Status(StatusCode.AlreadyExists, "New Bid Should Have Smaller Value"));
-        }
-    }
+	private async Task ValidateBidRequestAsync(BidRequest request)
+	{
+		var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;
+		if (lastBid <= request.Amount)
+		{
+			throw new RpcException(new Status(StatusCode.AlreadyExists, "New Bid Should Have Smaller Value"));
+		}
+	}
 
-    private string GetSessionValue(string key)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+	private string GetSessionValue(string key)
+	{
+		var httpContext = _httpContextAccessor.HttpContext;
+		var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
 
-        return res == null ? "" : res.Value;
-    }
+		return res == null ? "" : res.Value;
+	}
 
     private long GetAccountId(bool throwException = true)
     {
@@ -173,6 +173,7 @@ public class AuctionService : IAuctionService
             return -1;
         }
 
-        return long.Parse(accountId);
-    }
+		return long.Parse(accountId);
+	}
+
 }

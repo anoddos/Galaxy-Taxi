@@ -4,8 +4,8 @@ namespace GalaxyTaxi.Shared.Api.Models.Auction;
 
 [ProtoContract]
 [Serializable]
-public class GetAuctionsResponse
+public class GetSingleAuctionsResponse
 {
     [ProtoMember(1)] 
-    public List<AuctionInfo> Auctions { get; set; } = null!;
+    public AuctionInfo Auction { get; set; } = null!;
 }

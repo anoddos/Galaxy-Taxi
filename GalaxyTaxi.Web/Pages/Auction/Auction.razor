@@ -3,8 +3,7 @@
 @using GalaxyTaxi.Shared.Api.Models.AddressDetection;
 @using GalaxyTaxi.Shared.Api.Models.Auction;
 @using GalaxyTaxi.Shared.Api.Models.Filters;
-@using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
-@using GoogleMapsComponents;
+@using GoogleMapsComponents
 @using GoogleMapsComponents.Maps;
 @using Grpc.Core;
 
@@ -77,15 +76,14 @@
 </style>
 
 
-
-
 @code {
-	[Parameter]
-	public long Id { get; set; }
 
-	public AuctionInfo CurrentAuction { get; set; }
-	private GoogleMap map1;
-	private MapOptions mapOptions { get; set; } = new MapOptions();
+    [Parameter]
+    public long Id { get; set; }
+
+    public AuctionInfo CurrentAuction { get; set; }
+    private GoogleMap map1;
+    private MapOptions mapOptions { get; set; } = new MapOptions();
 
 	private List<Marker> markerList { get; set; }
 	private decimal currentBid { get; set; }
@@ -96,10 +94,10 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		var response = await AuctionService.GetAuction(new AuctionsFilter { AuctionId = Id });
+		var response = await AuctionService.GetSingleAuction(new IdFilter { Id = Id });
 		if (response != null)
 		{
-			CurrentAuction = response.Auctions?.FirstOrDefault();
+			CurrentAuction = response.Auction;
 			if (CurrentAuction != null)
 			{
 			    currentBid = CurrentAuction.Amount;
@@ -153,20 +151,20 @@
 				await createMarker(CurrentAuction.JourneyInfo.Office.Address);
 			}
 
-			if (CurrentAuction.JourneyInfo?.Stops != null)
-			{
-				foreach (var stop in CurrentAuction.JourneyInfo.Stops)
-				{
-					if (stop?.Address != null)
-					{
-						var marker = await createMarker(stop.Address);
-						markerList.Add(marker);
-					}
-				}
-			}
-		}
-		StateHasChanged();
-	}
+            if (CurrentAuction.JourneyInfo?.Stops != null)
+            {
+                foreach (var stop in CurrentAuction.JourneyInfo.Stops)
+                {
+                    if (stop?.Address != null)
+                    {
+                        var marker = await createMarker(stop.Address);
+                        markerList.Add(marker);
+                    }
+                }
+            }
+        }
+        StateHasChanged();
+    }
 
 	private async Task<Marker> createMarker(AddressInfo address)
 	{
@@ -175,14 +173,13 @@
 			return null;
 		}
 
-		var position = new LatLngLiteral { Lat = (double)address.Latitude, Lng = (double)address.Longitude };
-		var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
-			{
-				Map = map1.InteropObject,
-				Draggable = false
-			});
-		await marker.SetPosition(position);
-		return marker;
-	}
-
+        var position = new LatLngLiteral { Lat = (double)address.Latitude, Lng = (double)address.Longitude };
+        var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+        {
+            Map = map1.InteropObject,
+            Draggable = false
+        });
+        await marker.SetPosition(position);
+        return marker;
+    }
 }

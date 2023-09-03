@@ -52,84 +52,171 @@ public class AuctionService : IAuctionService
 		}
 	}
 
+    public async Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default)
+    {
+        var accountId = GetAccountId(false);
 
-	public async Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default)
-	{
-		var accountId = GetAccountId();
+        var auctions = await _db.Auctions.Include(x => x.Bids)
+            .Where(x => (filter.IsFinished == false || x.CurrentWinner != null)
+                        && (filter.WonByMe == false || x.CurrentWinnerId == accountId)
+                        && (filter.IncludesMe == false || x.CustomerCompany.AccountId == accountId ||
+                            x.Bids.Any(xx => xx.AccountId == accountId)))
+            .Skip(filter.PageIndex * filter.PageSize)
+            .Take(filter.PageSize)
+            .Select(x => new AuctionInfo
+            {
+                Id = x.Id,
+                Amount = x.Amount,
+                StartTime = x.StartTime,
+                EndTime = x.EndTime,
+                Bids = x.Bids.Select(xx => new BidInfo
+                {
+                    Id = xx.Id,
+                    TimeStamp = xx.TimeStamp,
+                    Amount = xx.Amount,
+                    Account = new AccountInfo
+                    {
+                        CompanyName = xx.Account.CompanyName,
+                        Id = xx.Account.Id
+                    }
+                }),
+                CurrentWinner = x.CurrentWinnerId == null
+                    ? null
+                    : new VendorCompanyInfo
+                    {
+                        Id = (long)x.CurrentWinnerId,
+                        Name = x.CurrentWinner!.Name
+                    },
+                JourneyInfo = new JourneyInfo
+                {
+                    Id = x.Journey.Id,
+                    Office = new OfficeInfo
+                    {
+                        OfficeId = x.Journey.Office.Id,
+                        Address = new AddressInfo
+                        {
+                            Id = x.Journey.Office.Address.Id,
+                            Name = x.Journey.Office.Address.Name,
+                            Latitude = x.Journey.Office.Address.Latitude,
+                            Longitude = x.Journey.Office.Address.Longitude
+                        },
+                        WorkingEndTime = x.Journey.Office.WorkingEndTime,
+                        WorkingStartTime = x.Journey.Office.WorkingStartTime
+                    },
+                    CustomerCompany = new CustomerCompanyInfo
+                    {
+                        Id = x.CustomerCompany.Id,
+                        Name = x.CustomerCompany.Name
+                    },
+                    Stops = x.Journey.Stops.Select(xx => new StopInfo
+                    {
+                        Id = xx.Id,
+                        Address = new AddressInfo
+                        {
+                            Id = xx.EmployeeAddressId,
+                            Name = xx.EmployeeAddress.Address.Name,
+                            Latitude = xx.EmployeeAddress.Address.Latitude,
+                            Longitude = xx.EmployeeAddress.Address.Longitude
+                        },
+                        EmployeeDetails = new SingleEmployeeInfo
+                        {
+                            FirstName = xx.EmployeeAddress.Employee.FirstName,
+                            LastName = xx.EmployeeAddress.Employee.LastName,
+                            Mobile = xx.EmployeeAddress.Employee.Mobile
+                        }
+                    })
+                }
+            }).ToListAsync();
 
-		var auctions = _db.Auctions.Include(x => x.Bids)
-			.Where(x => (filter.IsFinished == false || x.CurrentWinner != null)
-						&& (filter.WonByMe == false || x.CurrentWinnerId == accountId)
-						&& (filter.IncludesMe == false || x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId))
-						&& (filter.AuctionId == -1 || x.Id == filter.AuctionId))
-			.Take(25)
-			.Select(x => new AuctionInfo
-			{
-				Id = x.Id,
-				Amount = x.Amount,
-				StartTime = x.StartTime,
-				EndTime = x.EndTime,
-				Bids = x.Bids.Select(xx => new BidInfo
-				{
-					Id = xx.Id,
-					TimeStamp = xx.TimeStamp,
-					Amount = xx.Amount,
-					Account = new AccountInfo
-					{
-						CompanyName = xx.Account.CompanyName,
-						Id = xx.Account.Id
-					}
-				}),
-				CurrentWinner = x.CurrentWinnerId == null ? null : new VendorCompanyInfo
-				{
-					Id = (long)x.CurrentWinnerId,
-					Name = x.CurrentWinner!.Name
-				},
-				JourneyInfo = new JourneyInfo
-				{
-					Id = x.Journey.Id,
-					Office = new OfficeInfo
-					{
-						OfficeId = x.Journey.Office.Id,
-						Address = new AddressInfo
-						{
-							Id = x.Journey.Office.Address.Id,
-							Name = x.Journey.Office.Address.Name,
-							Latitude = x.Journey.Office.Address.Latitude,
-							Longitude = x.Journey.Office.Address.Longitude
-						},
-						WorkingEndTime = x.Journey.Office.WorkingEndTime,
-						WorkingStartTime = x.Journey.Office.WorkingStartTime
-					},
-					CustomerCompany = new CustomerCompanyInfo
-					{
-						Id = x.CustomerCompany.Id,
-						Name = x.CustomerCompany.Name
-					},
-					Stops = x.Journey.Stops.Select(xx => new StopInfo
-					{
-						Id = xx.Id,
-						Address = new AddressInfo
-						{
-							Id = xx.EmployeeAddressId,
-							Name = xx.EmployeeAddress.Address.Name,
-							Latitude = xx.EmployeeAddress.Address.Latitude,
-							Longitude = xx.EmployeeAddress.Address.Longitude
-						},
-						EmployeeDetails = new SingleEmployeeInfo
-						{
-							FirstName = xx.EmployeeAddress.Employee.FirstName,
-							LastName = xx.EmployeeAddress.Employee.LastName,
-							Mobile = xx.EmployeeAddress.Employee.Mobile
-						}
-					})
-				}
-			});
+        return new GetAuctionsResponse { Auctions = auctions };
+    }
 
-		return new GetAuctionsResponse { Auctions = await auctions.ToListAsync() };
-	}
+    public async Task<GetAuctionsCountResponse> GetAuctionCount(AuctionsFilter filter)
+    {
+        var accountId = GetAccountId(false);
 
-	private async Task ValidateBidRequestAsync(BidRequest request)
+        var count = _db.Auctions.Count(x => (filter.IsFinished == false || x.CurrentWinner != null)
+                                            && (filter.WonByMe == false || x.CurrentWinnerId == accountId)
+                                            && (filter.IncludesMe == false ||
+                                                x.CustomerCompany.AccountId == accountId ||
+                                                x.Bids.Any(xx => xx.AccountId == accountId)));
+
+        return await Task.FromResult(new GetAuctionsCountResponse { TotalCount = count });
+    }
+
+    public async Task<GetSingleAuctionsResponse> GetSingleAuction(IdFilter filter)
+    {
+	     var auction = await _db.Auctions.Include(x => x.Bids)
+            .Where(x => x.Id == filter.Id)
+            .Select(x => new AuctionInfo
+            {
+                Id = x.Id,
+                Amount = x.Amount,
+                StartTime = x.StartTime,
+                EndTime = x.EndTime,
+                Bids = x.Bids.Select(xx => new BidInfo
+                {
+                    Id = xx.Id,
+                    TimeStamp = xx.TimeStamp,
+                    Amount = xx.Amount,
+                    Account = new AccountInfo
+                    {
+                        CompanyName = xx.Account.CompanyName,
+                        Id = xx.Account.Id
+                    }
+                }),
+                CurrentWinner = x.CurrentWinnerId == null
+                    ? null
+                    : new VendorCompanyInfo
+                    {
+                        Id = (long)x.CurrentWinnerId,
+                        Name = x.CurrentWinner!.Name
+                    },
+                JourneyInfo = new JourneyInfo
+                {
+                    Id = x.Journey.Id,
+                    Office = new OfficeInfo
+                    {
+                        OfficeId = x.Journey.Office.Id,
+                        Address = new AddressInfo
+                        {
+                            Id = x.Journey.Office.Address.Id,
+                            Name = x.Journey.Office.Address.Name,
+                            Latitude = x.Journey.Office.Address.Latitude,
+                            Longitude = x.Journey.Office.Address.Longitude
+                        },
+                        WorkingEndTime = x.Journey.Office.WorkingEndTime,
+                        WorkingStartTime = x.Journey.Office.WorkingStartTime
+                    },
+                    CustomerCompany = new CustomerCompanyInfo
+                    {
+                        Id = x.CustomerCompany.Id,
+                        Name = x.CustomerCompany.Name
+                    },
+                    Stops = x.Journey.Stops.Select(xx => new StopInfo
+                    {
+                        Id = xx.Id,
+                        Address = new AddressInfo
+                        {
+                            Id = xx.EmployeeAddressId,
+                            Name = xx.EmployeeAddress.Address.Name,
+                            Latitude = xx.EmployeeAddress.Address.Latitude,
+                            Longitude = xx.EmployeeAddress.Address.Longitude
+                        },
+                        EmployeeDetails = new SingleEmployeeInfo
+                        {
+                            FirstName = xx.EmployeeAddress.Employee.FirstName,
+                            LastName = xx.EmployeeAddress.Employee.LastName,
+                            Mobile = xx.EmployeeAddress.Employee.Mobile
+                        }
+                    })
+                }
+            }).SingleAsync();
+
+        return new GetSingleAuctionsResponse { Auction = auction };
+    }
+
+    private async Task ValidateBidRequestAsync(BidRequest request)
 	{
 		var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;
 		if (lastBid <= request.Amount)
@@ -146,16 +233,18 @@ public class AuctionService : IAuctionService
 		return res == null ? "" : res.Value;
 	}
 
-	private long GetAccountId()
-	{
-		var accountId = GetSessionValue(AuthenticationKey.AccountId);
+    private long GetAccountId(bool throwException = true)
+    {
+        var accountId = GetSessionValue(AuthenticationKey.AccountId);
 
-		if (string.IsNullOrWhiteSpace(accountId))
-		{
-			throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
-		}
+        if (string.IsNullOrWhiteSpace(accountId))
+        {
+            if (throwException)
+                throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+
+            return -1;
+        }
 
 		return long.Parse(accountId);
 	}
-
 }

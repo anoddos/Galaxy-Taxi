@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using ProtoBuf;
 
 namespace GalaxyTaxi.Shared.Api.Models.Filters;
@@ -14,7 +15,10 @@ public class AuctionsFilter
 
     [ProtoMember(3)]
     public bool WonByMe { get; set; }
-
+    
     [ProtoMember(4)]
-    public long AuctionId { get; set; } = -1;
+    public int PageSize { get; set; }
+    
+    [ProtoMember(5)]
+    public int PageIndex { get; set; }
 }

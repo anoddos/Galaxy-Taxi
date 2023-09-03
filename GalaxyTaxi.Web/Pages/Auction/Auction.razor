@@ -49,10 +49,10 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		var response = await AuctionService.GetAuction(new AuctionsFilter { AuctionId = Id });
+		var response = await AuctionService.GetSingleAuction(new IdFilter { Id = Id });
 		if (response != null)
 		{
-			CurrentAuction = response.Auctions?.FirstOrDefault();
+			CurrentAuction = response.Auction;
 			if (CurrentAuction != null)
 			{
 			    currentBid = CurrentAuction.Amount;

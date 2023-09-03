@@ -1,9 +1,6 @@
 @page "/auction/AuctionsList"
 @using GalaxyTaxi.Shared.Api.Interfaces
-@using GalaxyTaxi.Shared.Api.Models.Auction
-@using GalaxyTaxi.Shared.Api.Models.Filters
 @using GoogleMapsComponents
-@using GoogleMapsComponents.Maps
 @using Size = MudBlazor.Size
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
@@ -26,21 +23,21 @@
                         <div class="auction-item-map">
                             <GoogleMap @ref="@_map1" Options="@_mapOptions" Height="200px"></GoogleMap>
                         </div>
-                        <div class="auction-item-details" title="@item.Title">
-                            <h3>@item.Title</h3>
+                        <div class="auction-item-details" title="@item.JourneyInfo.CustomerCompany.Name">
+                            <h3>@item.JourneyInfo.CustomerCompany.Name</h3>
                             <ul class="locations-list">
-                                @foreach (var location in item.Locations ?? new List<string>())
+                                @foreach (var location in item.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList() ?? new List<string>())
                                 {
                                     <li class="location-item">@location</li>
                                 }
                             </ul>
                             <p class="destination-location">
-                                <i class="fas fa-map-pin destination-pin"></i> @item.FinalLocation
+                                <i class="fas fa-map-pin destination-pin"></i> @item.JourneyInfo.Office.Address.Name
                             </p>
                         </div>
                         <div class="auction-item-price">
-                            <p class="price">@item.Price</p>
-                            <p class="bid-count">Bids: @item.BidCount</p>
+                            <p class="price">@item.Amount</p>
+                            <p class="bid-count">Bids: @(item.Bids?.Count() ?? 0)</p>
                         </div>
                     </div>
                 </MudPaper>
@@ -48,20 +45,22 @@
         }
     }
 </MudGrid>
+<div style="margin-top: 30px; text-align: center">
+    <MudPagination Count="@_totalPages" CurrentPage="@_currentPage" Variant="Variant.Text" Disabled="false" PageSize="@_auctionsFilter.PageSize" ShowFirstLast="true" ShowPageNumbers="true" ShowJump="true" SelectedChanged="HandlePageClick" />
+</div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
 <style>
-
 .filters-container {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    margin: 50px;
+    margin-left: 150px;
 }
 
 .auction-item {
-    margin: 0 50px;
+    margin: 0 150px;
     border: 1px solid #e0e0e0;
     border-radius: 5px;
 }
@@ -75,7 +74,6 @@
 
 .auction-item-map {
     flex: 1;
-    height: 200px !important;
     width: 200px;
     border: 1px solid #e0e0e0;
     border-radius: 5px;
@@ -137,71 +135,3 @@
     margin-right: 5px; 
 }
 </style>
-
-@code {
-
-    private AuctionsFilter _auctionsFilter = new AuctionsFilter
-    {
-        IncludesMe = false,
-        IsFinished = false,
-        WonByMe = false
-    };
-
-    private List<AuctionItem> _auctionItems = new List<AuctionItem>();
-    private GoogleMap _map1;
-    private MapOptions _mapOptions;
-
-    protected override async void OnInitialized()
-    {
-        _mapOptions = new MapOptions
-        {
-            Zoom = 13,
-            Center = new LatLngLiteral
-            {
-                Lat = 40.333,
-                Lng = 41.33
-            },
-            MapTypeId = MapTypeId.Roadmap
-        };
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await GetAuctionData();
-    }
-
-    private async Task UpdateGrid()
-    {
-        _auctionItems.Clear();
-        await GetAuctionData();
-    }
-
-    private async Task GetAuctionData()
-    {
-        var auctionInfos = (await AuctionService.GetAuction(_auctionsFilter))?.Auctions;
-
-        if (auctionInfos != null)
-        {
-            foreach (var auctionInfo in auctionInfos)
-            {
-                _auctionItems.Add(new AuctionItem
-                {
-                    Title = auctionInfo.JourneyInfo.CustomerCompany.Name + "'s Auction",
-                    BidCount = auctionInfo.Bids?.Count() ?? 0,
-                    FinalLocation = auctionInfo.JourneyInfo.Office.Address.Name,
-                    Locations = auctionInfo.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList(),
-                    Price = auctionInfo.Amount
-                });
-            }
-        }
-    }
-
-    private class AuctionItem : AuctionInfo
-    {
-        public string Title { get; set; }
-        public List<string>? Locations { get; set; }
-        public string FinalLocation { get; set; }
-        public decimal Price { get; set; }
-        public int BidCount { get; set; }
-    }
-}

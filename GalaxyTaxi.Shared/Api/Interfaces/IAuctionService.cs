@@ -11,4 +11,5 @@ public interface IAuctionService
     Task Bid(BidRequest request, CallContext context = default);
     
     Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default);
+    Task<GetAuctionsCountResponse> GetAuctionCount(AuctionsFilter auctionsFilter);
 }

@@ -54,13 +54,15 @@ public class AuctionService : IAuctionService
 
     public async Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default)
     {
-        var accountId = GetAccountId();
+        var accountId = GetAccountId(false);
 
-        var auctions = _db.Auctions.Include(x => x.Bids)
-            .Where(x => (filter.IsFinished == false || x.CurrentWinner != null) 
-                        && (filter.WonByMe == false || x.CurrentWinnerId == accountId) 
-                        && (filter.IncludesMe == false || x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId)))
-            .Take(25)
+        var auctions = await _db.Auctions.Include(x => x.Bids)
+            .Where(x => (filter.IsFinished == false || x.CurrentWinner != null)
+                        && (filter.WonByMe == false || x.CurrentWinnerId == accountId)
+                        && (filter.IncludesMe == false || x.CustomerCompany.AccountId == accountId ||
+                            x.Bids.Any(xx => xx.AccountId == accountId)))
+            .Skip(filter.PageIndex * filter.PageSize)
+            .Take(filter.PageSize)
             .Select(x => new AuctionInfo
             {
                 Id = x.Id,
@@ -78,11 +80,13 @@ public class AuctionService : IAuctionService
                         Id = xx.Account.Id
                     }
                 }),
-                CurrentWinner = x.CurrentWinnerId == null ? null : new VendorCompanyInfo
-                {
-                    Id = (long)x.CurrentWinnerId,
-                    Name = x.CurrentWinner!.Name
-                },
+                CurrentWinner = x.CurrentWinnerId == null
+                    ? null
+                    : new VendorCompanyInfo
+                    {
+                        Id = (long)x.CurrentWinnerId,
+                        Name = x.CurrentWinner!.Name
+                    },
                 JourneyInfo = new JourneyInfo
                 {
                     Id = x.Journey.Id,
@@ -122,9 +126,22 @@ public class AuctionService : IAuctionService
                         }
                     })
                 }
-            });
+            }).ToListAsync();
 
-        return new GetAuctionsResponse { Auctions = await auctions.ToListAsync() };
+        return new GetAuctionsResponse { Auctions = auctions };
+    }
+
+    public async Task<GetAuctionsCountResponse> GetAuctionCount(AuctionsFilter filter)
+    {
+        var accountId = GetAccountId(false);
+
+        var count = _db.Auctions.Count(x => (filter.IsFinished == false || x.CurrentWinner != null)
+                                            && (filter.WonByMe == false || x.CurrentWinnerId == accountId)
+                                            && (filter.IncludesMe == false ||
+                                                x.CustomerCompany.AccountId == accountId ||
+                                                x.Bids.Any(xx => xx.AccountId == accountId)));
+
+        return await Task.FromResult(new GetAuctionsCountResponse { TotalCount = count });
     }
 
     private async Task ValidateBidRequestAsync(BidRequest request)
@@ -144,13 +161,16 @@ public class AuctionService : IAuctionService
         return res == null ? "" : res.Value;
     }
 
-    private long GetAccountId()
+    private long GetAccountId(bool throwException = true)
     {
         var accountId = GetSessionValue(AuthenticationKey.AccountId);
 
         if (string.IsNullOrWhiteSpace(accountId))
         {
-            throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+            if (throwException)
+                throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+
+            return -1;
         }
 
         return long.Parse(accountId);

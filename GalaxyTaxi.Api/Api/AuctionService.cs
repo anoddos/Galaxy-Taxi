@@ -19,140 +19,143 @@ namespace GalaxyTaxi.Api.Api;
 
 public class AuctionService : IAuctionService
 {
-    private readonly Db _db;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+	private readonly Db _db;
+	private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public AuctionService(Db db, IHttpContextAccessor httpContextAccessor)
-    {
-        _db = db;
-        _httpContextAccessor = httpContextAccessor;
-    }
+	public AuctionService(Db db, IHttpContextAccessor httpContextAccessor)
+	{
+		_db = db;
+		_httpContextAccessor = httpContextAccessor;
+	}
 
-    public async Task Bid(BidRequest request, CallContext context = default)
-    {
-        await ValidateBidRequestAsync(request);
+	public async Task Bid(BidRequest request, CallContext context = default)
+	{
+		await ValidateBidRequestAsync(request);
 
-        var bid = new Bid
-        {
-            Amount = request.Amount,
-            AccountId = GetAccountId(),
-            AuctionId = request.AuctionId,
-            TimeStamp = DateTime.UtcNow
-        };
+		var bid = new Bid
+		{
+			Amount = request.Amount,
+			AccountId = GetAccountId(),
+			AuctionId = request.AuctionId,
+			TimeStamp = DateTime.UtcNow
+		};
 
-        try
-        {
-            await _db.Bids.AddAsync(bid);
+		try
+		{
+			await _db.Bids.AddAsync(bid);
 
-            await _db.SaveChangesAsync();
-        }
-        catch (Exception)
-        {
-            throw new RpcException(new Status(StatusCode.Internal, "Could not insert into db"));
-        }
-    }
+			await _db.SaveChangesAsync();
+		}
+		catch (Exception)
+		{
+			throw new RpcException(new Status(StatusCode.Internal, "Could not insert into db"));
+		}
+	}
 
-    public async Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default)
-    {
-        var accountId = GetAccountId();
 
-        var auctions = _db.Auctions.Include(x => x.Bids)
-            .Where(x => (filter.IsFinished == false || x.CurrentWinner != null) 
-                        && (filter.WonByMe == false || x.CurrentWinnerId == accountId) 
-                        && (filter.IncludesMe == false || x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId)))
-            .Take(25)
-            .Select(x => new AuctionInfo
-            {
-                Id = x.Id,
-                Amount = x.Amount,
-                StartTime = x.StartTime,
-                EndTime = x.EndTime,
-                Bids = x.Bids.Select(xx => new BidInfo
-                {
-                    Id = xx.Id,
-                    TimeStamp = xx.TimeStamp,
-                    Amount = xx.Amount,
-                    Account = new AccountInfo
-                    {
-                        CompanyName = xx.Account.CompanyName,
-                        Id = xx.Account.Id
-                    }
-                }),
-                CurrentWinner = x.CurrentWinnerId == null ? null : new VendorCompanyInfo
-                {
-                    Id = (long)x.CurrentWinnerId,
-                    Name = x.CurrentWinner!.Name
-                },
-                JourneyInfo = new JourneyInfo
-                {
-                    Id = x.Journey.Id,
-                    Office = new OfficeInfo
-                    {
-                        OfficeId = x.Journey.Office.Id,
-                        Address = new AddressInfo
-                        {
-                            Id = x.Journey.Office.Address.Id,
-                            Name = x.Journey.Office.Address.Name,
-                            Latitude = x.Journey.Office.Address.Latitude,
-                            Longitude = x.Journey.Office.Address.Longitude
-                        },
-                        WorkingEndTime = x.Journey.Office.WorkingEndTime,
-                        WorkingStartTime = x.Journey.Office.WorkingStartTime
-                    },
-                    CustomerCompany = new CustomerCompanyInfo
-                    {
-                        Id = x.CustomerCompany.Id,
-                        Name = x.CustomerCompany.Name
-                    },
-                    Stops = x.Journey.Stops.Select(xx => new StopInfo
-                    {
-                        Id = xx.Id,
-                        Address = new AddressInfo
-                        {
-                            Id = xx.EmployeeAddressId,
-                            Name = xx.EmployeeAddress.Address.Name,
-                            Latitude = xx.EmployeeAddress.Address.Latitude,
-                            Longitude = xx.EmployeeAddress.Address.Longitude
-                        },
-                        EmployeeDetails = new SingleEmployeeInfo
-                        {
-                            FirstName = xx.EmployeeAddress.Employee.FirstName,
-                            LastName = xx.EmployeeAddress.Employee.LastName,
-                            Mobile = xx.EmployeeAddress.Employee.Mobile
-                        }
-                    })
-                }
-            });
+	public async Task<GetAuctionsResponse> GetAuction(AuctionsFilter filter, CallContext context = default)
+	{
+		var accountId = GetAccountId();
 
-        return new GetAuctionsResponse { Auctions = await auctions.ToListAsync() };
-    }
+		var auctions = _db.Auctions.Include(x => x.Bids)
+			.Where(x => (filter.IsFinished == false || x.CurrentWinner != null)
+						&& (filter.WonByMe == false || x.CurrentWinnerId == accountId)
+						&& (filter.IncludesMe == false || x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId))
+						&& (filter.AuctionId == -1 || x.Id == filter.AuctionId))
+			.Take(25)
+			.Select(x => new AuctionInfo
+			{
+				Id = x.Id,
+				Amount = x.Amount,
+				StartTime = x.StartTime,
+				EndTime = x.EndTime,
+				Bids = x.Bids.Select(xx => new BidInfo
+				{
+					Id = xx.Id,
+					TimeStamp = xx.TimeStamp,
+					Amount = xx.Amount,
+					Account = new AccountInfo
+					{
+						CompanyName = xx.Account.CompanyName,
+						Id = xx.Account.Id
+					}
+				}),
+				CurrentWinner = x.CurrentWinnerId == null ? null : new VendorCompanyInfo
+				{
+					Id = (long)x.CurrentWinnerId,
+					Name = x.CurrentWinner!.Name
+				},
+				JourneyInfo = new JourneyInfo
+				{
+					Id = x.Journey.Id,
+					Office = new OfficeInfo
+					{
+						OfficeId = x.Journey.Office.Id,
+						Address = new AddressInfo
+						{
+							Id = x.Journey.Office.Address.Id,
+							Name = x.Journey.Office.Address.Name,
+							Latitude = x.Journey.Office.Address.Latitude,
+							Longitude = x.Journey.Office.Address.Longitude
+						},
+						WorkingEndTime = x.Journey.Office.WorkingEndTime,
+						WorkingStartTime = x.Journey.Office.WorkingStartTime
+					},
+					CustomerCompany = new CustomerCompanyInfo
+					{
+						Id = x.CustomerCompany.Id,
+						Name = x.CustomerCompany.Name
+					},
+					Stops = x.Journey.Stops.Select(xx => new StopInfo
+					{
+						Id = xx.Id,
+						Address = new AddressInfo
+						{
+							Id = xx.EmployeeAddressId,
+							Name = xx.EmployeeAddress.Address.Name,
+							Latitude = xx.EmployeeAddress.Address.Latitude,
+							Longitude = xx.EmployeeAddress.Address.Longitude
+						},
+						EmployeeDetails = new SingleEmployeeInfo
+						{
+							FirstName = xx.EmployeeAddress.Employee.FirstName,
+							LastName = xx.EmployeeAddress.Employee.LastName,
+							Mobile = xx.EmployeeAddress.Employee.Mobile
+						}
+					})
+				}
+			});
 
-    private async Task ValidateBidRequestAsync(BidRequest request)
-    {
-        var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;
-        if (lastBid <= request.Amount)
-        {
-            throw new RpcException(new Status(StatusCode.AlreadyExists, "New Bid Should Have Smaller Value"));
-        }
-    }
+		return new GetAuctionsResponse { Auctions = await auctions.ToListAsync() };
+	}
 
-    private string GetSessionValue(string key)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
+	private async Task ValidateBidRequestAsync(BidRequest request)
+	{
+		var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;
+		if (lastBid <= request.Amount)
+		{
+			throw new RpcException(new Status(StatusCode.AlreadyExists, "New Bid Should Have Smaller Value"));
+		}
+	}
 
-        return res == null ? "" : res.Value;
-    }
+	private string GetSessionValue(string key)
+	{
+		var httpContext = _httpContextAccessor.HttpContext;
+		var res = httpContext?.User.Claims.FirstOrDefault(c => c.Type == key);
 
-    private long GetAccountId()
-    {
-        var accountId = GetSessionValue(AuthenticationKey.AccountId);
+		return res == null ? "" : res.Value;
+	}
 
-        if (string.IsNullOrWhiteSpace(accountId))
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
-        }
+	private long GetAccountId()
+	{
+		var accountId = GetSessionValue(AuthenticationKey.AccountId);
 
-        return long.Parse(accountId);
-    }
+		if (string.IsNullOrWhiteSpace(accountId))
+		{
+			throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+		}
+
+		return long.Parse(accountId);
+	}
+
 }

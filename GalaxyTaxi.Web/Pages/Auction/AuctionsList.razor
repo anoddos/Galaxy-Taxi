@@ -42,6 +42,9 @@
                             <p class="price">@item.Price</p>
                             <p class="bid-count">Bids: @item.BidCount</p>
                         </div>
+
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Details" OnClick="@(() => NavigateToAuctionDetails(item.AuctionId))" />
+
                     </div>
                 </MudPaper>
             </MudItem>
@@ -165,6 +168,11 @@
         };
     }
 
+    private void NavigateToAuctionDetails(long auctionId)
+    {
+        NavigationManager.NavigateTo($"/auction/{auctionId}");
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await GetAuctionData();
@@ -190,7 +198,8 @@
                     BidCount = auctionInfo.Bids?.Count() ?? 0,
                     FinalLocation = auctionInfo.JourneyInfo.Office.Address.Name,
                     Locations = auctionInfo.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList(),
-                    Price = auctionInfo.Amount
+                    Price = auctionInfo.Amount,
+                    AuctionId = auctionInfo.Id
                 });
             }
         }
@@ -203,5 +212,6 @@
         public string FinalLocation { get; set; }
         public decimal Price { get; set; }
         public int BidCount { get; set; }
+        public long AuctionId{ get; set; }
     }
 }

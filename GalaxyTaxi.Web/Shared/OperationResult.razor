@@ -1,0 +1,14 @@
+﻿<MudAlert Severity="@AlertSeverity" Variant="Variant.Filled">
+    @Message
+</MudAlert>
+
+@code {
+    [Parameter] public string Message { get; set; }
+    [Parameter] public Severity AlertSeverity { get; set; } = Severity.Normal;
+    [Parameter] public EventCallback OnAlertClosed { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(3000); 
+        await OnAlertClosed.InvokeAsync(null);
+    }
+}

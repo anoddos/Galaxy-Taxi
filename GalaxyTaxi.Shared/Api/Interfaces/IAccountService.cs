@@ -17,6 +17,6 @@ public interface IAccountService
     Task LogoutAsync(CallContext context = default);
     Task<IsLoggedInResponse> IsLoggedIn(CallContext context = default);
 
-    Task<PasswordValidationResponse> ValidateNewPassword(PasswordValidationRequest request, CallContext context = default);
-
+    Task UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default);
+    Task<AccountSettings?> GetAccountSettings(CallContext context = default);
 }

@@ -6,12 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace GalaxyTaxi.Shared.Api.Models.AccountSettings;
-
 [ProtoContract]
 [Serializable]
-public class PasswordValidationResponse
+public class UpdateAccountSettingsResponse
 {
     [ProtoMember(1)]
-    public bool IsValid { get; set; }
+    public bool SettingsUpdated { get; set; }
 }
-

@@ -21,7 +21,7 @@
 			<MudTextField Label="Company Name" ReadOnly="true" @bind-Value="CurrentAuction.JourneyInfo.CustomerCompany.Name" />
 			<MudTextField Label="Start Time" ReadOnly="true" @bind-Value="CurrentAuction.StartTime" />
 			<MudTextField Label="End Time" ReadOnly="true" @bind-Value="CurrentAuction.EndTime" />
-			<MudNumericField @bind-Value="@currentBid" Label="Max Amount Per Employee (GEL) (Current Amount displayed is the smalles bid as of now, cannot bid higher than that)" Variant="Variant.Outlined" Max="@CurrentAuction.Amount" />
+			<MudNumericField @bind-Value="@currentBid" Label="Max Amount Per Employee (GEL) (Cannot Bid Lower Than The Displayd VAalue)" Variant="Variant.Outlined" Max="@CurrentAuction.Amount" />
 			<MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="GenerateMapMarkers">Show Journey Pins</MudButton>
 
 			<MudCard>
@@ -30,13 +30,13 @@
 					<ul class="locations-list">
 						@foreach (var stop in CurrentAuction.JourneyInfo.Stops)
 						{
-							<li class="location-item">@stop.Address.Name</li>
+							<li class="location-item"><span class="location-pin"></span>@stop.Address.Name</li>
 						}
 					</ul>
 				}
 
 				<p class="destination-location">
-					<li class="location-item">@CurrentAuction.JourneyInfo.Office.Address.Name</li>
+					<span class="location-pin"></span>@CurrentAuction.JourneyInfo.Office.Address.Name
 				</p>
 			</MudCard>
 			<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Bid">Bid</MudButton>
@@ -49,30 +49,33 @@
 </MudCard>
 
 <style>
-
 	.locations-list {
-		padding-left: 20px;
+		padding-left: 0px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
 	}
 
-	.location-item::before {
-		content: "\2022";
-		color: #888;
-		display: inline-block;
-		width: 1em;
-		margin-left: -1em;
+	.location-item {
+		display: flex;
+		align-items: center;
+		font-size: 1.1em;
+	}
+
+	.location-pin::before {
+		content: "\1F4CC";
+		color: royalblue;
+		font-size: 1.5em;
+		margin-right: 5px;
 	}
 
 	.destination-location {
 		font-weight: bold;
 		margin-top: 10px;
+		display: flex;
+		align-items: center;
 	}
 
-	.destination-pin {
-		color: royalblue;
-		font-size: 1.5em;
-		vertical-align: middle;
-		margin-right: 5px;
-	}
 </style>
 
 

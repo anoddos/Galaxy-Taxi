@@ -60,4 +60,9 @@ public partial class AuctionsList
         _currentPage = page;
         await UpdateGrid();
     }
+    
+    private void NavigateToAuctionDetails(long auctionId)
+    {
+        NavigationManager.NavigateTo($"/auction/{auctionId}");
+    }
 }

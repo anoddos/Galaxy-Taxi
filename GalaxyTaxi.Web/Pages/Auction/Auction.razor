@@ -3,102 +3,144 @@
 @using GalaxyTaxi.Shared.Api.Models.AddressDetection;
 @using GalaxyTaxi.Shared.Api.Models.Auction;
 @using GalaxyTaxi.Shared.Api.Models.Filters;
-@using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
-@using GoogleMapsComponents;
+@using GoogleMapsComponents
 @using GoogleMapsComponents.Maps;
+@using Grpc.Core;
 
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
 
 <MudCardContent>
-	@if (CurrentAuction != null && CurrentAuction.JourneyInfo != null && CurrentAuction.JourneyInfo.CustomerCompany != null)
-	{
-		<MudTextField Label="Company Name" Disabled="true" @bind-Value="CurrentAuction.JourneyInfo.CustomerCompany.Name" />
-		<MudTextField Label="Start Time" Disabled="true" @bind-Value="CurrentAuction.StartTime" />
-		<MudTextField Label="End Time" Disabled="true" @bind-Value="CurrentAuction.EndTime" />
-		@if (mapOptions != null)
-		{
-			<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
-		}
-	}
+    @if (showAlert)
+    {
+        <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
+    }
+    @if (CurrentAuction != null && CurrentAuction.JourneyInfo != null && CurrentAuction.JourneyInfo.CustomerCompany != null)
+    {
+        <MudTextField Label="Company Name" ReadOnly="true" @bind-Value="CurrentAuction.JourneyInfo.CustomerCompany.Name"/>
+        <MudTextField Label="Start Time" ReadOnly="true" @bind-Value="CurrentAuction.StartTime"/>
+        <MudTextField Label="End Time" ReadOnly="true" @bind-Value="CurrentAuction.EndTime"/>
+        <MudTextField Label="Current Bid Amount [Gel]" ReadOnly="true" @bind-Value="CurrentAuction.Amount"/>
+        <MudNumericField @bind-Value="@currentBid" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Max="@CurrentAuction.Amount"/>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Bid">Bid</MudButton>
+        @if (mapOptions != null)
+        {
+            <GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+        }
+    }
 </MudCardContent>
 
 
-
-
 @code {
-	[Parameter]
-	public long Id { get; set; }
 
-	public AuctionInfo CurrentAuction { get; set; }
-	private GoogleMap map1;
-	private MapOptions mapOptions { get; set; } = new MapOptions();
+    [Parameter]
+    public long Id { get; set; }
 
-	private List<Marker> markerList { get; set; }
+    public AuctionInfo CurrentAuction { get; set; }
+    private GoogleMap map1;
+    private MapOptions mapOptions { get; set; } = new MapOptions();
 
-	protected override async Task OnInitializedAsync()
-	{
-		var response = await AuctionService.GetAuction(new AuctionsFilter { AuctionId = Id });
-		if (response != null)
-		{
-			CurrentAuction = response.Auctions?.FirstOrDefault();
-			await GenerateMapMarkers();
-		}
+    private List<Marker> markerList { get; set; }
+    private decimal currentBid { get; set; }
 
-	}
+    private bool showAlert;
+    private string alertMessage = "";
+    private Severity alertSeverity;
 
-	// protected override async Task OnAfterRenderAsync(bool firstRender)
-	private async Task GenerateMapMarkers()
-	{
-		if (CurrentAuction != null)
-		{
-			mapOptions = new MapOptions()
-				{
-					Zoom = 13,
-					Center = new LatLngLiteral()
-					{
-						Lat = (double)CurrentAuction.JourneyInfo.Office.Address.Latitude,
-						Lng = (double)CurrentAuction.JourneyInfo.Office.Address.Longitude  // Fixed typo from Latitude to Longitude
-					},
-					MapTypeId = MapTypeId.Roadmap
-				};
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await AuctionService.GetSingleAuction(new IdFilter { Id = Id });
+        if (response != null)
+        {
+            CurrentAuction = response.Auction;
+            if (CurrentAuction != null)
+            {
+                currentBid = CurrentAuction.Amount;
+                mapOptions = new MapOptions
+                {
+                    Zoom = 13,
+                    Center = new LatLngLiteral
+                    {
+                        Lat = (double)CurrentAuction.JourneyInfo.Office.Address.Latitude,
+                        Lng = (double)CurrentAuction.JourneyInfo.Office.Address.Longitude
+                    },
+                    MapTypeId = MapTypeId.Roadmap
+                };
+            }
+        }
+    }
 
-			markerList = new List<Marker>();
-			if (CurrentAuction.JourneyInfo?.Office?.Address != null)
-			{
-				await createMarker(CurrentAuction.JourneyInfo.Office.Address);
-			}
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GenerateMapMarkers();
+        }
+    }
 
-			if (CurrentAuction.JourneyInfo?.Stops != null)
-			{
-				foreach (var stop in CurrentAuction.JourneyInfo.Stops)
-				{
-					if (stop?.Address != null)
-					{
-						var marker = await createMarker(stop.Address);
-						markerList.Add(marker);
-					}
-				}
-			}
-		}
-		StateHasChanged();
-	}
+    private async Task Bid()
+    {
+        try
+        {
+            await AuctionService.Bid(new BidRequest { AuctionId = Id, Amount = (double)currentBid });
+            alertMessage = "Your Bid Was Successful";
+            alertSeverity = Severity.Success;
+        }
+        catch (RpcException ex)
+        {
+            alertMessage = ex.Message;
+            alertSeverity = Severity.Error;
+        }
 
-	private async Task<Marker> createMarker(AddressInfo address)
-	{
-		if (address == null || map1 == null)
-		{
-			return null; // Do nothing if address or map1 is null
-		}
+        showAlert = true;
+        StateHasChanged();
+    }
 
-		var position = new LatLngLiteral { Lat = (double)address.Latitude, Lng = (double)address.Longitude };
-		var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
-			{
-				Map = map1.InteropObject,
-				Draggable = false
-			});
-		await marker.SetPosition(position);
-		return marker;
-	}
+    private void HandleAlertClosed()
+    {
+        showAlert = false;
+        StateHasChanged();
+    }
 
+    private async Task GenerateMapMarkers()
+    {
+        if (CurrentAuction != null)
+        {
+            markerList = new List<Marker>();
+            if (CurrentAuction.JourneyInfo?.Office?.Address != null)
+            {
+                await createMarker(CurrentAuction.JourneyInfo.Office.Address);
+            }
+
+            if (CurrentAuction.JourneyInfo?.Stops != null)
+            {
+                foreach (var stop in CurrentAuction.JourneyInfo.Stops)
+                {
+                    if (stop?.Address != null)
+                    {
+                        var marker = await createMarker(stop.Address);
+                        markerList.Add(marker);
+                    }
+                }
+            }
+        }
+        StateHasChanged();
+    }
+
+    private async Task<Marker> createMarker(AddressInfo address)
+    {
+        if (address == null || map1 == null)
+        {
+            return null;
+        }
+
+        var position = new LatLngLiteral { Lat = (double)address.Latitude, Lng = (double)address.Longitude };
+        var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
+        {
+            Map = map1.InteropObject,
+            Draggable = false
+        });
+        await marker.SetPosition(position);
+        return marker;
+    }
 }

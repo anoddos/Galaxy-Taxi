@@ -40,7 +40,7 @@
                             <p class="bid-count">Bids: @(item.Bids?.Count() ?? 0)</p>
                         </div>
 
-                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Details" OnClick="@(() => NavigateToAuctionDetails(item.AuctionId))" />
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Details" OnClick="@(() => NavigateToAuctionDetails(item.Id))" />
 
                     </div>
                 </MudPaper>

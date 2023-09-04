@@ -6,6 +6,10 @@
 <MudContainer>
     <MudCard Class="settings-card">
         <MudCardContent>
+            @if (showAlert)
+            {
+                <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
+            }
             @if (accountSettings?.AccountType == AccountType.VendorCompany)
             {
                 <div style="display: flex; align-items: center; width: 100%;">
@@ -49,10 +53,15 @@
                 }
             }
 
-            @if (showAlert)
+            <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email"/>
+
+            <MudTextField Label="Company Name" Variant="Variant.Outlined" @bind-Value="accountSettings.CompanyName"/>
+
+            @if (accountSettings.AccountType == AccountType.CustomerCompany)
             {
-                <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
+                <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="0.0"/>
             }
+
             <MudTextField @bind-Value="oldPassword"
                           OnBlur="ValidatePasswords"
                           Label="Old Password"
@@ -88,16 +97,6 @@
                           Error="@(!passwordsMatch || !string.IsNullOrEmpty(ConfirmPasswordValidation))"
                           ErrorText="@(passwordsMatch ? ConfirmPasswordValidation : "Passwords do not match")"/>
 
-
-            <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email"/>
-
-
-            <MudTextField Label="Company Name" Variant="Variant.Outlined" @bind-Value="accountSettings.CompanyName"/>
-
-            @if (accountSettings.AccountType == AccountType.CustomerCompany)
-            {
-                <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="0.0"/>
-            }
         </MudCardContent>
         <MudCardActions Style="padding-left: 15px">
             <MudButton OnClick="SaveChanges"

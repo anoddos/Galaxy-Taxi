@@ -17,7 +17,7 @@ public class AuctionInfo
     public DateTime EndTime { get; set; }
 
     [ProtoMember(4)]
-    public decimal Amount { get; set; }
+    public double Amount { get; set; }
 
     [ProtoMember(5)]
     public VendorCompanyInfo? CurrentWinner { get; set; }
@@ -27,4 +27,10 @@ public class AuctionInfo
 
     [ProtoMember(7)]
     public IEnumerable<BidInfo> Bids { get; set; } = null!;
+    
+    [ProtoMember(8)]
+    public DateTime FromDate { get; set; }
+    
+    [ProtoMember(9)]
+    public DateTime ToDate { get; set; }
 }

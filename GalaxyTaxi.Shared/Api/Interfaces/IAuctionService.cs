@@ -15,4 +15,6 @@ public interface IAuctionService
     Task<GetAuctionsCountResponse> GetAuctionCount(AuctionsFilter auctionsFilter);
     
     Task<GetSingleAuctionsResponse> GetSingleAuction(IdFilter idFilter);
+    
+    Task<GenerateAuctionsResponse> GenerateAuctionsForCompany(CallContext context = default);
 }

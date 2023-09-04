@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230904122918_AddDateFromDateToInAuctions")]
+    partial class AddDateFromDateToInAuctions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -102,9 +104,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<DateTime>("FromDate")
                         .HasColumnType("Date");
 
-                    b.Property<double>("FulfillmentPercentage")
-                        .HasColumnType("double precision");
-
                     b.Property<long>("JourneyId")
                         .HasColumnType("bigint");
 
@@ -171,9 +170,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("SupportTwoWayJourneys")
-                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -256,9 +252,6 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.Property<long>("CustomerCompanyId")
                         .HasColumnType("bigint");
-
-                    b.Property<bool>("IsOfficeDest")
-                        .HasColumnType("boolean");
 
                     b.Property<long>("OfficeId")
                         .HasColumnType("bigint");

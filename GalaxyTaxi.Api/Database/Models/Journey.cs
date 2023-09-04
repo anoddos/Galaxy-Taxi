@@ -8,6 +8,8 @@ public class Journey
 
     public long OfficeId { get; set; }
 
+    public bool IsOfficeDest { get; set; }
+    
     public Office Office { get; set; } = null!;
 
     public CustomerCompany CustomerCompany { get; set; } = null!;

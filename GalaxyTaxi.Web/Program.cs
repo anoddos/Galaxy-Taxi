@@ -20,7 +20,6 @@ builder.Services.AddGrpcServiceClient<IAccountService>();
 builder.Services.AddGrpcServiceClient<IAddressDetectionService>();
 builder.Services.AddGrpcServiceClient<IAuctionService>();
 builder.Services.AddGrpcServiceClient<IPaymentService>();
-builder.Services.AddGrpcServiceClient<IJourneyGeneratorService>();
 builder.Services.AddGrpcServiceClient<IEmployeeManagementService>();
 builder.Services.AddGrpcServiceClient<ISubscriptionService>();
 builder.Services.AddGrpcServiceClient<IOfficeManagementService>();

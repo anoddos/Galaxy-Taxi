@@ -7,6 +7,8 @@ public class CustomerCompany
     public string Name { get; set; } = null!;
 
     public double MaxAmountPerEmployee { get; set; }
+    
+    public bool SupportTwoWayJourneys { get; set; }
 
     public long AccountId { get; set; }
 

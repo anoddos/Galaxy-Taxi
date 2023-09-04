@@ -14,8 +14,8 @@ var services = builder.Services;
 services.AddCodeFirstGrpc();
 services.AddCodeFirstGrpcReflection();
 services.AddGrpcBrowser();
-services.AddHttpContextAccessor(); // Add IHttpContextAccessor
-services.AddSession(); // Add session support
+services.AddHttpContextAccessor(); 
+services.AddSession();
 services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
 
 services.AddDbContext<Db>(options => { options.UseNpgsql(builder.Configuration.GetConnectionString("GalaxyTaxiDb")); });
@@ -65,7 +65,6 @@ app.UseEndpoints(options =>
     options.MapGrpcService<AddressDetectionService>().AddToGrpcBrowserWithService<IAddressDetectionService>();
     options.MapGrpcService<AuctionService>().AddToGrpcBrowserWithService<IAuctionService>();
     options.MapGrpcService<PaymentService>().AddToGrpcBrowserWithService<IPaymentService>();
-    options.MapGrpcService<JourneyGeneratorService>().AddToGrpcBrowserWithService<IJourneyGeneratorService>();
     options.MapGrpcService<SubscriptionService>().AddToGrpcBrowserWithService<ISubscriptionService>();
     options.MapGrpcService<OfficeManagementService>().AddToGrpcBrowserWithService<IOfficeManagementService>();
 

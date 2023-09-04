@@ -27,6 +27,11 @@ public class AccountService : IAccountService
 
     public async Task RegisterAsync(RegisterRequest request, CallContext context = default)
     {
+        if (request.Type != AccountType.CustomerCompany && request.Type != AccountType.VendorCompany)
+        {
+            throw new RpcException(new Status(StatusCode.AlreadyExists, "Invalid Account Type"));
+        }
+        
         await ValidateEmailAsync(new ValidateEmailRequest { CompanyEmail = request.CompanyEmail });
         await ValidateCompanyNameAsync(new ValidateCompanyNameRequest { CompanyName = request.CompanyName });
         
@@ -54,7 +59,8 @@ public class AccountService : IAccountService
                 {
                     AccountId = addedAccount.Entity.Id,
                     Name = request.CompanyName,
-                    MaxAmountPerEmployee = 0
+                    MaxAmountPerEmployee = 0,
+                    SupportTwoWayJourneys = false
                 };
                 await _db.CustomerCompanies.AddAsync(customerCompany);
                 companyId = customerCompany.Id;

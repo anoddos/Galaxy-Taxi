@@ -185,5 +185,10 @@ public partial class EmployeesInfo
 
 	}
 
-
+	private async Task GenerateAuctions()
+	{
+		//var auction = await AuctionService.GenerateAuctionsForCompany();
+		
+		
+	}
 }

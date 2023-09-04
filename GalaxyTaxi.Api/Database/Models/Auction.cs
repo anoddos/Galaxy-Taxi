@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace GalaxyTaxi.Api.Database.Models;
 
 public class Auction
@@ -7,10 +9,18 @@ public class Auction
     public DateTime StartTime { get; set; }
 
     public DateTime EndTime { get; set; }
+    
+    [Column(TypeName = "Date")]
+    public DateTime FromDate { get; set; }
+    
+    [Column(TypeName = "Date")]
+    public DateTime ToDate { get; set; }
 
     public long JourneyId { get; set; }
 
-    public decimal Amount { get; set; }
+    public double Amount { get; set; }
+    
+    public double FulfillmentPercentage { get; set; }
 
     public long? CurrentWinnerId { get; set; }
     

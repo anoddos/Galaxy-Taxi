@@ -1,5 +1,6 @@
 ﻿@page "/account/register"
 @using GalaxyTaxi.Shared.Api.Models.Register
+@using Grpc.Core;
 @using Microsoft.AspNetCore.Components
 @using GalaxyTaxi.Shared.Api.Models.Common
 @inject IAccountService AccountService
@@ -11,6 +12,10 @@
         <div class="card">
             <h4 class="card-header">Register</h4>
             <div class="card-body">
+                @if (showAlert)
+                {
+                    <OperationResult Message="@alertMessage" AlertSeverity="Severity.Error" OnAlertClosed="HandleAlertClosed" />
+                }
                 <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
                     <DataAnnotationsValidator/>
                     <div class="form-group">
@@ -68,14 +73,24 @@
     private bool loading;
     private bool? IsLoggedIn;
 
+    private bool showAlert = false;
+    private string alertMessage = "";
+    private Severity alertSeverity;
+
     protected override async Task OnInitializedAsync()
     {
         var response = await AccountService.IsLoggedIn();
         IsLoggedIn = response.IsLoggedIn;
         if (response.IsLoggedIn)
         {
-            NavigationManager.NavigateTo("/account/employeesInfo");
+            NavigationManager.NavigateTo("/account/settings");
         }
+    }
+
+    private void HandleAlertClosed()
+    {
+        showAlert = false;
+        StateHasChanged();
     }
 
     private async Task OnValidSubmit()
@@ -84,11 +99,13 @@
         try
         {
             await AccountService.RegisterAsync(model);
-            NavigationManager.NavigateTo("/account/employeesInfo");
+            NavigationManager.NavigateTo("/account/settings");
         }
-        catch (Exception ex)
+        catch (RpcException ex)
         {
             loading = false;
+            showAlert = true;
+            alertMessage = ex.Status.Detail;
             StateHasChanged();
         }
     }

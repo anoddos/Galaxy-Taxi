@@ -246,6 +246,7 @@ public class AccountService : IAccountService
             {
                 company.MaxAmountPerEmployee = (double)request.AccountInformation?.MaxAmountPerEmployee;
             }
+            company.SupportTwoWayJourneys = request.AccountInformation.SupportTwoWayJourneys;
         }
 
         if (!string.IsNullOrWhiteSpace(request.AccountInformation?.Email) &&
@@ -272,13 +273,14 @@ public class AccountService : IAccountService
 
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
         double maxAmountPerEmployee = 0;
-
+        bool supportTwoWayJourneys = false;
         if (loggedInAs == AccountType.CustomerCompany)
         {
             var company = await _db.CustomerCompanies.SingleOrDefaultAsync(a => a.AccountId == accountId);
             if (company == null)
                 throw new RpcException(new Status(StatusCode.NotFound, "Customer company does not exists"));
             maxAmountPerEmployee = company.MaxAmountPerEmployee;
+            supportTwoWayJourneys = company.SupportTwoWayJourneys;
         }
 
         var account = await _db.Accounts.SingleOrDefaultAsync(a => a.Id == accountId);
@@ -289,7 +291,8 @@ public class AccountService : IAccountService
                 CompanyName = account.CompanyName,
                 Email = account.Email,
                 MaxAmountPerEmployee = maxAmountPerEmployee,
-                AccountType = loggedInAs
+                AccountType = loggedInAs,
+                SupportTwoWayJourneys = supportTwoWayJourneys
             }
             : null;
     }

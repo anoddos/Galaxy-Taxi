@@ -28,15 +28,18 @@ public partial class EmployeesInfo
 
 	private EmployeeJourneyInfo selectedEmployeeForEdit;
 
+	private EmployeeManagementFilter _employeeFilter = new EmployeeManagementFilter { 
+		EmployeeName = string.Empty,
+		JourneyStatus = EmployeeJourneyStatus.All,
+		SelectedOffice = null
+	};
+
 	// custom sort by name length
 	protected override async Task OnInitializedAsync()
 	{
-		var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = OfficeFilter, EmployeeName = EmployeeNameFilter });
+		await ReloadEmployees();
 		var officeResponse = await _officeManagement.GetOffices(new OfficeManagementFilter());
-		if (response != null && response.Employees != null)
-		{
-			_employees = response.Employees;
-		}
+		
 		if (officeResponse != null && officeResponse.Offices != null)
 		{
 			_offices = officeResponse.Offices;
@@ -54,12 +57,21 @@ public partial class EmployeesInfo
 	private async Task EmployeeNameChanged(string employeeName)
 	{
 		EmployeeNameFilter = employeeName;
-		ReloadEmployees();
+		await ReloadEmployees();
 	}
+
+	private async Task UpdateEmployeeDataBasedOnSelection(EmployeeJourneyStatus status)
+	{
+		_employeeFilter.JourneyStatus = status;
+		await ReloadEmployees();
+	}
+
 
 	private async Task ReloadEmployees()
 	{
-		var response = await _employeeManagement.GetEmployees(new EmployeeManagementFilter { SelectedOffice = OfficeFilter, EmployeeName = EmployeeNameFilter });
+		_employeeFilter.SelectedOffice = OfficeFilter;
+		_employeeFilter.EmployeeName = EmployeeNameFilter;
+		var response = await _employeeManagement.GetEmployees(_employeeFilter);
 		if (response != null)
 		{
 			_employees = response.Employees;
@@ -70,7 +82,7 @@ public partial class EmployeesInfo
 	private async Task OfficeValueChanged(OfficeInfo currentOffice)
 	{
 		OfficeFilter = currentOffice;
-		ReloadEmployees();
+		await ReloadEmployees();
 	}
 
 	private async void DeleteEmployee(EmployeeJourneyInfo employee)
@@ -185,10 +197,4 @@ public partial class EmployeesInfo
 
 	}
 
-	private async Task GenerateAuctions()
-	{
-		//var auction = await AuctionService.GenerateAuctionsForCompany();
-		
-		
-	}
 }

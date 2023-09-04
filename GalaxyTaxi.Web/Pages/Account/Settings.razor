@@ -2,6 +2,7 @@
 @using GalaxyTaxi.Shared.Api.Models.AccountSettings;
 @using GalaxyTaxi.Shared.Api.Models.Common
 @using Grpc.Core;
+@using System.ComponentModel.DataAnnotations;
 
 <MudContainer>
     <MudCard Class="settings-card">
@@ -53,7 +54,8 @@
                 }
             }
 
-            <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email"/>
+            <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email" 
+                                        Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
 
             <MudTextField Label="Company Name" Variant="Variant.Outlined" @bind-Value="accountSettings.CompanyName"/>
 
@@ -96,6 +98,11 @@
                           AdornmentAriaLabel="Show Password"
                           Error="@(!passwordsMatch || !string.IsNullOrEmpty(ConfirmPasswordValidation))"
                           ErrorText="@(passwordsMatch ? ConfirmPasswordValidation : "Passwords do not match")"/>
+            @if(accountSettings.AccountType == AccountType.CustomerCompany)
+            {
+                <MudSwitch @bind-Checked="accountSettings.SupportTwoWayJourneys" Label="Support Two-Way Journeys" Color="Color.Primary" />
+
+            }
 
         </MudCardContent>
         <MudCardActions Style="padding-left: 15px">
@@ -105,7 +112,6 @@
                        Color="Color.Primary">
                 Save Office Info
             </MudButton>
-
         </MudCardActions>
     </MudCard>
 </MudContainer>
@@ -189,7 +195,7 @@
         }
         catch (RpcException ex)
         {
-            alertMessage = ex.Message;
+            alertMessage = ex.Status.Detail;
             alertSeverity = Severity.Error;
         }
 

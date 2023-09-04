@@ -26,4 +26,7 @@ public class AccountSettings
     
     [ProtoMember(5)]
     public bool IsVerified { get; set; }
+
+    [ProtoMember(6)]
+    public bool SupportTwoWayJourneys { get; set; }
 }

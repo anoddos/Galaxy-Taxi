@@ -21,8 +21,9 @@
             <MudTextField Label="Company Name" ReadOnly="true" @bind-Value="CurrentAuction.JourneyInfo.CustomerCompany.Name"/>
             <MudTextField Label="Start Time" ReadOnly="true" @bind-Value="CurrentAuction.StartTime"/>
             <MudTextField Label="End Time" ReadOnly="true" @bind-Value="CurrentAuction.EndTime"/>
-            <MudNumericField @bind-Value="@currentBid" Label="Max Amount Per Employee (GEL) (Cannot Bid Lower Than The Displayd VAalue)" Variant="Variant.Outlined" Max="@CurrentAuction.Amount"/>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="GenerateMapMarkers">Show Journey Pins</MudButton>
+            <MudNumericField Immediate="false" Format="N2" T="double" Variant="Variant.Outlined" Max="@CurrentAuction.Amount"
+                 @bind-Value="@currentBid" Label="Max Amount Per Employee (GEL) (Cannot Bid Lower Than The Displayd VAalue)" />
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Format="N2" OnClick="GenerateMapMarkers">Show Journey Pins</MudButton>
 
             <MudCard>
                 @if (CurrentAuction.JourneyInfo.Stops != null)
@@ -131,7 +132,7 @@
         }
         catch (RpcException ex)
         {
-            alertMessage = ex.Message;
+            alertMessage = ex.Status.Detail;
             alertSeverity = Severity.Error;
         }
 

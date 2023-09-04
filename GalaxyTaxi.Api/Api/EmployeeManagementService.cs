@@ -107,7 +107,10 @@ public class EmployeeManagementService : IEmployeeManagementService
 				await _db.SaveChangesAsync();
 				if (!employeeExists || !isAddressUpdated)
 				{
-					await _addressDetectionService.DetectSingleAddressCoordinates(new DetectAddressCoordinatesRequest { EmployeeId = existingEmployee.Id });
+					var detectionResult = await _addressDetectionService.DetectSingleAddressCoordinates(new DetectAddressCoordinatesRequest { EmployeeId = existingEmployee.Id });
+					address.IsDetected = detectionResult?.StatusId == AddressDetectionStatus.Success;
+
+					await _db.SaveChangesAsync();
 				}
 
 			}
@@ -162,7 +165,10 @@ public class EmployeeManagementService : IEmployeeManagementService
 		var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
 		var employees = from employee in _db.Employees.Include(e => e.Office)
-						where employee.CustomerCompanyId == customerCompanyId
+						where (employee.CustomerCompanyId == customerCompanyId
+							&& (filter.JourneyStatus == EmployeeJourneyStatus.All 
+								|| (filter.JourneyStatus == EmployeeJourneyStatus.HasActiveJourney && employee.HasActiveJourney) 
+								|| (filter.JourneyStatus == EmployeeJourneyStatus.NoActiveJourney && !employee.HasActiveJourney)))
 						let address = employee.Addresses.SingleOrDefault(a => a.IsActive)
 						select new EmployeeJourneyInfo
 						{
@@ -175,7 +181,8 @@ public class EmployeeManagementService : IEmployeeManagementService
 								Name = address.Address.Name,
 								Latitude = address.Address.Latitude,
 								Longitude = address.Address.Longitude,
-								Id = address.Address.Id
+								Id = address.Address.Id,
+								IsDetected = address.Address.IsDetected
 							},
 							To = new OfficeInfo
 							{
@@ -187,8 +194,10 @@ public class EmployeeManagementService : IEmployeeManagementService
 									Name = employee.Office.Address.Name,
 									Latitude = employee.Office.Address.Latitude,
 									Longitude = employee.Office.Address.Longitude,
+									IsDetected =employee.Office.Address.IsDetected
 								}
-							}
+							},
+                            HasActiveJourney = employee.HasActiveJourney
 						};
 
 		if (filter?.SelectedOffice != null)
@@ -200,13 +209,15 @@ public class EmployeeManagementService : IEmployeeManagementService
 		{
 			string[]? names = filter?.EmployeeName.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-
-			foreach (string namePart in names)
+			if (names != null)
 			{
-				employees = employees.Where(e =>
-					EF.Functions.Like(e.FirstName, $"%{namePart}%") ||
-					EF.Functions.Like(e.LastName, $"%{namePart}%")
-				);
+				foreach (string namePart in names)
+				{
+					employees = employees.Where(e =>
+						EF.Functions.Like(e.FirstName, $"%{namePart}%") ||
+						EF.Functions.Like(e.LastName, $"%{namePart}%")
+					);
+				}
 			}
 		}
 

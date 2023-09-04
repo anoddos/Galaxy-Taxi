@@ -1,4 +1,5 @@
-﻿using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
+﻿using GalaxyTaxi.Shared.Api.Models.Common;
+using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using ProtoBuf;
 
 namespace GalaxyTaxi.Shared.Api.Models.Filters;
@@ -12,4 +13,7 @@ public class EmployeeManagementFilter
 
     [ProtoMember(2)]
     public string EmployeeName { get; set; } = "";
+
+    [ProtoMember(3)]
+    public EmployeeJourneyStatus JourneyStatus { get; set; }
 }

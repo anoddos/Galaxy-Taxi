@@ -25,4 +25,7 @@ public class EmployeeJourneyInfo
     
     [ProtoMember(6)]
     public long EmployeeId { get; set; }
+
+    [ProtoMember(7)]
+    public bool HasActiveJourney { get; set; }
 }

@@ -17,4 +17,7 @@ public class AddressInfo
 
     [ProtoMember(4)]
     public long Id { get; set; }
+
+    [ProtoMember(5)]
+    public bool IsDetected { get; set; }
 }

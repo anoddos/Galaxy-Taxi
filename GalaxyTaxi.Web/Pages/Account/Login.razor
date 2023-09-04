@@ -1,5 +1,6 @@
 ﻿@page "/account/login"
 @using GalaxyTaxi.Shared.Api.Models.Login
+@using Grpc.Core;
 @using Microsoft.AspNetCore.Components
 @inject IAccountService AccountService
 @inject NavigationManager NavigationManager
@@ -10,6 +11,10 @@
 		<div class="card">
 			<h4 class="card-header">Login</h4>
 			<div class="card-body">
+				@if (showAlert)
+				{
+					<OperationResult Message="@alertMessage" AlertSeverity="Severity.Error" OnAlertClosed="HandleAlertClosed" />
+				}
 				<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
 					<DataAnnotationsValidator />
 					<div class="form-group">
@@ -41,14 +46,22 @@
 	private bool loading;
 	private bool? IsLoggedIn;
 
+	private bool showAlert = false;
+	private string alertMessage = "";
 	protected override async Task OnInitializedAsync()
 	{
 		var response = await AccountService.IsLoggedIn();
 		IsLoggedIn = response.IsLoggedIn;
 		if (response.IsLoggedIn)
 		{
-			NavigationManager.NavigateTo("/account/employeesInfo");
+			NavigationManager.NavigateTo("/account/settings");
 		}
+	}
+
+	private void HandleAlertClosed()
+	{
+		showAlert = false;
+		StateHasChanged();
 	}
 
 	private async void OnValidSubmit()
@@ -61,11 +74,13 @@
 			//var returnUrl = NavigationManager.("returnUrl") ?? "";
 			//NavigationManager.NavigateTo(returnUrl);
 			//aq jer employee infoze gadadis, mere zogad url unda davubrunot account typeis mixedvit
-			NavigationManager.NavigateTo("/account/employeesInfo");
+			NavigationManager.NavigateTo("/account/settings");
 		}
-		catch (Exception ex)
+		catch (RpcException ex)
 		{
 			loading = false;
+			showAlert = true;
+			alertMessage = ex.Status.Detail;
 			StateHasChanged();
 		}
 	}

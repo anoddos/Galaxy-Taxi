@@ -1,4 +1,5 @@
-﻿using GalaxyTaxi.Shared.Api.Models.Common;
+﻿using System.ComponentModel.DataAnnotations;
+using GalaxyTaxi.Shared.Api.Models.Common;
 using ProtoBuf;
 
 namespace GalaxyTaxi.Shared.Api.Models.Register;
@@ -11,6 +12,7 @@ public class RegisterRequest
     public string CompanyName { get; set; } = null!;
 
     [ProtoMember(2)]
+    [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "Invalid email format.")]
     public string CompanyEmail { get; set; } = null!;
 
     [ProtoMember(3)]
@@ -18,4 +20,7 @@ public class RegisterRequest
 
     [ProtoMember(4)]
     public AccountType Type { get; set; }
+
+    [ProtoMember(5)] 
+    public string IdentificationCode { get; set; } = null!;
 }

@@ -60,7 +60,7 @@ public class AuctionService : IAuctionService
 
         var auctions = await _db.Auctions.Include(x => x.Bids)
             .Where(x => ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
-                         || (loggedInAs == AccountType.VendorCompany && (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
+                         || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) && (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
                          || loggedInAs == AccountType.Admin)
                         && (filter.Status == ActionStatus.All || (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) || (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
                         && (filter.WonByMe == false || x.CurrentWinnerId == accountId))
@@ -70,7 +70,6 @@ public class AuctionService : IAuctionService
             {
                 Id = x.Id,
                 Amount = x.Amount,
-                StartTime = x.StartTime,
                 EndTime = x.EndTime,
                 Bids = x.Bids.Select(xx => new BidInfo
                 {
@@ -119,6 +118,11 @@ public class AuctionService : IAuctionService
         return new GetAuctionsResponse { Auctions = auctions };
     }
 
+    private bool AccountIsVerified(long accountId)
+    {
+        return  _db.Accounts.Any(x => x.Id == accountId && x.IsVerified);
+    }
+
     public async Task<GetAuctionsCountResponse> GetAuctionCount(AuctionsFilter filter)
     {
         var accountId = GetAccountId();
@@ -126,7 +130,7 @@ public class AuctionService : IAuctionService
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
 
         var count = _db.Auctions.Count(x => ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
-                                             || (loggedInAs == AccountType.VendorCompany && (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
+                                             || (loggedInAs == AccountType.VendorCompany &&  AccountIsVerified(accountId) && (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
                                              || loggedInAs == AccountType.Admin)
                                             && (filter.Status == ActionStatus.All || (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) || (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
                                             && (filter.WonByMe == false || x.CurrentWinnerId == accountId));

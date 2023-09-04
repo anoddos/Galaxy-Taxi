@@ -6,8 +6,6 @@ public class CustomerCompany
 
     public string Name { get; set; } = null!;
 
-    public string IdentificationCode { get; set; } = null!;
-
     public double MaxAmountPerEmployee { get; set; }
 
     public long AccountId { get; set; }

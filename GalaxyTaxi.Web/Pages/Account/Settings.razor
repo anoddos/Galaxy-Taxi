@@ -1,75 +1,121 @@
 ﻿@page "/account/settings"
 @using GalaxyTaxi.Shared.Api.Models.AccountSettings;
+@using GalaxyTaxi.Shared.Api.Models.Common
 @using Grpc.Core;
-@using MudBlazor
 
 <MudContainer>
     <MudCard Class="settings-card">
         <MudCardContent>
-                 @if(showAlert)
+            @if (accountSettings?.AccountType == AccountType.VendorCompany)
+            {
+                <div style="display: flex; align-items: center; width: 100%;">
+                    @{
+                        var textColor = accountSettings.IsVerified ? Color.Success : Color.Error;
+                        var verificationText = accountSettings.IsVerified ? "Verified" : "Not Verified";
+                        var verificationIcon = accountSettings.IsVerified ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.ErrorOutline;
+                    }
+
+                    <MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;"/>
+                    <MudText Typo="Typo.overline" Color="@textColor">@verificationText</MudText>
+
+                    @if (!accountSettings.IsVerified)
+                    {
+                        <div style="margin-left: auto;">
+                            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                                <ButtonTemplate>
+                                    <MudButton HtmlTag="label"
+                                               Variant="Variant.Filled"
+                                               Color="Color.Primary"
+                                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                                               for="@context">
+                                        Upload Files
+                                    </MudButton>
+                                </ButtonTemplate>
+                            </MudFileUpload>
+                        </div>
+                    }
+                </div>
+
+                @if (files != null)
                 {
-                    <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
+                    <MudList>
+                        @foreach (var file in files)
+                        {
+                            <MudListItem Icon="@Icons.Material.Filled.AttachFile">
+                                @file.Name <code>@file.Size bytes</code>
+                            </MudListItem>
+                        }
+                    </MudList>
                 }
-                <MudTextField @bind-Value="oldPassword" 
-                              OnBlur="ValidatePasswords" 
-                              Label="Old Password" 
-                              Variant="Variant.Filled" 
-                              InputType="@OldPasswordInput" 
-                              Adornment="Adornment.End" 
-                              AdornmentIcon="@oldPasswordIcon" 
-                              OnAdornmentClick="ToggleOldPasswordVisibility" 
-                              AdornmentAriaLabel="Show Password"
-                              Error="@(!string.IsNullOrEmpty(OldPasswordValidation))"
-                              ErrorText="@OldPasswordValidation" />
+            }
 
-                <MudTextField @bind-Value="newPassword" 
-                              OnBlur="ValidatePasswords" 
-                              Label="New Password" 
-                              Variant="Variant.Filled" 
-                              InputType="@NewPasswordInput" 
-                              Adornment="Adornment.End" 
-                              AdornmentIcon="@newPasswordIcon" 
-                              OnAdornmentClick="ToggleNewPasswordVisibility" 
-                              AdornmentAriaLabel="Show Password"
-                              Error="@(!string.IsNullOrEmpty(NewPasswordValidation))"
-                              ErrorText="@NewPasswordValidation" />
+            @if (showAlert)
+            {
+                <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
+            }
+            <MudTextField @bind-Value="oldPassword"
+                          OnBlur="ValidatePasswords"
+                          Label="Old Password"
+                          Variant="Variant.Filled"
+                          InputType="@OldPasswordInput"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@oldPasswordIcon"
+                          OnAdornmentClick="ToggleOldPasswordVisibility"
+                          AdornmentAriaLabel="Show Password"
+                          Error="@(!string.IsNullOrEmpty(OldPasswordValidation))"
+                          ErrorText="@OldPasswordValidation"/>
 
-                <MudTextField @bind-Value="confirmPassword" 
-                              Label="Confirm Password" 
-                              Variant="Variant.Filled" 
-                              InputType="@ConfirmPasswordInput" 
-                              Adornment="Adornment.End" 
-                              AdornmentIcon="@confirmPasswordIcon" 
-                              OnAdornmentClick="ToggleConfirmPasswordVisibility" 
-                              AdornmentAriaLabel="Show Password"
-                              Error="@(!passwordsMatch || !string.IsNullOrEmpty(ConfirmPasswordValidation))"
-                              ErrorText="@(passwordsMatch ? ConfirmPasswordValidation : "Passwords do not match")" />
+            <MudTextField @bind-Value="newPassword"
+                          OnBlur="ValidatePasswords"
+                          Label="New Password"
+                          Variant="Variant.Filled"
+                          InputType="@NewPasswordInput"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@newPasswordIcon"
+                          OnAdornmentClick="ToggleNewPasswordVisibility"
+                          AdornmentAriaLabel="Show Password"
+                          Error="@(!string.IsNullOrEmpty(NewPasswordValidation))"
+                          ErrorText="@NewPasswordValidation"/>
+
+            <MudTextField @bind-Value="confirmPassword"
+                          Label="Confirm Password"
+                          Variant="Variant.Filled"
+                          InputType="@ConfirmPasswordInput"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@confirmPasswordIcon"
+                          OnAdornmentClick="ToggleConfirmPasswordVisibility"
+                          AdornmentAriaLabel="Show Password"
+                          Error="@(!passwordsMatch || !string.IsNullOrEmpty(ConfirmPasswordValidation))"
+                          ErrorText="@(passwordsMatch ? ConfirmPasswordValidation : "Passwords do not match")"/>
 
 
+            <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email"/>
 
-                <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email" />
 
+            <MudTextField Label="Company Name" Variant="Variant.Outlined" @bind-Value="accountSettings.CompanyName"/>
 
-                <MudTextField Label="Company Name" Variant="Variant.Outlined" @bind-Value="accountSettings.CompanyName" />
-
-                @if (accountSettings.IsCustomerCompany)
-                {
-                    <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="0.0" />
-                }
+            @if (accountSettings.AccountType == AccountType.CustomerCompany)
+            {
+                <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="0.0"/>
+            }
         </MudCardContent>
-        <MudCardActions>
-				<MudButton OnClick="SaveChanges" 
-                           Disabled="!passwordsMatch || IsAnyPasswordFilled && (string.IsNullOrWhiteSpace(oldPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))" 
-                           Variant="Variant.Filled" 
-                           Color="Color.Primary">Save Office Info</MudButton>
+        <MudCardActions Style="padding-left: 15px">
+            <MudButton OnClick="SaveChanges"
+                       Disabled="!passwordsMatch || IsAnyPasswordFilled && (string.IsNullOrWhiteSpace(oldPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary">
+                Save Office Info
+            </MudButton>
 
-		</MudCardActions>
+        </MudCardActions>
     </MudCard>
 </MudContainer>
 
 @code {
-    [Inject] 
+
+    [Inject]
     public IDialogService DialogService { get; set; }
+
     private string oldPassword { get; set; } = "";
     private string newPassword { get; set; } = "";
     private string confirmPassword { get; set; } = "";
@@ -95,18 +141,17 @@
     private string alertMessage = "";
     private Severity alertSeverity;
 
-    private string OldPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(oldPassword) 
-                                      ? "Old Password is required." 
-                                      : "";
+    private string OldPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(oldPassword)
+        ? "Old Password is required."
+        : "";
 
-    private string NewPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(newPassword) 
-                                          ? "New Password is required." 
-                                          : "";
+    private string NewPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(newPassword)
+        ? "New Password is required."
+        : "";
 
-    private string ConfirmPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(confirmPassword) 
-                                              ? "Confirm Password is required." 
-                                              : "";
-
+    private string ConfirmPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(confirmPassword)
+        ? "Confirm Password is required."
+        : "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -143,7 +188,7 @@
             alertMessage = "Account Settings Updated";
             alertSeverity = Severity.Success;
         }
-        catch(RpcException ex)
+        catch (RpcException ex)
         {
             alertMessage = ex.Message;
             alertSeverity = Severity.Error;
@@ -151,20 +196,28 @@
 
         showAlert = true;
         StateHasChanged();
-
     }
+
     private void HandleAlertClosed()
     {
         showAlert = false;
         StateHasChanged();
     }
 
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+
+    private void UploadFiles(IBrowserFile file)
+    {
+        files.Add(file);
+    //TODO upload the files to the server
+    }
 
     private string PasswordMatchValidation() => newPassword == confirmPassword ? "" : "Passwords do not match";
     private void ValidatePasswords() => StateHasChanged();
-    private bool IsAnyPasswordFilled => !string.IsNullOrWhiteSpace(oldPassword) 
-                                 || !string.IsNullOrWhiteSpace(newPassword) 
-                                 || !string.IsNullOrWhiteSpace(confirmPassword);
+
+    private bool IsAnyPasswordFilled => !string.IsNullOrWhiteSpace(oldPassword)
+                                        || !string.IsNullOrWhiteSpace(newPassword)
+                                        || !string.IsNullOrWhiteSpace(confirmPassword);
 
 
 }

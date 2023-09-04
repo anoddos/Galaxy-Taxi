@@ -13,4 +13,6 @@ public class Account
     public string CompanyName { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
+    
+    public bool IsVerified { get; set; }
 }

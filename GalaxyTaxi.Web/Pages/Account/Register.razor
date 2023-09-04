@@ -7,78 +7,90 @@
 
 @if (IsLoggedIn == false)
 {
-	<div class="col-md-6 offset-md-3 mt-5">
-		<div class="card">
-			<h4 class="card-header">Register</h4>
-			<div class="card-body">
-				<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
-					<DataAnnotationsValidator />
-					<div class="form-group">
-						<label>Company Name</label>
-						<InputText @bind-Value="model.CompanyName" class="form-control" />
-						<ValidationMessage For="@(() => model.CompanyName)" />
-					</div>
-					<div class="form-group">
-						<label>Company Email</label>
-						<InputText @bind-Value="model.CompanyEmail" class="form-control" />
-						<ValidationMessage For="@(() => model.CompanyEmail)" />
-					</div>
-					<div class="form-group">
-						<label>Password</label>
-						<InputText @bind-Value="model.Password" type="password" class="form-control" />
-						<ValidationMessage For="@(() => model.Password)" />
-					</div>
-					<div class="form-group">
-						<label>Company Type</label>
-						<MudSelect @bind-Value="model.Type">
-							<MudSelectItem Value="AccountType.CustomerCompany">Customer Company</MudSelectItem>
-							<MudSelectItem Value="AccountType.VendorCompany">Vendor Company</MudSelectItem>
-						</MudSelect>
-					</div>
-					<button disabled="@loading" class="btn btn-primary">
-						@if (loading)
-						{
-							<span class="spinner-border spinner-border-sm mr-1"></span>
-						}
-						Register
-					</button>
-					<NavLink href="account/login" class="btn btn-link">Cancel</NavLink>
-				</EditForm>
-			</div>
-		</div>
-	</div>
+    <div class="col-md-6 offset-md-3 mt-5">
+        <div class="card">
+            <h4 class="card-header">Register</h4>
+            <div class="card-body">
+                <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator/>
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <InputText @bind-Value="model.CompanyName" class="form-control"/>
+                        <ValidationMessage For="@(() => model.CompanyName)"/>
+                    </div>
+                   
+                    <div class="form-group">
+                        <label>Company Email</label>
+                        <InputText @bind-Value="model.CompanyEmail" class="form-control"/>
+                        <ValidationMessage For="@(() => model.CompanyEmail)"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <InputText @bind-Value="model.Password" type="password" class="form-control"/>
+                        <ValidationMessage For="@(() => model.Password)"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Company Type</label>
+                        <MudSelect @bind-Value="model.Type">
+                            <MudSelectItem Value="AccountType.CustomerCompany">Customer Company</MudSelectItem>
+                            <MudSelectItem Value="AccountType.VendorCompany">Vendor Company</MudSelectItem>
+                        </MudSelect>
+                    </div>
+                    @if (model.Type == AccountType.VendorCompany)
+                    {
+                        <div class="form-group">
+                            <label>Company Identification Code</label>
+                            <InputText @bind-Value="model.IdentificationCode" class="form-control"/>
+                            <ValidationMessage For="@(() => model.IdentificationCode)"/>
+                        </div>
+                    }
+                    <button disabled="@loading" class="btn btn-primary">
+                        @if (loading)
+                        {
+                            <span class="spinner-border spinner-border-sm mr-1"></span>
+                        }
+                        Register
+                    </button>
+                    <NavLink href="account/login" class="btn btn-link">Cancel</NavLink>
+                </EditForm>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-	private RegisterRequest model = new RegisterRequest
-		{
-			Type = AccountType.CustomerCompany
-		};
-	private bool loading;
-	private bool? IsLoggedIn;
 
-	protected override async Task OnInitializedAsync()
-	{
-		var response = await AccountService.IsLoggedIn();
-		IsLoggedIn = response.IsLoggedIn;
-		if (response.IsLoggedIn)
-		{
-			NavigationManager.NavigateTo("/account/employeesInfo");
-		}
-	}
+    private RegisterRequest model = new RegisterRequest
+    {
+        Type = AccountType.CustomerCompany
+    };
 
-	private async Task OnValidSubmit()
-	{
-		loading = true;
-		try
-		{
-			await AccountService.RegisterAsync(model);
-			NavigationManager.NavigateTo("/account/employeesInfo");
-		}
-		catch (Exception ex)
-		{
-			loading = false;
-			StateHasChanged();
-		}
-	}
+    private bool loading;
+    private bool? IsLoggedIn;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await AccountService.IsLoggedIn();
+        IsLoggedIn = response.IsLoggedIn;
+        if (response.IsLoggedIn)
+        {
+            NavigationManager.NavigateTo("/account/employeesInfo");
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        loading = true;
+        try
+        {
+            await AccountService.RegisterAsync(model);
+            NavigationManager.NavigateTo("/account/employeesInfo");
+        }
+        catch (Exception ex)
+        {
+            loading = false;
+            StateHasChanged();
+        }
+    }
+
 }

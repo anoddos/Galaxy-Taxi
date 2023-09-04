@@ -1,16 +1,23 @@
 @page "/auction/AuctionsList"
 @using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Common
 @using GoogleMapsComponents
 @using Size = MudBlazor.Size
 @inject IAuctionService AuctionService
 @inject NavigationManager NavigationManager
 
 <div class="filters-container">
-    <MudCheckBox @bind-Checked="@_auctionsFilter.IncludesMe" Label="Mine" Color="Color.Primary"></MudCheckBox>
-    <MudCheckBox @bind-Checked="@_auctionsFilter.IsFinished" Label="Finished" Color="Color.Primary"></MudCheckBox>
+    <MudRadioGroup @bind-SelectedOption="@_auctionsFilter.Status">
+        <MudRadio Option="ActionStatus.Active" Color="Color.Primary" Size="Size.Small">Active</MudRadio>
+        <MudRadio Option="ActionStatus.Finished" Color="Color.Primary" Size="Size.Small">Finished</MudRadio>
+        <MudRadio Option="ActionStatus.All" Color="Color.Primary" Size="Size.Small">All</MudRadio>
+    </MudRadioGroup>
+    
     <MudCheckBox @bind-Checked="@_auctionsFilter.WonByMe" Label="Won By Me" Color="Color.Primary"></MudCheckBox>
     <MudButton OnClick="async () => await UpdateGrid()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white; margin-left: 15px;">Search</MudButton>
 </div>
+
+
 
 <MudGrid>
     @if (_auctionItems != null)
@@ -24,7 +31,9 @@
                             <GoogleMap @ref="@_map1" Options="@_mapOptions" Height="200px"></GoogleMap>
                         </div>
                         <div class="auction-item-details" title="@item.JourneyInfo.CustomerCompany.Name">
-                            <h3>@item.JourneyInfo.CustomerCompany.Name</h3>
+                            <a @onclick="() => NavigateToAuctionDetails(item.Id)" style="text-decoration:none; cursor:pointer;">
+                                <h3>@item.JourneyInfo.CustomerCompany.Name's Auction</h3>
+                            </a>
                             <ul class="locations-list">
                                 @foreach (var location in item.JourneyInfo.Stops?.Select(x => x.Address.Name).ToList() ?? new List<string>())
                                 {
@@ -38,35 +47,35 @@
                         <div class="auction-item-price">
                             <p class="price">@item.Amount</p>
                             <p class="bid-count">Bids: @(item.Bids?.Count() ?? 0)</p>
+                            @if(item.CurrentWinner != null)
+                            {
+                                <span class="winner-label">Winner:</span>
+                                <span class="winner-name">@item.CurrentWinner.Name</span>
+                            }
                         </div>
-
-                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Details" OnClick="@(() => NavigateToAuctionDetails(item.Id))" />
-
                     </div>
                 </MudPaper>
             </MudItem>
         }
     }
 </MudGrid>
-<div style="margin-top: 30px; text-align: center">
+<div style="margin-top: 50px; margin-bottom: 50px; text-align: center">
     <MudPagination Count="@_totalPages" CurrentPage="@_currentPage" Variant="Variant.Text" Disabled="false" PageSize="@_auctionsFilter.PageSize" ShowFirstLast="true" ShowPageNumbers="true" ShowJump="true" SelectedChanged="HandlePageClick" />
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
 
 <style>
+
 .filters-container {
     display: flex;
     justify-content: flex-start;
     align-items: center;
     margin-left: 150px;
+    margin-top: 30px;
+    margin-bottom: 30px;
 }
 
-.auction-item {
-    margin: 0 150px;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-}
 
 .auction-item-row {
     display: flex;
@@ -95,6 +104,24 @@
     font-size: 18px;
     color: #555;
     margin-top: 0;
+    transition: color 0.3s ease-in-out;
+}
+
+.auction-item-details a:hover h3 {
+    color: royalblue; 
+    text-decoration: underline;
+}
+
+.auction-item {
+    margin: 0 150px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;  
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);  
+    transition: box-shadow 0.3s ease-in-out; 
+}
+
+.auction-item:hover {
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
 }
 
 .auction-item-price {
@@ -137,4 +164,15 @@
     vertical-align: middle;
     margin-right: 5px; 
 }
+
+.winner-label {
+    display: block;
+    text-align: left;
+}
+
+.winner-name {
+    font-size: 18px;
+    color: royalblue;
+}
+
 </style>

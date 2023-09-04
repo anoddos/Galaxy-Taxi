@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GalaxyTaxi.Shared.Api.Models.Common
+﻿namespace GalaxyTaxi.Shared.Api.Models.Common
 {
 	public static class ExcelColumnNames
 	{
@@ -16,5 +10,4 @@ namespace GalaxyTaxi.Shared.Api.Models.Common
 
 		public static readonly List<string> AllColumns = new List<string> { FirstName, LastName, Mobile, OfficeId, Address };
 	}
-
 }

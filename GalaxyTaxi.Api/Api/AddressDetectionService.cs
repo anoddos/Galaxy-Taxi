@@ -41,7 +41,7 @@ public class AddressDetectionService : IAddressDetectionService
 		{
 			Lat = address.Latitude,
 			Long = address.Longitude,
-			StatusId = address.IsDetected ? ActionStatus.Success : ActionStatus.Fail
+			StatusId = address.IsDetected ? AddressDetectionStatus.Success : AddressDetectionStatus.Fail
 		};
 	}
 
@@ -59,7 +59,7 @@ public class AddressDetectionService : IAddressDetectionService
 			{
 				Lat = x.Latitude,
 				Long = x.Longitude,
-				StatusId = x.IsDetected ? ActionStatus.Success : ActionStatus.Fail
+				StatusId = x.IsDetected ? AddressDetectionStatus.Success : AddressDetectionStatus.Fail
 			}).ToList()
 		};
 	}

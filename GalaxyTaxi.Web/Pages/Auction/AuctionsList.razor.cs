@@ -1,4 +1,5 @@
 using GalaxyTaxi.Shared.Api.Models.Auction;
+using GalaxyTaxi.Shared.Api.Models.Common;
 using GalaxyTaxi.Shared.Api.Models.Filters;
 using GoogleMapsComponents;
 using GoogleMapsComponents.Maps;
@@ -7,10 +8,9 @@ namespace GalaxyTaxi.Web.Pages.Auction;
 
 public partial class AuctionsList
 {
-    private AuctionsFilter _auctionsFilter = new AuctionsFilter
+    private AuctionsFilter _auctionsFilter = new()
     {
-        IncludesMe = false,
-        IsFinished = false,
+        Status = ActionStatus.All,
         WonByMe = false,
         PageSize = 10,
         PageIndex = 0
@@ -50,7 +50,7 @@ public partial class AuctionsList
 
     private async Task UpdateGrid()
     {
-        _auctionItems.Clear();
+        _auctionItems?.Clear();
         _auctionItems = (await AuctionService.GetAuction(_auctionsFilter))?.Auctions;
     }
 

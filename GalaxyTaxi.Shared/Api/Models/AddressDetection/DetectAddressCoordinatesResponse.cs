@@ -14,5 +14,5 @@ public class DetectAddressCoordinatesResponse
     public decimal Long { get; set; }
     
     [ProtoMember(3)]
-    public ActionStatus StatusId { get; set; }
+    public AddressDetectionStatus StatusId { get; set; }
 }

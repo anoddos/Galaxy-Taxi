@@ -22,6 +22,9 @@ public partial class AuctionsList
 
     private int _currentPage = 1;
     private int _totalPages;
+    
+    
+    private AccountType loggedInAs;
 
     protected override void OnInitialized()
     {
@@ -39,6 +42,8 @@ public partial class AuctionsList
 
     protected override async Task OnInitializedAsync()
     {
+        loggedInAs = (await AccountService.GetAccountType()).AccountType;
+        
         var totalCount = (await AuctionService.GetAuctionCount(_auctionsFilter)).TotalCount;
         var auctions = await AuctionService.GetAuction(_auctionsFilter);
         if (auctions != null)

@@ -296,4 +296,14 @@ public class AccountService : IAccountService
             }
             : null;
     }
+
+    public Task<GetAccountTypeRespone> GetAccountType(CallContext context = default)
+    {
+        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
+
+        return Task.FromResult(new GetAccountTypeRespone
+        {
+            AccountType = loggedInAs
+        });
+    }
 }

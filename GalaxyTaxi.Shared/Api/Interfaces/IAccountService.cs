@@ -19,4 +19,5 @@ public interface IAccountService
     Task<IsLoggedInResponse> IsLoggedIn(CallContext context = default);
     Task UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default);
     Task<AccountSettings?> GetAccountSettings(CallContext context = default);
+    Task<GetAccountTypeRespone> GetAccountType(CallContext context = default);
 }

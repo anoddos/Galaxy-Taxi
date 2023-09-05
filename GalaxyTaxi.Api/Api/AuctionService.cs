@@ -140,8 +140,10 @@ public class AuctionService : IAuctionService
 
     public async Task<GetSingleAuctionsResponse> GetSingleAuction(IdFilter filter)
     {
+        var accountId = GetAccountId();
+
         var auction = await _db.Auctions.Include(x => x.Bids)
-            .Where(x => x.Id == filter.Id)
+            .Where(x => x.Id == filter.Id && x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId))
             .Select(x => new AuctionInfo
             {
                 Id = x.Id,

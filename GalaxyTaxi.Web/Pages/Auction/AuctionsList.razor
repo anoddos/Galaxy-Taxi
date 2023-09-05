@@ -56,6 +56,14 @@
                             }
                         </div>
                         <div class="auction-item-price">
+                            @if (loggedInAs == AccountType.CustomerCompany && item.CurrentWinner != null && item.ToDate.AddDays(2) <= DateTime.Today && item.Feedback == null)
+                            {
+                                var evaluationIcon = Icons.Material.Filled.ErrorOutline;
+                                <div style="float: right">
+                                    <MudText Typo="Typo.overline" Color="Color.Error">please provide feedback</MudText>
+                                    <MudIcon Icon="@evaluationIcon" Color="Color.Error"/>
+                                </div>
+                            }
                             <p class="price">@item.Amount GEL</p>
                             <p class="bid-count">Bids: @(item.Bids?.Count() ?? 0)</p>
                             @if (item.CurrentWinner != null)

@@ -5,8 +5,6 @@
 @inherits ComponentBase
 @inject IAccountService AccountService
 
-
-
 <MudNavMenu Bordered="true" Color="Color.Primary">
     @if (_canViewEmployees)
     {
@@ -37,7 +35,6 @@
         <MudNavLink Icon="@Icons.Filled.Settings" Href="/account/vendorVerifications"> Settings </MudNavLink>
     }
 </MudNavMenu>
-
 
 @code {
     [Parameter]

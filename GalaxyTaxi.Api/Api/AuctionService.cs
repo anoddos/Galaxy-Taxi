@@ -71,6 +71,8 @@ public class AuctionService : IAuctionService
                 Id = x.Id,
                 Amount = x.Amount,
                 EndTime = x.EndTime,
+                Feedback = x.FeedbackId,
+                Comment = x.Comment,
                 Bids = x.Bids.Select(xx => new BidInfo
                 {
                     Id = xx.Id
@@ -150,6 +152,8 @@ public class AuctionService : IAuctionService
                 Amount = x.Amount,
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
+                Feedback = x.FeedbackId,
+                Comment = x.Comment,
                 Bids = x.Bids.Select(xx => new BidInfo
                 {
                     Id = xx.Id,
@@ -253,13 +257,13 @@ public class AuctionService : IAuctionService
     {
         var auction = await _db.Auctions.SingleAsync(x => x.Id == evaluation.Id);
 
-        if (auction.ToDate.AddDays(2) < DateTime.Today)
+        if (auction.ToDate.AddDays(2) < DateTime.Today && auction.FeedbackId != null)
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Too Late For Evaluation"));
         }
         
         auction.Comment = evaluation.Comment;
-        //auction.FeedbackId = evaluation.Evaluation;
+        auction.FeedbackId = evaluation.Evaluation;
 
         _db.Auctions.Update(auction);
         await _db.SaveChangesAsync();

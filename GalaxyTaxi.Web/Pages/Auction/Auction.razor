@@ -92,24 +92,25 @@
         </div>
     </MudCardContent>
     
-    <MudCard>
-        <MudCardContent Style="padding-left: 20px; padding-right: 20px">
-            <div class="evaluation-section">
-                <MudRadioGroup  T="Feedback" SelectedOption="@selectedEvaluation" SelectedOptionChanged="UpdateEvaluation">
-                    <MudRadio Color="Color.Primary" Option="Feedback.NoServiceProvided">Service Not Provided</MudRadio>
-                    <MudRadio Color="Color.Primary" Option="Feedback.NotSatisfied">Not Satisfied</MudRadio>
-                    <MudRadio Color="Color.Primary" Option="Feedback.Satisfied">Satisfied</MudRadio>
-                </MudRadioGroup>
+    @if (loggedInAs == AccountType.CustomerCompany && CurrentAuction.CurrentWinner != null && CurrentAuction.ToDate.AddDays(2) <= DateTime.Today && CurrentAuction.Feedback == null)
+    {
+        <MudCard>
+            <MudCardContent Style="padding-left: 20px; padding-right: 20px">
+                <div class="evaluation-section">
+                    <MudRadioGroup  T="Feedback" SelectedOption="@selectedEvaluation" SelectedOptionChanged="UpdateEvaluation">
+                        <MudRadio Color="Color.Primary" Option="Feedback.NoServiceProvided">Service Not Provided</MudRadio>
+                        <MudRadio Color="Color.Primary" Option="Feedback.NotSatisfied">Not Satisfied</MudRadio>
+                        <MudRadio Color="Color.Primary" Option="Feedback.Satisfied">Satisfied</MudRadio>
+                    </MudRadioGroup>
                 
-                <MudTextField @bind-Value="comment" Label="Your Comment" Variant="Variant.Filled" FullWidth></MudTextField>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendEvaluation" Style="margin-top: 20px;">Send Evaluation</MudButton>
+                    <MudTextField @bind-Value="comment" Label="Your Comment" Variant="Variant.Filled" FullWidth></MudTextField>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendEvaluation" Style="margin-top: 20px;">Send Evaluation</MudButton>
                 
-            </div>
-        </MudCardContent>
-    </MudCard>
-    
+                </div>
+            </MudCardContent>
+        </MudCard>
+    }
 </MudCard>
-
 
 <style>
     .evaluation-section {

@@ -40,5 +40,5 @@ public class AuctionInfo
     public Feedback? Feedback { get; set; }
 
     [ProtoMember(11)] 
-    public string Comment { get; set; } = null!;
+    public string? Comment { get; set; } = null!;
 }

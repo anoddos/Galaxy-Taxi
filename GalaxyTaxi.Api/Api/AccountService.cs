@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using GalaxyTaxi.Api.Database;
+﻿using GalaxyTaxi.Api.Database;
 using GalaxyTaxi.Api.Database.Models;
 using GalaxyTaxi.Shared.Api.Interfaces;
 using GalaxyTaxi.Shared.Api.Models.Login;
@@ -12,7 +11,6 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.AccountSettings;
-using Microsoft.AspNetCore.Components.Authorization;
 using GalaxyTaxi.Shared.Api.Models.Admin;
 
 namespace GalaxyTaxi.Api.Api;
@@ -62,7 +60,7 @@ public class AccountService : IAccountService
                 {
                     AccountId = addedAccount.Entity.Id,
                     Name = request.CompanyName,
-                    MaxAmountPerEmployee = 0,
+                    MaxAmountPerEmployee = 3,
                     SupportTwoWayJourneys = false
                 };
                 await _db.CustomerCompanies.AddAsync(customerCompany);

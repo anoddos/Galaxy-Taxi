@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    [Migration("20230905042929_AddFeedback")]
-    partial class AddFeedback
+    [Migration("20230905133040_NewParametersForNewFeatures")]
+    partial class NewParametersForNewFeatures
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -92,6 +92,9 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
                     b.Property<long?>("CurrentWinnerId")
                         .HasColumnType("bigint");
 
@@ -101,7 +104,7 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("Feedback")
+                    b.Property<int?>("FeedbackId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("FromDate")
@@ -291,6 +294,12 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("CustomerCompanyId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("OfficeIdentification")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("OfficeIdentification"));
+
                     b.Property<TimeSpan>("WorkingEndTime")
                         .HasColumnType("time");
 
@@ -387,11 +396,43 @@ namespace GalaxyTaxi.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("VerificationRequestDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.ToTable("VendorCompanies");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.VendorFile", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("VendorCompanyId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VendorCompanyId");
+
+                    b.ToTable("VendorFiles");
                 });
 
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Auction", b =>
@@ -566,6 +607,17 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.VendorFile", b =>
+                {
+                    b.HasOne("GalaxyTaxi.Api.Database.Models.VendorCompany", "VendorCompany")
+                        .WithMany("VendorFiles")
+                        .HasForeignKey("VendorCompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VendorCompany");
+                });
+
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Auction", b =>
                 {
                     b.Navigation("Bids");
@@ -591,6 +643,11 @@ namespace GalaxyTaxi.Api.Migrations
             modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.Office", b =>
                 {
                     b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("GalaxyTaxi.Api.Database.Models.VendorCompany", b =>
+                {
+                    b.Navigation("VendorFiles");
                 });
 #pragma warning restore 612, 618
         }

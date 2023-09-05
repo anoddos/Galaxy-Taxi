@@ -62,6 +62,8 @@ public class EmployeeManagementService : IEmployeeManagementService
                     var employeeExists = existingEmployee != null;
                     var isAddressUpdated = false;
 
+                    var office = await _db.Offices.FirstOrDefaultAsync(o => o.OfficeIdentification == employeeInfo.OfficeId);
+
                     if (!employeeExists)
                     {
                         existingEmployee = new Employee
@@ -70,7 +72,7 @@ public class EmployeeManagementService : IEmployeeManagementService
                             LastName = employeeInfo.LastName,
                             Mobile = employeeInfo.Mobile,
                             CustomerCompanyId = customerCompanyId,
-                            OfficeId = employeeInfo.OfficeId,
+                            OfficeId = office.Id,
                             Addresses = new List<EmployeeAddress>
                         {
                             new()
@@ -87,7 +89,7 @@ public class EmployeeManagementService : IEmployeeManagementService
                     else
                     {
                         // Employee exists, update officeId, mobile and check address
-                        existingEmployee.OfficeId = employeeInfo.OfficeId;
+                        existingEmployee.OfficeId = office.Id;
                         existingEmployee.Mobile = employeeInfo.Mobile;
                         var deactivateAddress = _db.EmployeeAddresses.SingleOrDefault(ea => ea.EmployeeId == existingEmployee.Id);
                         if (deactivateAddress != null)
@@ -274,7 +276,7 @@ public class EmployeeManagementService : IEmployeeManagementService
         {
             throw new InvalidOperationException("Address cannot be empty");
         }
-        var officeExists = await _db.Offices.AnyAsync(o => o.Id == employeeInfo.OfficeId && o.CustomerCompanyId == customerCompanyId);
+        var officeExists = await _db.Offices.AnyAsync(o => o.OfficeIdentification == employeeInfo.OfficeId && o.CustomerCompanyId == customerCompanyId);
         var companyExists = await _db.CustomerCompanies.AnyAsync(cc => cc.Id == customerCompanyId);
         var mobileExists = await _db.Employees.AnyAsync(e => e.Mobile == employeeInfo.Mobile && e.CustomerCompanyId != customerCompanyId);
         if (mobileExists)

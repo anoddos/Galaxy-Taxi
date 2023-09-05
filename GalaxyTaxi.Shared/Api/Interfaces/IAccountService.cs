@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using GalaxyTaxi.Shared.Api.Models.AccountSettings;
+using GalaxyTaxi.Shared.Api.Models.Admin;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.Login;
 using GalaxyTaxi.Shared.Api.Models.Register;
@@ -21,5 +22,6 @@ public interface IAccountService
     Task UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default);
     Task<AccountSettings?> GetAccountSettings(CallContext context = default);
     Task<GetAccountTypeRespone> GetAccountType(CallContext context = default);
+    Task UploadVendorFile(VendorFileModel request, CallContext context = default);
     Task<GetAuthenticationStateProviderUserResponse> GetAuthenticationStateProviderUserAsync(CallContext context = default);
 }

@@ -27,7 +27,9 @@ public class Auction
     
     public long CustomerCompanyId { get; set; }
     
-    public Feedback? Feedback { get; set; }
+    public Feedback? FeedbackId { get; set; }
+
+    public string? Comment { get; set; } = null!;
 
     public VendorCompany? CurrentWinner { get; set; }
     

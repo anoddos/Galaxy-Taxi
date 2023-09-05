@@ -12,7 +12,7 @@ namespace GalaxyTaxi.Shared.Api.Models.Admin;
 public class VendorFileModel
 {
     [ProtoMember(1)]
-    public long Id { get; set; }
+    public string Email { get; set; }
 
     [ProtoMember(2)]
     public string Name { get; set; }

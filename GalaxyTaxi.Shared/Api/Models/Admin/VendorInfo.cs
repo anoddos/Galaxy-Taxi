@@ -19,4 +19,7 @@ public class VendorInfo
     public bool IsVerified { get; set; }
     [ProtoMember(4)]
     public List<VendorFileModel> VendorFiles { get; set; } = new List<VendorFileModel>();
+
+    [ProtoMember(5)]
+    public string Email { get; set; }
 }

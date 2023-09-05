@@ -6,7 +6,7 @@
 		public string Name { get; set; }
 		public string Path { get; set; }
 		public DateTime UploadDate { get; set; }
-		public long VendroId { get; set; }
+		public long VendorCompanyId { get; set; }
 		public VendorCompany VendorCompany { get; set; } = null!;
 	}
 }

@@ -90,6 +90,9 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
                     b.Property<long?>("CurrentWinnerId")
                         .HasColumnType("bigint");
 
@@ -99,7 +102,7 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("Feedback")
+                    b.Property<int?>("FeedbackId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("FromDate")
@@ -421,9 +424,6 @@ namespace GalaxyTaxi.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("VendorCompanyId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("VendroId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");

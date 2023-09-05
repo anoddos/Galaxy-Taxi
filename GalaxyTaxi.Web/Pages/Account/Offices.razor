@@ -26,7 +26,7 @@
                               Error="@(!OfficeFilter.Address.IsDetected)"
                               ErrorText="@DetectedStatus" />
     
-                        <MudTextField Label="Office Identification"  @bind-Value="OfficeFilter.OfficeIdentification" Disabled=true/>
+                        <MudTextField Label="Office Identification"  @bind-Value="OfficeFilter.OfficeIdentification" ReadOnly=true/>
                 <MudButton OnClick="AddMarker">Show Address Pin</MudButton>
                 <GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
                 <MudLink Href="@navigationLink">Number Of Employees : @OfficeFilter.NumberOfEmployees</MudLink>

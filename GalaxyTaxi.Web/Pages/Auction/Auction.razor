@@ -70,7 +70,7 @@
                     <div style="float: right; margin-top: 15px">
                         @if (loggedInAs == AccountType.VendorCompany && CurrentAuction.CurrentWinner == null)
                         {
-                            <MudNumericField Immediate="false" Format="N2" T="double" Variant="Variant.Text" Max="@CurrentAuction.Amount" Culture="@_en" HelperText="@lastBid.ToString()" @bind-Value="@currentBid" Label="GEL"/>
+                            <MudNumericField Variant="Variant.Text" Max="@CurrentAuction.Amount" Culture="@_en" HelperText="@lastBid.ToString()" @bind-Value="@currentBid" Label="GEL"/>
 
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Bid" Style="margin-top: 20px; float: right;">Bid</MudButton>
                         }
@@ -91,9 +91,33 @@
             </div>
         </div>
     </MudCardContent>
+    
+    <MudCard>
+        <MudCardContent Style="padding-left: 20px; padding-right: 20px">
+            <div class="evaluation-section">
+                <MudRadioGroup  T="Feedback" SelectedOption="@selectedEvaluation" SelectedOptionChanged="UpdateEvaluation">
+                    <MudRadio Color="Color.Primary" Option="Feedback.NoServiceProvided">Service Not Provided</MudRadio>
+                    <MudRadio Color="Color.Primary" Option="Feedback.NotSatisfied">Not Satisfied</MudRadio>
+                    <MudRadio Color="Color.Primary" Option="Feedback.Satisfied">Satisfied</MudRadio>
+                </MudRadioGroup>
+                
+                <MudTextField @bind-Value="comment" Label="Your Comment" Variant="Variant.Filled" FullWidth></MudTextField>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendEvaluation" Style="margin-top: 20px;">Send Evaluation</MudButton>
+                
+            </div>
+        </MudCardContent>
+    </MudCard>
+    
 </MudCard>
 
+
 <style>
+    .evaluation-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
     .flex-container {
         display: flex;
         flex-direction: row;
@@ -186,13 +210,12 @@
 
 
 @code {
-
     [Parameter]
     public long Id { get; set; }
 
     public AuctionInfo CurrentAuction { get; set; }
     private GoogleMap map1;
-    private MapOptions mapOptions { get; set; } = new MapOptions();
+    private MapOptions mapOptions { get; set; }
 
     private List<Marker> markerList { get; set; }
     private double currentBid { get; set; }
@@ -207,10 +230,14 @@
 
     private AccountType? loggedInAs;
 
+    private Feedback selectedEvaluation { get; set; }
+    
+    private string comment { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         loggedInAs = (await AccountService.GetAccountType()).AccountType;
-
+        selectedEvaluation = Feedback.Satisfied;
         var response = await AuctionService.GetSingleAuction(new IdFilter { Id = Id });
         if (response != null)
         {
@@ -300,4 +327,26 @@
         return marker;
     }
 
+    private async Task SendEvaluation()
+    {
+        await AuctionService.SaveEvaluation(new SaveEvaluationRequest
+        {
+            Id = CurrentAuction.Id,
+            Comment = comment,
+            Evaluation = selectedEvaluation
+        });
+        
+        CurrentAuction.Feedback = selectedEvaluation;
+        CurrentAuction.Comment = comment;
+        
+        alertMessage = "Your evaluation was submitted successfully.";
+        alertSeverity = Severity.Success;
+        showAlert = true;
+        StateHasChanged();
+    }
+
+    private void UpdateEvaluation(Feedback arg)
+    {
+        selectedEvaluation = arg;
+    }
 }

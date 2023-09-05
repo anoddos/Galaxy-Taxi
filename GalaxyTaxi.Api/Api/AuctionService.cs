@@ -220,8 +220,8 @@ public class AuctionService : IAuctionService
         
         var journeys = await GenerateJourneysForCompany(companyId);
         
-        var maxAmountPerEmployee = _db.CustomerCompanies.Single(x => x.Id == companyId).MaxAmountPerEmployee;
-        var dayCountPerAuction = _db.Subscriptions.Single(x => x.SubscriptionStatus == SubscriptionStatus.Active).SubscriptionPlanTypeId == SubscriptionPlanType.Annual ? 7 : 5;
+        var maxAmountPerEmployee = (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).MaxAmountPerEmployee;
+        var dayCountPerAuction = (await _db.Subscriptions.SingleAsync(x => x.SubscriptionStatus == SubscriptionStatus.Active)).SubscriptionPlanTypeId == SubscriptionPlanType.Annual ? 7 : 5;
         var nextRelevantMonday = GetNextRelevantMonday();
         
         foreach (var journey in journeys)
@@ -247,6 +247,22 @@ public class AuctionService : IAuctionService
             GeneratedAuctionCount = journeys.Count,
             GeneratedAuctionTotalCost = totalCost
         };
+    }
+
+    public async Task SaveEvaluation(SaveEvaluationRequest evaluation, CallContext context = default)
+    {
+        var auction = await _db.Auctions.SingleAsync(x => x.Id == evaluation.Id);
+
+        if (auction.ToDate.AddDays(2) < DateTime.Today)
+        {
+            throw new RpcException(new Status(StatusCode.AlreadyExists, "Too Late For Evaluation"));
+        }
+        
+        auction.Comment = evaluation.Comment;
+        //auction.FeedbackId = evaluation.Evaluation;
+
+        _db.Auctions.Update(auction);
+        await _db.SaveChangesAsync();
     }
 
     private async Task<List<Journey>> GenerateJourneysForCompany(long companyId)
@@ -293,7 +309,7 @@ public class AuctionService : IAuctionService
     {
         var result = new List<Journey>();
 
-        var supportTwoWayJourneys = _db.CustomerCompanies.Single(x => x.Id == companyId).SupportTwoWayJourneys;
+        var supportTwoWayJourneys = (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).SupportTwoWayJourneys;
         
         result.AddRange(await GenerateJourneysForEmployeesHomeToOffice(companyId, officeAddress, companyEmployeesWithoutJourneys));
         

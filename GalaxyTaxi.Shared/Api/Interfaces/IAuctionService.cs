@@ -17,4 +17,6 @@ public interface IAuctionService
     Task<GetSingleAuctionsResponse> GetSingleAuction(IdFilter idFilter);
     
     Task<GenerateAuctionsResponse> GenerateAuctionsForCompany(CallContext context = default);
+    
+    Task SaveEvaluation(SaveEvaluationRequest evaluation, CallContext context = default);
 }

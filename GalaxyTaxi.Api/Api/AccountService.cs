@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using GalaxyTaxi.Api.Database;
+﻿using GalaxyTaxi.Api.Database;
 using GalaxyTaxi.Api.Database.Models;
 using GalaxyTaxi.Shared.Api.Interfaces;
 using GalaxyTaxi.Shared.Api.Models.Login;
@@ -12,7 +11,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.AccountSettings;
-using Microsoft.AspNetCore.Components.Authorization;
+using GalaxyTaxi.Shared.Api.Models.Admin;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -61,7 +60,7 @@ public class AccountService : IAccountService
                 {
                     AccountId = addedAccount.Entity.Id,
                     Name = request.CompanyName,
-                    MaxAmountPerEmployee = 0,
+                    MaxAmountPerEmployee = 3,
                     SupportTwoWayJourneys = false
                 };
                 await _db.CustomerCompanies.AddAsync(customerCompany);
@@ -325,5 +324,29 @@ public class AccountService : IAccountService
         });
     }
 
-    public Func<Task> OnUserLoggedIn { get; set; }
+	public async Task UploadVendorFile(VendorFileModel request, CallContext context = default)
+	{
+		var companyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+
+		if (companyId == -1) throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+
+        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
+
+
+		if (loggedInAs != AccountType.VendorCompany) throw new RpcException(new Status(StatusCode.Unavailable, "File Upload Only Allowed for Vendor Companies"));
+        var vendorFile = new VendorFile
+        {
+            Name = request.Name,
+            Path = request.Path,
+            UploadDate = DateTime.UtcNow,
+            VendorCompanyId = companyId
+        };
+
+
+        await _db.VendorFiles.AddAsync(vendorFile);
+
+        var vendor = await _db.VendorCompanies.SingleOrDefaultAsync(a => a.Id == companyId);
+        vendor.VerificationRequestDate = vendorFile.UploadDate;
+        await _db.SaveChangesAsync();
+	}
 }

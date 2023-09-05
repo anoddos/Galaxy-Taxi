@@ -28,6 +28,11 @@
 	</div>
 
 	<div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
+
+		@if (showAlert)
+		{
+			<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
+		}
 		<div style="display: flex; align-items: center;">
 
 			<MudButton DisableElevation Variant="Variant.Outlined" OnClick="GenerateExcelFile" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Export</MudButton>

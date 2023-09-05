@@ -25,20 +25,7 @@
 
                     @if (!accountSettings.IsVerified)
                     {
-@*                         <div style="margin-left: auto;">
-                            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
-                                <ButtonTemplate>
-                                    <MudButton HtmlTag="label"
-                                               Variant="Variant.Filled"
-                                               Color="Color.Primary"
-                                               StartIcon="@Icons.Material.Filled.CloudUpload"
-                                               for="@context">
-                                        Upload Files
-                                    </MudButton>
-                                </ButtonTemplate>
-                            </MudFileUpload>
-                        </div> *@
-                        <InputFile OnChange="@UploadFiles" Multiple="true" />
+                        <InputFile OnChange="@OnUploadFiles" Multiple="true" />
 
                     }
                 </div>
@@ -63,7 +50,7 @@
 
             @if (accountSettings.AccountType == AccountType.CustomerCompany)
             {
-                <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="0.0"/>
+                <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="3.0"/>
             }
 
             <MudTextField @bind-Value="oldPassword"

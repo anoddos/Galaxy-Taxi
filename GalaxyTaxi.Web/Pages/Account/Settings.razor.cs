@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
+using GalaxyTaxi.Shared.Api.Models.Admin;
 
 namespace GalaxyTaxi.Web.Pages.Account
 {
@@ -104,23 +105,7 @@ namespace GalaxyTaxi.Web.Pages.Account
 
 		IList<IBrowserFile> files = new List<IBrowserFile>();
 
-		//private async Task UploadFiles(IBrowserFile selectedFile)
-		//{
-		//	files.Add(selectedFile);
-		//	file = selectedFile;
-
-            
-  //          var fileContent = new StreamContent(file.OpenReadStream());
-  //          fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
-  //          {
-  //              Name = "file",
-  //              FileName = file.Name
-  //          };
-		//	await UploadFile(fileContent, accountSettings.Email);
-  //      }
-
-
-        private async Task UploadFiles(InputFileChangeEventArgs e)
+        private async Task OnUploadFiles(InputFileChangeEventArgs e)
         {
             foreach (var file in e.GetMultipleFiles())
             {
@@ -133,23 +118,21 @@ namespace GalaxyTaxi.Web.Pages.Account
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
                 }
-
-                using var stream = new FileStream(path, FileMode.Create);
-                await file.OpenReadStream().CopyToAsync(stream);
+				var vendorFile = new VendorFileModel 
+				{ 
+					Name = fileName,
+					Path = path,
+					Email = accountSettings.Email
+				};
+				try
+				{
+					await _accountService.UploadVendorFile(vendorFile);
+				}
+				catch (RpcException ex)
+				{
+					//implement
+				}
             }
-        }
-
-        public async Task UploadFile( IFormFile file, string email)
-        {
-            var path = Path.Combine("C:", $"UploadedFiles/Vendors/{email}", file.FileName);
-
-            if (!Directory.Exists(Path.GetDirectoryName(path)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
-
-            using var stream = new FileStream(path, FileMode.Create);
-            await file.CopyToAsync(stream);
         }
 
         private string PasswordMatchValidation() => newPassword == confirmPassword ? "" : "Passwords do not match";

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using MudBlazor;
 using OfficeOpenXml;
 using Microsoft.JSInterop;
+using Grpc.Core;
 
 namespace GalaxyTaxi.Web.Pages.Account;
 
@@ -34,6 +35,10 @@ public partial class EmployeesInfo
 		SelectedOffice = null
 	};
 
+	private bool showAlert = false;
+	private string alertMessage = "";
+	private Severity alertSeverity;
+
 	// custom sort by name length
 	protected override async Task OnInitializedAsync()
 	{
@@ -49,9 +54,10 @@ public partial class EmployeesInfo
 		_isOpen = false;
 	}
 
-	private void OnFileChange(IBrowserFile selectedFile)
+	private void HandleAlertClosed()
 	{
-		file = selectedFile;
+		showAlert = false;
+		StateHasChanged();
 	}
 
 	private async Task EmployeeNameChanged(string employeeName)
@@ -126,7 +132,10 @@ public partial class EmployeesInfo
 			js.InvokeVoidAsync("saveAsFile", $"Employees_{DateTime.Now.ToString("yyyy:MM:dd_HH:mm")}.xlsx", Convert.ToBase64String(package.GetAsByteArray()));
 		}
 	}
-
+	private void OnFileChange(IBrowserFile selectedFile)
+	{
+		file = selectedFile;
+	}
 
 	private async Task ImportFromExcel()
 	{
@@ -188,13 +197,15 @@ public partial class EmployeesInfo
 					ReloadEmployees();
 				}
 			}
+			alertMessage = "Employees Uploaded";
+			alertSeverity = Severity.Success;
 		}
-		catch (Exception ex)
+		catch (RpcException ex)
 		{
-			Console.WriteLine(ex.Message);
-			// Handle exception, if needed
+			alertMessage = ex.Status.Detail;
+			alertSeverity = Severity.Error;
 		}
-
+		showAlert = true;
+		StateHasChanged();
 	}
-
 }

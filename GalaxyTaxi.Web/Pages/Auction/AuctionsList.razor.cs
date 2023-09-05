@@ -24,7 +24,7 @@ public partial class AuctionsList
     private int _totalPages;
     
     
-    private AccountType loggedInAs;
+    private AccountType? loggedInAs;
 
     protected override void OnInitialized()
     {

@@ -8,5 +8,5 @@ namespace GalaxyTaxi.Shared.Api.Models.AccountSettings;
 public class GetAccountTypeRespone
 {
     [ProtoMember(1)]
-    public AccountType AccountType { get; set; }
+    public AccountType? AccountType { get; set; }
 }

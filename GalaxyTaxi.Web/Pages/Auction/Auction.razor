@@ -15,7 +15,6 @@
 
 
 <MudCard>
-
     <MudCardContent Style="padding: 50px">
         <div class="flex-container">
             <div class="map-container">
@@ -206,7 +205,7 @@
 
     public CultureInfo _en = CultureInfo.GetCultureInfo("en-US");
 
-    private AccountType loggedInAs;
+    private AccountType? loggedInAs;
 
     protected override async Task OnInitializedAsync()
     {

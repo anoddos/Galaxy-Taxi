@@ -1,12 +1,65 @@
-﻿@inherits ComponentBase
+﻿@using System.Security.Claims
+@using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Common
+@using Microsoft.AspNetCore.Authorization
+@inherits ComponentBase
+@inject IAccountService AccountService
+
 
 
 <MudNavMenu Bordered="true" Color="Color.Primary">
-    <MudNavLink Icon="@Icons.Filled.People" Href="/account/employeesInfo"> Employees Info </MudNavLink>
-    <MudNavLink Icon="@Icons.Filled.LocalPostOffice" Href="/account/offices"> offices </MudNavLink>
-    <MudNavLink Icon="@Icons.Filled.Money" Href="/subscription/chooseSubscription"> Subscriptions </MudNavLink>
-    <MudNavLink Icon="@Icons.Filled.Map" Href="/auction/AuctionsList"> Auctions </MudNavLink>
-    <MudNavLink Icon="@Icons.Filled.Settings" Href="/account/settings"> Settings </MudNavLink>
+    @if (_canViewEmployees)
+    {
+        <MudNavLink Icon="@Icons.Filled.People" Href="/account/employeesInfo"> Employees Info </MudNavLink>
+    }
+    @if (_canViewOffices)
+    {
+        <MudNavLink Icon="@Icons.Filled.LocalPostOffice" Href="/account/offices"> offices </MudNavLink>
+    }
+    @if (_canViewSubscription)
+    {
+        <MudNavLink Icon="@Icons.Filled.Money" Href="/subscription/chooseSubscription"> Subscriptions </MudNavLink>
+    }
+    @if (_canViewAuctionsList)
+    {
+        <MudNavLink Icon="@Icons.Filled.Map" Href="/auction/AuctionsList"> Auctions </MudNavLink>
+    }
+    @if (_canViewSettings)
+    {
+        <MudNavLink Icon="@Icons.Filled.Settings" Href="/account/settings"> Settings </MudNavLink>
+    }
+    @if (_canViewProblematicAuctions)
+    {
+        <MudNavLink Icon="@Icons.Filled.Settings" Href="/account/ProblematicAuctions"> Settings </MudNavLink>
+    }
+    @if (_canViewVendorVerifications)
+    {
+        <MudNavLink Icon="@Icons.Filled.Settings" Href="/account/VendorVerifications"> Settings </MudNavLink>
+    }
 </MudNavMenu>
 
 
+@code {
+    [Parameter]
+    public string SomeParameter { get; set; }
+    
+    private bool _canViewOffices;
+    private bool _canViewSubscription;
+    private bool _canViewAuctionsList;
+    private bool _canViewEmployees;
+    private bool _canViewSettings;
+    private bool _canViewProblematicAuctions;
+    private bool _canViewVendorVerifications;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var accountType = (await AccountService.GetAccountType()).AccountType;
+        _canViewEmployees = accountType == AccountType.CustomerCompany;
+        _canViewOffices = accountType == AccountType.CustomerCompany;
+        _canViewProblematicAuctions = accountType == AccountType.Admin;
+        _canViewProblematicAuctions = accountType == AccountType.Admin;
+        _canViewSubscription = accountType == AccountType.CustomerCompany;
+        _canViewAuctionsList = accountType != null;
+        _canViewSettings = accountType is AccountType.CustomerCompany or AccountType.VendorCompany;
+    }
+}

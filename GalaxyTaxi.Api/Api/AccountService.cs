@@ -1,4 +1,5 @@
-﻿using GalaxyTaxi.Api.Database;
+﻿using System.Net.Http.Headers;
+using GalaxyTaxi.Api.Database;
 using GalaxyTaxi.Api.Database.Models;
 using GalaxyTaxi.Shared.Api.Interfaces;
 using GalaxyTaxi.Shared.Api.Models.Login;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.AccountSettings;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -299,11 +301,29 @@ public class AccountService : IAccountService
 
     public Task<GetAccountTypeRespone> GetAccountType(CallContext context = default)
     {
-        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
-
+        if (Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs))
+        {
+            return Task.FromResult(new GetAccountTypeRespone
+            {
+                AccountType = loggedInAs
+            });    
+        }
+        
         return Task.FromResult(new GetAccountTypeRespone
         {
-            AccountType = loggedInAs
+            AccountType = null
+        });    
+    }
+    
+    public async Task<GetAuthenticationStateProviderUserResponse> GetAuthenticationStateProviderUserAsync(CallContext context = default)
+    {
+        var httpContext = _httpContextAccessor.HttpContext;
+        var res = httpContext?.User;
+        return await Task.FromResult(new GetAuthenticationStateProviderUserResponse
+        {
+            Principal = httpContext?.User
         });
     }
+
+    public Func<Task> OnUserLoggedIn { get; set; }
 }

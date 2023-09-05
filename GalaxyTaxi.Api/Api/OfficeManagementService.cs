@@ -87,8 +87,8 @@ namespace GalaxyTaxi.Api.Api
 
 			office.CustomerCompanyId = customerCompanyId;
 			office.Address.Name = request.Address.Name;
-			office.Address.Longitude = (decimal)request.Address.Longitude;
-			office.Address.Latitude = (decimal)request.Address.Latitude;
+			office.Address.Longitude = (double)request.Address.Longitude;
+			office.Address.Latitude = (double)request.Address.Latitude;
 			office.WorkingStartTime = request.WorkingStartTime;
 			office.WorkingEndTime = request.WorkingEndTime;
 		}

@@ -1,5 +1,4 @@
-﻿@using GalaxyTaxi.Shared.Api.Models.AddressDetection;
-@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+﻿@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
@@ -80,8 +79,8 @@
 		await marker.AddListener("dragend", async () =>
 		{
 			var position = await marker.GetPosition();
-			Employee.From.Longitude = (decimal?)position.Lng;
-			Employee.From.Latitude = (decimal?)position.Lat;
+			Employee.From.Longitude = position.Lng;
+			Employee.From.Latitude = position.Lat;
 			var detectedAddress = await _addressDetection.DetectAddressNameFromCoordinates(Employee.From);
 			Employee.From.Name = detectedAddress.Name;
 			StateHasChanged();

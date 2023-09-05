@@ -8,10 +8,10 @@ namespace GalaxyTaxi.Shared.Api.Models.AddressDetection;
 public class DetectAddressCoordinatesResponse
 {
     [ProtoMember(1)]
-    public decimal Lat { get; set; }
+    public double Lat { get; set; }
 
     [ProtoMember(2)]
-    public decimal Long { get; set; }
+    public double Long { get; set; }
     
     [ProtoMember(3)]
     public AddressDetectionStatus StatusId { get; set; }

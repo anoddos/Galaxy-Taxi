@@ -85,9 +85,9 @@ public class AuctionService : IAuctionService
                 JourneyInfo = new JourneyInfo
                 {
                     Id = x.Journey.Id,
+                    IsOfficeDest = x.Journey.IsOfficeDest,
                     Office = new OfficeInfo
                     {
-                        OfficeId = x.Journey.Office.Id,
                         Address = new AddressInfo
                         {
                             Id = x.Journey.Office.Address.Id,
@@ -169,6 +169,7 @@ public class AuctionService : IAuctionService
                 JourneyInfo = new JourneyInfo
                 {
                     Id = x.Journey.Id,
+                    IsOfficeDest = x.Journey.IsOfficeDest,
                     Office = new OfficeInfo
                     {
                         OfficeId = x.Journey.Office.Id,
@@ -290,46 +291,26 @@ public class AuctionService : IAuctionService
     {
         var result = new List<Journey>();
 
-        /*
-            var employeeLocations = new List<Tuple<decimal, decimal>>();
-
-            foreach (var employee in companyEmployeesWithoutJourneys)
-            {
-                var address = employee.Addresses.Single(x => x.IsActive && x.Address.IsDetected).Address;
-                employeeLocations.Add(Tuple.Create(address.Latitude, address.Latitude));
-            }
-
-            var officeLocation = Tuple.Create(officeAddress.Latitude, officeAddress.Longitude);  // Office location
-         */
-        result.Add(new Journey
-        {
-            CustomerCompanyId = companyId,
-            OfficeId = companyEmployeesWithoutJourneys.First().OfficeId,
-            Stops = new List<Stop>
-            {
-                new Stop
-                {
-                    EmployeeAddressId = companyEmployeesWithoutJourneys.First().Addresses
-                        .Single(x => x.IsActive && x.Address.IsDetected).Id
-                },
-                new Stop
-                {
-                    EmployeeAddressId = companyEmployeesWithoutJourneys[1].Addresses
-                        .Single(x => x.IsActive && x.Address.IsDetected).Id
-                },
-                new Stop
-                {
-                    EmployeeAddressId = companyEmployeesWithoutJourneys[2].Addresses
-                        .Single(x => x.IsActive && x.Address.IsDetected).Id
-                }
-            }
-        });
-
-        await Task.CompletedTask;
-
+        var supportTwoWayJourneys = _db.CustomerCompanies.Single(x => x.Id == companyId).SupportTwoWayJourneys;
+        
+        result.AddRange(await GenerateJourneysForEmployeesHomeToOffice(companyId, officeAddress, companyEmployeesWithoutJourneys));
+        
+        if(supportTwoWayJourneys)
+            result.AddRange(await GenerateJourneysForEmployeesOfficeToHome(companyId, officeAddress, companyEmployeesWithoutJourneys));
+        
         return result;
     }
-    
+
+    private async Task<IEnumerable<Journey>> GenerateJourneysForEmployeesOfficeToHome(long companyId, Address officeAddress, List<Employee> companyEmployeesWithoutJourneys)
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task<IEnumerable<Journey>> GenerateJourneysForEmployeesHomeToOffice(long companyId, Address officeAddress, List<Employee> companyEmployeesWithoutJourneys)
+    {
+        throw new NotImplementedException();
+    }
+
     private async Task ValidateBidRequestAsync(BidRequest request)
     {
         var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;

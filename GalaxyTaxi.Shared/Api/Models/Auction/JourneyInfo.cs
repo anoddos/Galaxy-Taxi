@@ -19,4 +19,7 @@ public class JourneyInfo
     
     [ProtoMember(4)]
     public IEnumerable<StopInfo> Stops { get; set; } = null!;
+    
+    [ProtoMember(5)]
+    public bool IsOfficeDest { get; set; }
 }

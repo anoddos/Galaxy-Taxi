@@ -10,10 +10,10 @@ public class AddressInfo
     public string Name { get; set; } = null!;
 
     [ProtoMember(2)]
-    public decimal? Latitude { get; set; }
+    public double? Latitude { get; set; }
 
     [ProtoMember(3)]
-    public decimal? Longitude { get; set; }
+    public double? Longitude { get; set; }
 
     [ProtoMember(4)]
     public long Id { get; set; }

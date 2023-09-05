@@ -6,9 +6,9 @@ public class Address
 
     public string Name { get; set; } = null!;
 
-    public decimal Latitude { get; set; }
+    public double Latitude { get; set; }
 
-    public decimal Longitude { get; set; }
+    public double Longitude { get; set; }
     
     public bool IsDetected { get; set; }
 }

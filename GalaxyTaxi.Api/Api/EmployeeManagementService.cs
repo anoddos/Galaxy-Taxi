@@ -137,8 +137,8 @@ public class EmployeeManagementService : IEmployeeManagementService
 		employee.OfficeId = request.To.OfficeId;
 		var address = _db.Addresses.SingleOrDefault(a => a.Id == request.From.Id);
 		address.Name = request.From.Name;
-		address.Latitude = (decimal)request.From.Latitude;
-		address.Longitude = (decimal)request.From.Longitude;
+		address.Latitude = (double)request.From.Latitude;
+		address.Longitude = (double)request.From.Longitude;
 
 		await _db.SaveChangesAsync();
 	}

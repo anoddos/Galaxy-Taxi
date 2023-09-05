@@ -86,8 +86,8 @@ public class AddressDetectionService : IAddressDetectionService
 					var jsonResponse = JObject.Parse(responseContent);
 
 					var location = jsonResponse["results"][0]["geometry"]["location"];
-					var latitude = (decimal)location["lat"];
-					var longitude = (decimal)location["lng"];
+					var latitude = (double)location["lat"];
+					var longitude = (double)location["lng"];
 
 					address.Latitude = latitude;
 					address.Longitude = longitude;
@@ -145,8 +145,8 @@ public class AddressDetectionService : IAddressDetectionService
 				var jsonResponse = JObject.Parse(responseContent);
 
 				var location = jsonResponse["results"][0]["geometry"]["location"];
-				var latitude = (decimal)location["lat"];
-				var longitude = (decimal)location["lng"];
+				var latitude = (double)location["lat"];
+				var longitude = (double)location["lng"];
 
 				detectAddress.Latitude = latitude;
 				detectAddress.Longitude = longitude;

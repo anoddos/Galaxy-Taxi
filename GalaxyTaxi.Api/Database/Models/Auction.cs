@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using GalaxyTaxi.Shared.Api.Models.Common;
 
 namespace GalaxyTaxi.Api.Database.Models;
 
@@ -25,6 +26,8 @@ public class Auction
     public long? CurrentWinnerId { get; set; }
     
     public long CustomerCompanyId { get; set; }
+    
+    public Feedback? Feedback { get; set; }
 
     public VendorCompany? CurrentWinner { get; set; }
     

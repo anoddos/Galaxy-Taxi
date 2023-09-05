@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using GalaxyTaxi.Shared.Api.Models.Common;
 
 namespace GalaxyTaxi.Shared.Api.Models.AccountSettings;
+
 [ProtoContract]
 [Serializable]
 public class AccountSettings

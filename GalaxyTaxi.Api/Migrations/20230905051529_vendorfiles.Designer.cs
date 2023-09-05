@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230905051529_vendorfiles")]
+    partial class vendorfiles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -289,12 +291,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("CustomerCompanyId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("OfficeIdentification")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("OfficeIdentification"));
-
                     b.Property<TimeSpan>("WorkingEndTime")
                         .HasColumnType("time");
 
@@ -391,9 +387,6 @@ namespace GalaxyTaxi.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("VerificationRequestDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
@@ -416,9 +409,6 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<string>("Path")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("UploadDate")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("VendorCompanyId")
                         .HasColumnType("bigint");

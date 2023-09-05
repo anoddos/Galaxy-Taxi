@@ -99,7 +99,7 @@ public partial class EmployeesInfo
 		var parameters = new DialogParameters { ["Employee"] = selectedEmployeeForEdit, ["OfficeList"] = _offices };
 		dialogReference = DialogService.Show<EmployeePopup>("Edit Employee", parameters);
 		var result = await dialogReference.Result;
-		dialogReference.Close();
+		//dialogReference.Close();
 		StateHasChanged();
 	}
 

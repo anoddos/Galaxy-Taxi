@@ -16,14 +16,16 @@ namespace GalaxyTaxi.Api.Api
 	{
 		private readonly Db _db;
 		private readonly IHttpContextAccessor _httpContextAccessor;
+		private readonly IAddressDetectionService _addressDetectionService;
 
-		public OfficeManagementService(Db db, IHttpContextAccessor httpContextAccessor)
+        public OfficeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
 		{
 			_db = db;
 			_httpContextAccessor = httpContextAccessor;
-		}
+            _addressDetectionService = addressDetectionService;
+        }
 
-		public async Task EditOfficeDetails(OfficeInfo request, CallContext context = default)
+		public async Task<OfficeInfo> EditOfficeDetails(OfficeInfo request, CallContext context = default)
 		{
 			if (string.IsNullOrWhiteSpace(request.Address.Name)) throw new ArgumentNullException(nameof(request.Address));
 			var office = await _db.Offices.Include(o => o.Address).FirstOrDefaultAsync(o => o.Id == request.OfficeId && o.CustomerCompanyId == GetCompanyId());
@@ -32,9 +34,10 @@ namespace GalaxyTaxi.Api.Api
 				throw new InvalidOperationException("Incorrect Office Id");
 			}
 
-			MapOfficeRequest(request, office);
+			await MapOfficeRequest(request, office);
 			await _db.SaveChangesAsync();
-		}
+			return request;
+        }
 
 		public async Task<GetOfficesResponse> GetOffices(OfficeManagementFilter? filter = null, CallContext context = default)
 		{
@@ -52,9 +55,11 @@ namespace GalaxyTaxi.Api.Api
 					{
 						Name = office.Address.Name,
 						Latitude = office.Address.Latitude,
-						Longitude = office.Address.Longitude
+						Longitude = office.Address.Longitude,
+						IsDetected = office.Address.IsDetected
 					},
-					NumberOfEmployees = _db.Employees.Count(e => e.OfficeId == office.Id)
+					NumberOfEmployees = _db.Employees.Count(e => e.OfficeId == office.Id),
+					OfficeIdentification = office.OfficeIdentification
 				}).ToList()
 			};
 
@@ -65,7 +70,7 @@ namespace GalaxyTaxi.Api.Api
 		{
 			var office = new Office();
 			office.Address = new Address();
-			MapOfficeRequest(request, office);
+			await MapOfficeRequest(request, office);
 
 			await _db.Offices.AddAsync(office);
 			await _db.SaveChangesAsync();
@@ -75,7 +80,7 @@ namespace GalaxyTaxi.Api.Api
 		}
 
 
-		private void MapOfficeRequest(OfficeInfo request, Office office)
+		private async Task MapOfficeRequest(OfficeInfo request, Office office)
 		{
 			var customerCompanyId = GetCompanyId();
 			if (customerCompanyId == -1)
@@ -87,8 +92,20 @@ namespace GalaxyTaxi.Api.Api
 
 			office.CustomerCompanyId = customerCompanyId;
 			office.Address.Name = request.Address.Name;
-			office.Address.Longitude = (double)request.Address.Longitude;
-			office.Address.Latitude = (double)request.Address.Latitude;
+			try
+			{
+				var response = await _addressDetectionService.DetectAddressCoordinatesFromName(request.Address);
+                office.Address.Longitude = (double)response.Longitude;
+                office.Address.Latitude = (double)response.Latitude;
+				office.Address.IsDetected = true;
+				request.Address.IsDetected = true;
+            }
+			catch
+			{
+                office.Address.IsDetected = false;
+                request.Address.IsDetected = false;
+            }
+
 			office.WorkingStartTime = request.WorkingStartTime;
 			office.WorkingEndTime = request.WorkingEndTime;
 		}

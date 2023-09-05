@@ -25,7 +25,7 @@
 
                     @if (!accountSettings.IsVerified)
                     {
-                        <div style="margin-left: auto;">
+@*                         <div style="margin-left: auto;">
                             <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
                                 <ButtonTemplate>
                                     <MudButton HtmlTag="label"
@@ -37,7 +37,9 @@
                                     </MudButton>
                                 </ButtonTemplate>
                             </MudFileUpload>
-                        </div>
+                        </div> *@
+                        <InputFile OnChange="@UploadFiles" Multiple="true" />
+
                     }
                 </div>
 
@@ -116,116 +118,6 @@
     </MudCard>
 </MudContainer>
 
-@code {
-
-    [Inject]
-    public IDialogService DialogService { get; set; }
-
-    private string oldPassword { get; set; } = "";
-    private string newPassword { get; set; } = "";
-    private string confirmPassword { get; set; } = "";
-    private bool passwordsMatch => newPassword == confirmPassword;
-    private IDialogReference dialogReference;
-
-
-    private bool oldPasswordVisible = false;
-    private bool newPasswordVisible = false;
-    private bool confirmPasswordVisible = false;
-
-    private string oldPasswordIcon = Icons.Material.Filled.Visibility;
-    private string newPasswordIcon = Icons.Material.Filled.Visibility;
-    private string confirmPasswordIcon = Icons.Material.Filled.Visibility;
-
-    private InputType OldPasswordInput => oldPasswordVisible ? InputType.Text : InputType.Password;
-    private InputType NewPasswordInput => newPasswordVisible ? InputType.Text : InputType.Password;
-    private InputType ConfirmPasswordInput => confirmPasswordVisible ? InputType.Text : InputType.Password;
-
-    private AccountSettings accountSettings { get; set; } = new AccountSettings();
-
-    private bool showAlert = false;
-    private string alertMessage = "";
-    private Severity alertSeverity;
-
-    private string OldPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(oldPassword)
-        ? "Old Password is required."
-        : "";
-
-    private string NewPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(newPassword)
-        ? "New Password is required."
-        : "";
-
-    private string ConfirmPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(confirmPassword)
-        ? "Confirm Password is required."
-        : "";
-
-    protected override async Task OnInitializedAsync()
-    {
-        var response = await _accountService.GetAccountSettings();
-        if (response != null)
-        {
-            accountSettings = response;
-        }
-    }
-
-    private void ToggleOldPasswordVisibility()
-    {
-        oldPasswordVisible = !oldPasswordVisible;
-        oldPasswordIcon = oldPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
-    }
-
-    private void ToggleNewPasswordVisibility()
-    {
-        newPasswordVisible = !newPasswordVisible;
-        newPasswordIcon = newPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
-    }
-
-    private void ToggleConfirmPasswordVisibility()
-    {
-        confirmPasswordVisible = !confirmPasswordVisible;
-        confirmPasswordIcon = confirmPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
-    }
-
-    private async Task SaveChanges()
-    {
-        try
-        {
-            await _accountService.UpdateAccountSettings(new UpdateAccountSettingsRequest { NewPassword = newPassword, OldPassword = oldPassword, AccountInformation = accountSettings });
-            alertMessage = "Account Settings Updated";
-            alertSeverity = Severity.Success;
-        }
-        catch (RpcException ex)
-        {
-            alertMessage = ex.Status.Detail;
-            alertSeverity = Severity.Error;
-        }
-
-        showAlert = true;
-        StateHasChanged();
-    }
-
-    private void HandleAlertClosed()
-    {
-        showAlert = false;
-        StateHasChanged();
-    }
-
-    IList<IBrowserFile> files = new List<IBrowserFile>();
-
-    private void UploadFiles(IBrowserFile file)
-    {
-        files.Add(file);
-    //TODO upload the files to the server
-    }
-
-    private string PasswordMatchValidation() => newPassword == confirmPassword ? "" : "Passwords do not match";
-    private void ValidatePasswords() => StateHasChanged();
-
-    private bool IsAnyPasswordFilled => !string.IsNullOrWhiteSpace(oldPassword)
-                                        || !string.IsNullOrWhiteSpace(newPassword)
-                                        || !string.IsNullOrWhiteSpace(confirmPassword);
-
-
-}
 
 <style>
     .settings-card {

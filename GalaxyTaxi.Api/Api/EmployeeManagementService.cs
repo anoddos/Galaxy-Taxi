@@ -8,6 +8,7 @@ using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using Microsoft.EntityFrameworkCore;
 using ProtoBuf.Grpc;
+using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
 namespace GalaxyTaxi.Api.Api;
@@ -35,28 +36,30 @@ public class EmployeeManagementService : IEmployeeManagementService
 		{
 			foreach (var employeeInfo in request.EmployeesInfo)
 			{
-				await ValidateEmployeeAndGetAddress(employeeInfo, customerCompanyId);
-
-				var address = new Address { Name = employeeInfo.Address };
-				await _db.Addresses.AddAsync(address);
-				await _db.SaveChangesAsync();
-
-				// validate mobile uniqueness
-				var existingEmployee = await _db.Employees.FirstOrDefaultAsync(e => e.Mobile == employeeInfo.Mobile && e.CustomerCompanyId == customerCompanyId);
-
-				var employeeExists = existingEmployee != null;
-				var isAddressUpdated = false;
-
-				if (!employeeExists)
+				try
 				{
-					existingEmployee = new Employee
+					await ValidateEmployeeAndGetAddress(employeeInfo, customerCompanyId);
+
+					var address = new Address { Name = employeeInfo.Address };
+					await _db.Addresses.AddAsync(address);
+					await _db.SaveChangesAsync();
+
+					// validate mobile uniqueness
+					var existingEmployee = await _db.Employees.FirstOrDefaultAsync(e => e.Mobile == employeeInfo.Mobile && e.CustomerCompanyId == customerCompanyId);
+
+					var employeeExists = existingEmployee != null;
+					var isAddressUpdated = false;
+
+					if (!employeeExists)
 					{
-						FirstName = employeeInfo.FirstName,
-						LastName = employeeInfo.LastName,
-						Mobile = employeeInfo.Mobile,
-						CustomerCompanyId = customerCompanyId,
-						OfficeId = employeeInfo.OfficeId,
-						Addresses = new List<EmployeeAddress>
+						existingEmployee = new Employee
+						{
+							FirstName = employeeInfo.FirstName,
+							LastName = employeeInfo.LastName,
+							Mobile = employeeInfo.Mobile,
+							CustomerCompanyId = customerCompanyId,
+							OfficeId = employeeInfo.OfficeId,
+							Addresses = new List<EmployeeAddress>
 						{
 							new()
 							{
@@ -64,55 +67,58 @@ public class EmployeeManagementService : IEmployeeManagementService
 								IsActive = true
 							}
 						}
-					};
+						};
 
-					_db.Employees.Add(existingEmployee);
+						_db.Employees.Add(existingEmployee);
 
-				}
-				else
-				{
-					// Employee exists, update officeId, mobile and check address
-					existingEmployee.OfficeId = employeeInfo.OfficeId;
-					existingEmployee.Mobile = employeeInfo.Mobile;
-					var deactivateAddress = _db.EmployeeAddresses.SingleOrDefault(ea => ea.EmployeeId == existingEmployee.Id);
-					if (deactivateAddress != null)
-					{
-						deactivateAddress.IsActive = false;
-					}
-
-
-					var existingAddress = existingEmployee.Addresses.FirstOrDefault(a => a.AddressId == address.Id && a.EmployeeId == existingEmployee.Id);
-
-					if (existingAddress == null)
-					{
-						existingEmployee.Addresses.Add(new EmployeeAddress
-						{
-							Employee = existingEmployee,
-							Address = address,
-							IsActive = true
-						});
 					}
 					else
 					{
-						if (existingAddress.Address.Name != address.Name || !existingAddress.Address.IsDetected)
+						// Employee exists, update officeId, mobile and check address
+						existingEmployee.OfficeId = employeeInfo.OfficeId;
+						existingEmployee.Mobile = employeeInfo.Mobile;
+						var deactivateAddress = _db.EmployeeAddresses.SingleOrDefault(ea => ea.EmployeeId == existingEmployee.Id);
+						if (deactivateAddress != null)
 						{
-							isAddressUpdated = true;
-							existingAddress.Address.Name = address.Name;
+							deactivateAddress.IsActive = false;
+						}
+
+
+						var existingAddress = existingEmployee.Addresses.FirstOrDefault(a => a.AddressId == address.Id && a.EmployeeId == existingEmployee.Id);
+
+						if (existingAddress == null)
+						{
+							existingEmployee.Addresses.Add(new EmployeeAddress
+							{
+								Employee = existingEmployee,
+								Address = address,
+								IsActive = true
+							});
+						}
+						else
+						{
+							if (existingAddress.Address.Name != address.Name || !existingAddress.Address.IsDetected)
+							{
+								isAddressUpdated = true;
+								existingAddress.Address.Name = address.Name;
+							}
+
 						}
 
 					}
 
-				}
-
-				await _db.SaveChangesAsync();
-				if (!employeeExists || !isAddressUpdated)
-				{
-					var detectionResult = await _addressDetectionService.DetectSingleAddressCoordinates(new DetectAddressCoordinatesRequest { EmployeeId = existingEmployee.Id });
-					address.IsDetected = detectionResult?.StatusId == AddressDetectionStatus.Success;
-
 					await _db.SaveChangesAsync();
-				}
+					if (!employeeExists || !isAddressUpdated)
+					{
+						var detectionResult = await _addressDetectionService.DetectSingleAddressCoordinates(new DetectAddressCoordinatesRequest { EmployeeId = existingEmployee.Id });
+						address.IsDetected = detectionResult?.StatusId == AddressDetectionStatus.Success;
 
+						await _db.SaveChangesAsync();
+					}
+				}catch(Exception ex)
+				{
+					//implement
+				}
 			}
 		}
 		catch (Exception ex)
@@ -137,8 +143,17 @@ public class EmployeeManagementService : IEmployeeManagementService
 		employee.OfficeId = request.To.OfficeId;
 		var address = _db.Addresses.SingleOrDefault(a => a.Id == request.From.Id);
 		address.Name = request.From.Name;
-		address.Latitude = (double)request.From.Latitude;
-		address.Longitude = (double)request.From.Longitude;
+		try
+		{
+            var response = await _addressDetectionService.DetectAddressCoordinatesFromName(request.From);
+            address.Latitude = (double)response.Latitude;
+            address.Longitude = (double)response.Longitude;
+			address.IsDetected = true;
+        }
+        catch(Exception ex)
+		{
+            address.IsDetected = false;
+        }
 
 		await _db.SaveChangesAsync();
 	}

@@ -1,4 +1,5 @@
-﻿@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
+﻿@using GalaxyTaxi.Shared.Api.Models.AddressDetection;
+@using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
@@ -11,31 +12,39 @@
 		{
 			<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
 		}
-		<MudTextField Label="First Name" @bind-Value="Employee.FirstName" />
-		<MudTextField Label="Last Name" @bind-Value="Employee.LastName" />
-		<MudTextField Label="Mobile" @bind-Value="Employee.Mobile" />
-		<MudTextField Label="From Address" @bind-Value="Employee.From.Name" />
-		<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
-		<div id="@MapElementId">
-			<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
-		</div>
+		<MudForm @ref="form">
+			<MudTextField Label="First Name" @bind-Value="Employee.FirstName" Required RequiredError="First Name is required" />
+				<MudTextField Label="Last Name" @bind-Value="Employee.LastName" Required RequiredError="Last Name is required" />
+				<MudTextField Label="Mobile" @bind-Value="Employee.Mobile" Required RequiredError="Mobile is required" />
+				<MudTextField Label="From Address"
+							  Value="@Employee.From.Name"
+									  Required
+							  RequiredError="From Address is required."
+							  ValueChanged="@((string newValue) => OnFromAddressChanged(newValue))" />
+				<MudButton Variant="Variant.Outlined" OnClick="AddMarker">Show Address Pin</MudButton>
+				<div id="@MapElementId">
+					<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+				</div>
 
 
-		<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office" Style="width:400px;"
-				   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
-			@foreach (var office in OfficeList)
-			{
-				<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
-			}
-		</MudSelect>
+				<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office" Style="width:400px;"
+						   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
+					@foreach (var office in OfficeList)
+				{
+					<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+				}
+			</MudSelect>
+		</MudForm>
 	</DialogContent>
 	<DialogActions>
-		<MudButton OnClick="SaveChanges">Save</MudButton>
-		<MudButton OnClick="CloseDialog">Cancel</MudButton>
+		<MudButton Variant="Variant.Outlined" OnClick="SaveChanges">Save</MudButton>
+		<MudButton Variant="Variant.Outlined" OnClick="CloseDialog">Cancel</MudButton>
 	</DialogActions>
 </MudDialog>
 
 @code {
+	MudForm form;
+
 	[Parameter]
 	public EmployeeJourneyInfo Employee { get; set; }
 
@@ -70,11 +79,25 @@
 			};
 	}
 
+	private async Task OnFromAddressChanged(string newValue)
+	{
+		Employee.From.Name = newValue;
+		await AddMarker();
+	}
+
 	private async Task AddMarker()
 	{
-		Employee.From = await _addressDetection.DetectAddressCoordinatesFromName(Employee.From);
+		Employee.From = string.IsNullOrWhiteSpace(Employee.From.Name) ? new AddressInfo()
+																			: await _addressDetection.DetectAddressCoordinatesFromName(Employee.From);
 
-		var position = new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude };
+
+		var position = Employee.From.IsDetected ? new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude }
+												: new LatLngLiteral { Lat = 41.716667, Lng = 44.783333 };
+
+		if (!Employee.From.IsDetected)
+		{
+			Employee.From.Name = "";
+		}
 
 		if (marker == null)
 		{
@@ -101,12 +124,19 @@
 	}
 	private async Task SaveChanges()
 	{
+		if (!form.IsValid)
+		{
+			form.Validate();
+			return;
+		}
+
 		try
 		{
 			Employee.To = SelectedOffice;
 			await _employeeManagement.EditEmployeeDetails(Employee);
 			alertMessage = "Employee Details Updated";
 			alertSeverity = Severity.Success;
+			dialog.Close(DialogResult.Ok(true));
 		}
 		catch (RpcException ex)
 		{
@@ -116,7 +146,6 @@
 
 		showAlert = true;
 		StateHasChanged();
-		// dialog.Close(DialogResult.Ok(true));
 
 	}
 

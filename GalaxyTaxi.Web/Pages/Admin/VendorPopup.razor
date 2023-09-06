@@ -3,53 +3,52 @@
 @inject IAccountService AccountService;
 
 <MudDialog DialogTitle="Edit Employee" Width="400px">
-	<DialogContent>
-		@if (showAlert)
-		{
-			<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
-		}
-		<MudTextField Label="Vendor Name" ReadOnly=true @bind-Value="Vendor.Name" />
-		<MudTextField Label="Email" ReadOnly=true @bind-Value="Vendor.Email" />
-		<MudTextField Label="Verification Request Date" ReadOnly=true @bind-Value="Vendor.VerificationRequestDate" />
-		<div style="display: flex; align-items: center; width: 100%;">
-			@{
-				var textColor = Vendor.Status == AccountStatus.Verified ? Color.Success : Vendor.Status == AccountStatus.Pending ? Color.Warning : Color.Error;
-				var verificationText = Vendor.Status == AccountStatus.Verified ? "Verified" :
-				Vendor.Status == AccountStatus.Pending ? "Pending" : "Declined";
-				var verificationIcon = Vendor.Status == AccountStatus.Verified ? Icons.Material.Filled.CheckCircle :
-				Vendor.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
-			}
+    <DialogContent>
+        @if (showAlert)
+        {
+            <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
+        }
+        <MudTextField Label="Vendor Name" ReadOnly=true @bind-Value="Vendor.Name"/>
+        <MudTextField Label="Email" ReadOnly=true @bind-Value="Vendor.Email"/>
+        <MudTextField Label="Verification Request Date" ReadOnly=true @bind-Value="Vendor.VerificationRequestDate"/>
+        <div style="display: flex; align-items: center; width: 100%;">
+            @{
+                var textColor = Vendor.Status == AccountStatus.Verified ? Color.Success : Vendor.Status == AccountStatus.Pending ? Color.Warning : Color.Error;
+                var verificationText = Vendor.Status == AccountStatus.Verified ? "Verified" :
+                    Vendor.Status == AccountStatus.Pending ? "Pending" : "Declined";
+                var verificationIcon = Vendor.Status == AccountStatus.Verified ? Icons.Material.Filled.CheckCircle :
+                    Vendor.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
+            }
 
+            <div style="margin-top: 10px">
+                <MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;"/>
+                <MudText Typo="Typo.overline" Color="@textColor">@verificationText</MudText>
+            </div>
 
-			<MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;" />
-			<MudText Typo="Typo.overline" Color="@textColor">@verificationText</MudText>
-		</div>
-		@if (files != null)
-		{
-			<MudList>
-				@foreach (var file in files)
-				{
-					<MudListItem Icon="@Icons.Material.Filled.AttachFile">
-						@file.Name
-					</MudListItem>
-				}
-			</MudList>
-		}
-	</DialogContent>
-	<DialogActions>
-		@if (Vendor.Status != AccountStatus.Verified)
-		{
-			<MudButton Color="Color.Success" OnClick="(() => UpdateVendor(AccountStatus.Verified))">Verify</MudButton>
-			<MudButton Color="Color.Error" OnClick="(() => UpdateVendor(AccountStatus.Declined))">Decline</MudButton>
-		}
-		else
-		{
-			<MudButton Color="Color.Error" OnClick="(() => UpdateVendor(AccountStatus.Pending))">Unverify</MudButton>
-		}
+        </div>
+        @if (files != null)
+        {
+            <MudList>
+                @foreach (var file in files)
+                {
+                    <MudListItem Icon="@Icons.Material.Filled.AttachFile">
+                        @file.Name
+                    </MudListItem>
+                }
+            </MudList>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (Vendor.Status != AccountStatus.Verified)
+        {
+            <MudButton Color="Color.Success" Disabled="@updated" OnClick="(() => UpdateVendor(AccountStatus.Verified))">Verify</MudButton>
+            <MudButton Color="Color.Error" Disabled="@updated" OnClick="(() => UpdateVendor(AccountStatus.Declined))">Decline</MudButton>
+        }
+        else
+        {
+            <MudButton Color="Color.Error" OnClick="(() => UpdateVendor(AccountStatus.Pending))">Unverify</MudButton>
+        }
 
-		<MudButton OnClick="CloseDialog">Cancel</MudButton>
-
-	</DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+    </DialogActions>
 </MudDialog>
-
-

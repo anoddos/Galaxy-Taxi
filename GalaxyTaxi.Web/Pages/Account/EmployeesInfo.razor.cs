@@ -12,8 +12,8 @@ namespace GalaxyTaxi.Web.Pages.Account;
 
 public partial class EmployeesInfo
 {
-	private List<EmployeeJourneyInfo> _employees = new List<EmployeeJourneyInfo>();
-	private List<OfficeInfo> _offices = new List<OfficeInfo>();
+	private List<EmployeeJourneyInfo> _employees = new();
+	private List<OfficeInfo> _offices = new();
 	private bool _loaded;
 	//private string _searchString;
 	private bool _sortNameByLength;
@@ -33,7 +33,8 @@ public partial class EmployeesInfo
 
 	private EmployeeJourneyInfo selectedEmployeeForEdit;
 
-	private EmployeeManagementFilter _employeeFilter = new EmployeeManagementFilter { 
+	private EmployeeManagementFilter _employeeFilter = new()
+	{ 
 		EmployeeName = string.Empty,
 		JourneyStatus = EmployeeJourneyStatus.All,
 		SelectedOffice = null
@@ -76,7 +77,6 @@ public partial class EmployeesInfo
 		await ReloadEmployees();
 	}
 
-
 	private async Task ReloadEmployees()
 	{
 		_employeeFilter.SelectedOffice = OfficeFilter;
@@ -98,7 +98,7 @@ public partial class EmployeesInfo
 	private async void DeleteEmployee(EmployeeJourneyInfo employee)
 	{
 		await _employeeManagement.DeleteEmployee(new DeleteEmployeeRequest { EmployeeId = employee.EmployeeId });
-		_employees.RemoveAll(x => x.EmployeeId == employee.EmployeeId);
+		_employees?.RemoveAll(x => x.EmployeeId == employee.EmployeeId);
 		StateHasChanged();
 	}
 
@@ -107,7 +107,7 @@ public partial class EmployeesInfo
 	{
 		selectedEmployeeForEdit = employee;
 		var parameters = new DialogParameters { ["Employee"] = selectedEmployeeForEdit, ["OfficeList"] = _offices };
-		dialogReference = DialogService.Show<EmployeePopup>("Edit Employee", parameters);
+		dialogReference = await DialogService.ShowAsync<EmployeePopup>("Edit Employee", parameters);
 		var result = await dialogReference.Result;
 		//dialogReference.Close();
 		StateHasChanged();
@@ -124,7 +124,7 @@ public partial class EmployeesInfo
 				worksheet.Cells[1, i + 1].Value = ExcelColumnNames.AllColumns[i];
 			}
 
-			for (int i = 0; i < _employees.Count; i++)
+			for (int i = 0; i < _employees?.Count; i++)
 			{
 				worksheet.Cells[i + 2, 1].Value = _employees[i].FirstName;
 				worksheet.Cells[i + 2, 2].Value = _employees[i].LastName;

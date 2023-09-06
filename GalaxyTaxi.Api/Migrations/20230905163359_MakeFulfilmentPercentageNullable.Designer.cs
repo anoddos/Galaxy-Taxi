@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230905163359_MakeFulfilmentPercentageNullable")]
+    partial class MakeFulfilmentPercentageNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -41,15 +43,12 @@ namespace GalaxyTaxi.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("VerificationRequestDate")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -116,9 +115,6 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.Property<long>("JourneyId")
                         .HasColumnType("bigint");
-
-                    b.Property<bool>("PaymentProcessed")
-                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
@@ -333,8 +329,8 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("JourneyId")
                         .HasColumnType("bigint");
 
-                    b.Property<TimeSpan>("PickupTime")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("PickupTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("StopOrder")
                         .HasColumnType("integer");
@@ -399,6 +395,9 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("VerificationRequestDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

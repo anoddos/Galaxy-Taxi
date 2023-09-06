@@ -21,9 +21,11 @@ public class Auction
 
     public double Amount { get; set; }
     
-    public double FulfillmentPercentage { get; set; }
+    public double? FulfillmentPercentage { get; set; }
 
     public long? CurrentWinnerId { get; set; }
+    
+    public bool PaymentProcessed { get; set; }
     
     public long CustomerCompanyId { get; set; }
     

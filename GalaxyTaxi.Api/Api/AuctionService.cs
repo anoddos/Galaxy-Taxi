@@ -67,9 +67,13 @@ public class AuctionService : IAuctionService
 
         var auctions = await _db.Auctions.Include(x => x.Bids)
             .Where(x => ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
-                         || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) && (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
+                         || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) &&
+                             (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
                          || loggedInAs == AccountType.Admin)
-                        && (filter.Status == ActionStatus.All || (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) || (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
+                        && (filter.Status == ActionStatus.All ||
+                            (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) ||
+                            (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
+                        && (filter.ToBeEvaluated == false || x.FeedbackId == null)
                         && (filter.WonByMe == false || x.CurrentWinnerId == accountId))
             .Skip(filter.PageIndex * filter.PageSize)
             .Take(filter.PageSize)
@@ -78,6 +82,8 @@ public class AuctionService : IAuctionService
                 Id = x.Id,
                 Amount = x.Amount,
                 EndTime = x.EndTime,
+                Feedback = x.FeedbackId,
+                Comment = x.Comment,
                 Bids = x.Bids.Select(xx => new BidInfo
                 {
                     Id = xx.Id
@@ -87,17 +93,15 @@ public class AuctionService : IAuctionService
                     : new VendorCompanyInfo
                     {
                         Id = (long)x.CurrentWinnerId,
-                        Name = x.CurrentWinner!.Name.Substring(0,10)
+                        Name = x.CurrentWinner!.Name.Substring(0, 10)
                     },
                 JourneyInfo = new JourneyInfo
                 {
-                    Id = x.Journey.Id,
                     IsOfficeDest = x.Journey.IsOfficeDest,
                     Office = new OfficeInfo
                     {
                         Address = new AddressInfo
                         {
-                            Id = x.Journey.Office.Address.Id,
                             Name = x.Journey.Office.Address.Name,
                             Latitude = x.Journey.Office.Address.Latitude,
                             Longitude = x.Journey.Office.Address.Longitude
@@ -113,7 +117,6 @@ public class AuctionService : IAuctionService
                         Id = xx.Id,
                         Address = new AddressInfo
                         {
-                            Id = xx.EmployeeAddressId,
                             Name = xx.EmployeeAddress.Address.Name,
                             Latitude = xx.EmployeeAddress.Address.Latitude,
                             Longitude = xx.EmployeeAddress.Address.Longitude
@@ -136,11 +139,16 @@ public class AuctionService : IAuctionService
 
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
 
-        var count = _db.Auctions.Count(x => ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
-                                             || (loggedInAs == AccountType.VendorCompany &&  AccountIsVerified(accountId) && (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
-                                             || loggedInAs == AccountType.Admin)
-                                            && (filter.Status == ActionStatus.All || (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) || (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
-                                            && (filter.WonByMe == false || x.CurrentWinnerId == accountId));
+        var count = _db.Auctions.Count(x =>
+            ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
+             || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) &&
+                 (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
+             || loggedInAs == AccountType.Admin)
+            && (filter.Status == ActionStatus.All ||
+                (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) ||
+                (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
+            && (filter.ToBeEvaluated == false || x.FeedbackId == null)
+            && (filter.WonByMe == false || x.CurrentWinnerId == accountId));
 
         return await Task.FromResult(new GetAuctionsCountResponse { TotalCount = count });
     }
@@ -149,14 +157,25 @@ public class AuctionService : IAuctionService
     {
         var accountId = GetAccountId();
 
+        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
+
         var auction = await _db.Auctions.Include(x => x.Bids)
-            .Where(x => x.Id == filter.Id && x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId))
+            .Where(x => x.Id == filter.Id &&
+                        ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
+                         || (loggedInAs == AccountType.VendorCompany && x.Bids.Any(xx => xx.AccountId == accountId))
+                         || loggedInAs == AccountType.Admin))
             .Select(x => new AuctionInfo
             {
                 Id = x.Id,
                 Amount = x.Amount,
                 StartTime = x.StartTime,
                 EndTime = x.EndTime,
+                Feedback = x.FeedbackId,
+                Comment = x.Comment,
+                CustomerCompany = new CustomerCompanyInfo
+                {
+                    Name = x.CustomerCompany.Name,
+                },
                 Bids = x.Bids.Select(xx => new BidInfo
                 {
                     Id = xx.Id,
@@ -172,19 +191,16 @@ public class AuctionService : IAuctionService
                     ? null
                     : new VendorCompanyInfo
                     {
-                        Id = (long)x.CurrentWinnerId,
                         Name = x.CurrentWinner!.Name
                     },
                 JourneyInfo = new JourneyInfo
                 {
-                    Id = x.Journey.Id,
                     IsOfficeDest = x.Journey.IsOfficeDest,
                     Office = new OfficeInfo
                     {
                         OfficeId = x.Journey.Office.Id,
                         Address = new AddressInfo
                         {
-                            Id = x.Journey.Office.Address.Id,
                             Name = x.Journey.Office.Address.Name,
                             Latitude = x.Journey.Office.Address.Latitude,
                             Longitude = x.Journey.Office.Address.Longitude
@@ -202,7 +218,6 @@ public class AuctionService : IAuctionService
                         Id = xx.Id,
                         Address = new AddressInfo
                         {
-                            Id = xx.EmployeeAddressId,
                             Name = xx.EmployeeAddress.Address.Name,
                             Latitude = xx.EmployeeAddress.Address.Latitude,
                             Longitude = xx.EmployeeAddress.Address.Longitude
@@ -225,13 +240,18 @@ public class AuctionService : IAuctionService
     {
         var companyId = GetCompanyId();
         var totalCost = 0.0;
-        
+
         var journeys = await GenerateJourneysForCompany(companyId);
-        
-        var maxAmountPerEmployee = (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).MaxAmountPerEmployee;
-        var dayCountPerAuction = (await _db.Subscriptions.SingleAsync(x => x.SubscriptionStatus == SubscriptionStatus.Active)).SubscriptionPlanTypeId == SubscriptionPlanType.Annual ? 7 : 5;
+
+        var maxAmountPerEmployee =
+            (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).MaxAmountPerEmployee;
+        var dayCountPerAuction =
+            (await _db.Subscriptions.SingleAsync(x => x.SubscriptionStatus == SubscriptionStatus.Active))
+            .SubscriptionPlanTypeId == SubscriptionPlanType.Annual
+                ? 7
+                : 5;
         var nextRelevantMonday = GetNextRelevantMonday();
-        
+
         foreach (var journey in journeys)
         {
             var newAuction = new Auction
@@ -244,9 +264,9 @@ public class AuctionService : IAuctionService
                 FromDate = nextRelevantMonday,
                 ToDate = nextRelevantMonday.AddDays(6)
             };
-            
+
             totalCost += newAuction.Amount;
-            
+
             await _db.Auctions.AddAsync(newAuction);
         }
 
@@ -261,13 +281,65 @@ public class AuctionService : IAuctionService
     {
         var auction = await _db.Auctions.SingleAsync(x => x.Id == evaluation.Id);
 
-        if (auction.ToDate.AddDays(2) < DateTime.Today)
+        if (auction.ToDate.AddDays(2) < DateTime.Today && auction.FeedbackId != null)
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Too Late For Evaluation"));
         }
-        
+
         auction.Comment = evaluation.Comment;
-        //auction.FeedbackId = evaluation.Evaluation;
+        auction.FeedbackId = evaluation.Evaluation;
+
+        _db.Auctions.Update(auction);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<GetAuctionsResponse> GetProblematicAuctions(ProblematicAuctionsFilter filter, CallContext context = default)
+    {
+        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
+
+        if (loggedInAs != AccountType.Admin)
+        {
+            throw new RpcException(new Status(StatusCode.AlreadyExists, "Fuck Off Bitch"));
+        }
+
+        var auctions = await _db.Auctions.Include(x => x.Bids)
+            .Where(x => (x.FeedbackId == Feedback.NotSatisfied || x.FeedbackId == Feedback.NoServiceProvided) &&
+                        (filter.Resolved == true || x.FulfillmentPercentage == null))
+            .Select(x => new AuctionInfo
+            {
+                Id = x.Id,
+                Amount = x.Amount,
+                Feedback = x.FeedbackId,
+                Comment = x.Comment,
+                Percentage = x.FulfillmentPercentage,
+                CurrentWinner = x.CurrentWinnerId == null
+                    ? null
+                    : new VendorCompanyInfo
+                    {
+                        Id = (long)x.CurrentWinnerId,
+                        Name = x.CurrentWinner!.Name,
+                        Email = x.CurrentWinner.Account.Email
+                    },
+                CustomerCompany = new CustomerCompanyInfo
+                {
+                    Email = x.CustomerCompany.Account.Email,
+                    Name = x.CustomerCompany.Name
+                }
+            }).ToListAsync();
+
+        return new GetAuctionsResponse { Auctions = auctions };
+    }
+
+    public async Task UpdateFulfilmentPercentage(UpdateFulfilmentPercentageRequest updateFulfilmentPercentage, CallContext context = default)
+    {
+        var auction = await _db.Auctions.SingleAsync(x => x.Id == updateFulfilmentPercentage.Id);
+
+        if (auction.PaymentProcessed != false)
+        {
+            throw new RpcException(new Status(StatusCode.AlreadyExists, "Already Payed"));
+        }
+
+        auction.FulfillmentPercentage = updateFulfilmentPercentage.Percentage;
 
         _db.Auctions.Update(auction);
         await _db.SaveChangesAsync();
@@ -293,15 +365,15 @@ public class AuctionService : IAuctionService
             {
                 await _db.Journeys.AddAsync(newJourney);
             }
-            
+
             journeys.AddRange(newJourneys);
         }
 
         await _db.SaveChangesAsync();
-        
+
         return journeys;
     }
-    
+
     private static DateTime GetNextRelevantMonday()
     {
         var today = DateTime.Today;
@@ -358,7 +430,7 @@ public class AuctionService : IAuctionService
 
         return long.Parse(accountId);
     }
-    
+
     private long GetCompanyId()
     {
         var companyId = GetSessionValue(AuthenticationKey.CompanyId);

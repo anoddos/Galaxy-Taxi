@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230906093415_EditAccount")]
+    partial class EditAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -333,8 +335,8 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<long>("JourneyId")
                         .HasColumnType("bigint");
 
-                    b.Property<TimeSpan>("PickupTime")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("PickupTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("StopOrder")
                         .HasColumnType("integer");

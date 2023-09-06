@@ -14,10 +14,13 @@ public class VendorInfo
 {
     [ProtoMember(1)]
     public string Name { get; set; }
+    
     [ProtoMember(2)]
     public DateTime? VerificationRequestDate { get; set; }
+    
     [ProtoMember(3)]
     public AccountStatus Status { get; set; }
+    
     [ProtoMember(4)]
     public List<VendorFileModel> VendorFiles { get; set; } = new List<VendorFileModel>();
 

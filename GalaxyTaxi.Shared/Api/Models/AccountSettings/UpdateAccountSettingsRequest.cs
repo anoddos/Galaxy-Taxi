@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 
 namespace GalaxyTaxi.Shared.Api.Models.AccountSettings;
 [ProtoContract]
@@ -18,4 +19,7 @@ public class UpdateAccountSettingsRequest
 
     [ProtoMember(3)]
     public AccountSettings? AccountInformation { get; set; }
+    
+    [ProtoMember(4)]
+    public List<VendorFileModel> Files { get; set; }
 }

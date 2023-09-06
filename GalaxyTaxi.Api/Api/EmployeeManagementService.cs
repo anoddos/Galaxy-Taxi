@@ -249,7 +249,7 @@ public class EmployeeManagementService : IEmployeeManagementService
             }
         }
 
-        return new GetEmployeesResponse { Employees = await employees.ToListAsync() };
+        return new GetEmployeesResponse { Employees = await employees?.ToListAsync() };
     }
 
     private async Task ValidateEmployeeAndGetAddress(SingleEmployeeInfo employeeInfo, long customerCompanyId)

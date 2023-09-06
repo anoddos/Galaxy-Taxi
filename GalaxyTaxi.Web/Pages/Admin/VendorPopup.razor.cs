@@ -1,14 +1,9 @@
 ﻿using GalaxyTaxi.Shared.Api.Models.VendorCompany;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components;
-using System.Net.NetworkInformation;
-using GalaxyTaxi.Shared.Api.Models.VendorCompany;
-using GalaxyTaxi.Shared.Api.Models.AccountSettings;
 using GalaxyTaxi.Shared.Api.Models.Common;
 using GalaxyTaxi.Shared.Api.Models.Admin;
 using MudBlazor;
 using Grpc.Core;
-using static MudBlazor.CategoryTypes;
 
 namespace GalaxyTaxi.Web.Pages.Admin
 {
@@ -25,6 +20,7 @@ namespace GalaxyTaxi.Web.Pages.Admin
 		private bool showAlert = false;
 		private string alertMessage = "";
 		private Severity alertSeverity;
+		private bool updated;
 
 		IList<VendorFileModel> files = new List<VendorFileModel>();
 
@@ -44,12 +40,18 @@ namespace GalaxyTaxi.Web.Pages.Admin
 				await AccountService.RespondToVendor(new RespondToVendorRequest { VendorEmail = Vendor.Email, NewStatus = newStatus });
 				alertMessage = "Vendor Status Updated";
 				alertSeverity = Severity.Success;
+
+				Vendor.Status = newStatus;
+				updated = true;
 			}
 			catch(RpcException ex)
 			{
 				alertMessage = ex.Status.Detail;
 				alertSeverity = Severity.Error;
 			}
+
+			showAlert = true;
+			StateHasChanged();
 		}
 
 		private void CloseDialog()

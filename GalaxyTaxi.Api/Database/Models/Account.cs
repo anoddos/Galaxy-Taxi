@@ -15,4 +15,6 @@ public class Account
     public string PasswordHash { get; set; } = null!;
     
     public AccountStatus Status { get; set; }
+    
+    public DateTime? VerificationRequestDate { get; set; }
 }

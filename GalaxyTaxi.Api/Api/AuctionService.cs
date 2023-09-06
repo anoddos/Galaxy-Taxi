@@ -9,6 +9,7 @@ using GalaxyTaxi.Shared.Api.Models.AddressDetection;
 using GalaxyTaxi.Shared.Api.Models.Auction;
 using GalaxyTaxi.Shared.Api.Models.Common;
 using GalaxyTaxi.Shared.Api.Models.CustomerCompany;
+using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
 using GalaxyTaxi.Shared.Api.Models.OfficeManagement;

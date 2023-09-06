@@ -8,7 +8,7 @@ public class Stop
 
     public int StopOrder { get; set; }
 
-    public DateTime PickupTime { get; set; }
+    public TimeSpan PickupTime { get; set; }
     
     public long EmployeeAddressId { get; set; }
 

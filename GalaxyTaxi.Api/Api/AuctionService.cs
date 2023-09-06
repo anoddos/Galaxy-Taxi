@@ -205,7 +205,8 @@ public class AuctionService : IAuctionService
                             FirstName = xx.EmployeeAddress.Employee.FirstName,
                             LastName = xx.EmployeeAddress.Employee.LastName,
                             Mobile = xx.EmployeeAddress.Employee.Mobile
-                        }
+                        },
+                        StopOrder = xx.StopOrder
                     })
                 }
             }).SingleAsync();

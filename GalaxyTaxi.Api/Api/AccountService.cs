@@ -12,6 +12,7 @@ using System.Security.Claims;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.AccountSettings;
 using GalaxyTaxi.Shared.Api.Models.VendorCompany;
+using GalaxyTaxi.Shared.Api.Models.Admin;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -386,4 +387,16 @@ public class AccountService : IAccountService
         }).ToListAsync();
         return new GetVendorFilesResponse { VendorFiles = files };
     }
+
+	public async Task RespondToVendor(RespondToVendorRequest request, CallContext context = default)
+	{
+		Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
+		if (loggedInAs != AccountType.Admin)
+        {
+			throw new RpcException(new Status(StatusCode.InvalidArgument, "This type of operations is only allowed for Admin"));
+		}
+        var account = await _db.Accounts.FirstOrDefaultAsync(a => a.Email == request.VendorEmail);
+        account.Status = request.NewStatus;
+        await _db.SaveChangesAsync();
+	}
 }

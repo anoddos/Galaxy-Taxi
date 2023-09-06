@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using GalaxyTaxi.Shared.Api.Models.Common;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ public class VendorInfo
     [ProtoMember(2)]
     public DateTime? VerificationRequestDate { get; set; }
     [ProtoMember(3)]
-    public bool IsVerified { get; set; }
+    public AccountStatus Status { get; set; }
     [ProtoMember(4)]
     public List<VendorFileModel> VendorFiles { get; set; } = new List<VendorFileModel>();
 

@@ -70,6 +70,10 @@ namespace GalaxyTaxi.Api.Api
 		{
 			var office = new Office();
 			office.Address = new Address();
+			var customerCompanyId = GetCompanyId();
+			
+			var officeCount = await _db.Offices.CountAsync(x => x.CustomerCompanyId == customerCompanyId) + 1;
+			office.OfficeIdentification = officeCount;
 			await MapOfficeRequest(request, office);
 
 			await _db.Offices.AddAsync(office);

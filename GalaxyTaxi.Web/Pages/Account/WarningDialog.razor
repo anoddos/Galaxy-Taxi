@@ -1,0 +1,22 @@
+@code {
+    [Parameter] public string ContentText { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Continue";
+    [Parameter] public Color Color { get; set; } = Color.Warning;
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
+    private void CancelDialog() => MudDialog.Cancel();
+}
+
+<MudCard>
+    <MudCardContent>
+        <MudText Typo="Typo.h5" Color="Color.Warning">Warning</MudText>
+        <MudDivider></MudDivider>
+        <MudText Typo="Typo.body1" Class="my-4">@ContentText</MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Color="@Color" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Warning" OnClick="CloseDialog">@ButtonText</MudButton>
+        <MudButton Color="Color.Default" Variant="Variant.Text" OnClick="CancelDialog">Cancel</MudButton>
+    </MudCardActions>
+</MudCard>

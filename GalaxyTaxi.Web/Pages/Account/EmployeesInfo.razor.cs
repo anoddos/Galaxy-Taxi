@@ -7,6 +7,7 @@ using MudBlazor;
 using OfficeOpenXml;
 using Microsoft.JSInterop;
 using Grpc.Core;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace GalaxyTaxi.Web.Pages.Account;
 
@@ -43,6 +44,8 @@ public partial class EmployeesInfo
 	private bool showAlert = false;
 	private string alertMessage = "";
 	private Severity alertSeverity;
+	
+	
 
 	// custom sort by name length
 	protected override async Task OnInitializedAsync()
@@ -82,7 +85,7 @@ public partial class EmployeesInfo
 		_employeeFilter.SelectedOffice = OfficeFilter;
 		_employeeFilter.EmployeeName = EmployeeNameFilter;
 		var response = await _employeeManagement.GetEmployees(_employeeFilter);
-		if (response != null)
+		if (response != null && response?.Employees != null)
 		{
 			_employees = response.Employees;
 		}
@@ -144,6 +147,7 @@ public partial class EmployeesInfo
 	private async Task ImportFromExcel()
 	{
 		_isImporting = true;
+		StateHasChanged();
 
 		try
 		{
@@ -197,8 +201,8 @@ public partial class EmployeesInfo
 					};
 					await _employeeManagement.AddEmployees(request);
 
-					_isImporting = false; // Reset the flag
-					ReloadEmployees();
+					_isImporting = false; 
+					await ReloadEmployees();
 				}
 			}
 			alertMessage = "Employees Uploaded";
@@ -208,6 +212,8 @@ public partial class EmployeesInfo
 		{
 			alertMessage = ex.Status.Detail;
 			alertSeverity = Severity.Error;
+			_isImporting = false; 
+			StateHasChanged();
 		}
 		showAlert = true;
 		StateHasChanged();
@@ -215,8 +221,42 @@ public partial class EmployeesInfo
 
 	private async Task GenerateAuctions()
 	{
+		var undetectedAddressesCount = _employees.Count(e => !e.From.IsDetected);
+
+		if (undetectedAddressesCount > 0)
+		{
+			var continueWithAuction = await ShowWarningDialog(undetectedAddressesCount);
+
+			if (!continueWithAuction)
+				return;  
+		}
+
 		var response = await AuctionService.GenerateAuctionsForCompany();
 		generatedAuctionCount = response.GeneratedAuctionCount;
 		totalCost = response.GeneratedAuctionTotalCost;
+		
+	}
+	
+	private async Task<bool> ShowWarningDialog(int undetectedCount)
+	{
+		bool continueWithAuction = false;
+
+		var parameters = new DialogParameters
+		{
+			["ContentText"] = $"There are {undetectedCount} addresses not detected. Are you sure you want to continue?",
+			["ButtonText"] = "Continue",
+			["Color"] = Color.Warning
+		};
+
+		var dialogReference = DialogService.Show<WarningDialog>("", parameters);
+
+		var dialogResult = await dialogReference.Result;
+
+		if (dialogResult.Cancelled == false)
+		{
+			continueWithAuction = true;
+		}
+
+		return continueWithAuction;
 	}
 }

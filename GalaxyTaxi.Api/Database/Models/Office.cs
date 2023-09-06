@@ -6,8 +6,7 @@ namespace GalaxyTaxi.Api.Database.Models;
 public class Office
 {
     public long Id { get; set; }
-
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    
     public long OfficeIdentification { get; set; }
 
     public long AddressId { get; set; }

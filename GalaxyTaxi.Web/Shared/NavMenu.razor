@@ -28,11 +28,11 @@
     }
     @if (_canViewProblematicAuctions)
     {
-        <MudNavLink Icon="@Icons.Filled.Settings" Href="/account/problematicAuctions"> Settings </MudNavLink>
+        <MudNavLink Icon="@Icons.Filled.Settings" Href="/admin/problematicAuctions"> Problematic Auctions </MudNavLink>
     }
     @if (_canViewVendorVerifications)
     {
-        <MudNavLink Icon="@Icons.Filled.Settings" Href="/account/vendorVerifications"> Settings </MudNavLink>
+        <MudNavLink Icon="@Icons.Filled.Settings" Href="/admin/vendorVerifications"> Vendor Verifications </MudNavLink>
     }
 </MudNavMenu>
 
@@ -54,7 +54,7 @@
         _canViewEmployees = accountType == AccountType.CustomerCompany;
         _canViewOffices = accountType == AccountType.CustomerCompany;
         _canViewProblematicAuctions = accountType == AccountType.Admin;
-        _canViewProblematicAuctions = accountType == AccountType.Admin;
+        _canViewVendorVerifications = accountType == AccountType.Admin;
         _canViewSubscription = accountType == AccountType.CustomerCompany;
         _canViewAuctionsList = accountType != null;
         _canViewSettings = accountType is AccountType.CustomerCompany or AccountType.VendorCompany;

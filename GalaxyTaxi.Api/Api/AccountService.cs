@@ -60,7 +60,7 @@ public class AccountService : IAccountService
                 {
                     AccountId = addedAccount.Entity.Id,
                     Name = request.CompanyName,
-                    MaxAmountPerEmployee = 3,
+                    MaxAmountPerEmployee = 5,
                     SupportTwoWayJourneys = false
                 };
                 await _db.CustomerCompanies.AddAsync(customerCompany);

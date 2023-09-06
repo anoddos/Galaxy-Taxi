@@ -19,4 +19,7 @@ public class AuctionsFilter
     
     [ProtoMember(4)]
     public int PageIndex { get; set; }
+    
+    [ProtoMember(5)]
+    public bool ToBeEvaluated { get; set; }
 }

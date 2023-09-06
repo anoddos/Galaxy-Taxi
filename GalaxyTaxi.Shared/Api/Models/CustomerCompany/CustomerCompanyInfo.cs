@@ -11,4 +11,7 @@ public class CustomerCompanyInfo
 
     [ProtoMember(2)]
     public string Name { get; set; }
+    
+    [ProtoMember(3)]
+    public string Email { get; set; }
 }

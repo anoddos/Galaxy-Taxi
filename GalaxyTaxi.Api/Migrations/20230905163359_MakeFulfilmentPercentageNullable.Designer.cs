@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230905163359_MakeFulfilmentPercentageNullable")]
+    partial class MakeFulfilmentPercentageNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -113,9 +115,6 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.Property<long>("JourneyId")
                         .HasColumnType("bigint");
-
-                    b.Property<bool>("PaymentProcessed")
-                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");

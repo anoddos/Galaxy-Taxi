@@ -1,4 +1,5 @@
 using GalaxyTaxi.Shared.Api.Models.Common;
+using GalaxyTaxi.Shared.Api.Models.CustomerCompany;
 using GalaxyTaxi.Shared.Api.Models.JourneyGenerator;
 using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 using ProtoBuf;
@@ -41,4 +42,10 @@ public class AuctionInfo
 
     [ProtoMember(11)] 
     public string? Comment { get; set; } = null!;
+    
+    [ProtoMember(12)] 
+    public CustomerCompanyInfo CustomerCompany { get; set; } = null!;
+    
+    [ProtoMember(13)] 
+    public double? Percentage { get; set; } = null!;
 }

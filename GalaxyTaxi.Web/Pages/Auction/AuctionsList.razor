@@ -18,6 +18,11 @@
     {
         <MudCheckBox @bind-Checked="@_auctionsFilter.WonByMe" Label="Won By Me" Color="Color.Primary"></MudCheckBox>
     }
+    
+     @if (loggedInAs == AccountType.CustomerCompany)
+        {
+            <MudCheckBox @bind-Checked="@_auctionsFilter.ToBeEvaluated" Label="To Be Evaluated" Color="Color.Primary"></MudCheckBox>
+        }
     <MudButton OnClick="async () => await UpdateGrid()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white; margin-left: 15px;">Search</MudButton>
 </div>
 

@@ -19,4 +19,8 @@ public interface IAuctionService
     Task<GenerateAuctionsResponse> GenerateAuctionsForCompany(CallContext context = default);
     
     Task SaveEvaluation(SaveEvaluationRequest evaluation, CallContext context = default);
+    
+    Task<GetAuctionsResponse> GetProblematicAuctions(ProblematicAuctionsFilter filter ,CallContext context = default);
+    
+    Task UpdateFulfilmentPercentage(UpdateFulfilmentPercentageRequest updateFulfilmentPercentageRequest, CallContext context = default);
 }

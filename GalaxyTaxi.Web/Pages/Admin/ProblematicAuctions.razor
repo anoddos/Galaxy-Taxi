@@ -1,7 +1,68 @@
 @page "/admin/problematicAuctions"
+@using GalaxyTaxi.Shared.Api.Models.Auction
+@using GalaxyTaxi.Shared.Api.Interfaces
+@inject IAuctionService AuctionService
 
-<h3>ProblematicAuction</h3>
-
-@code {
-    
+@if (showAlert)
+{
+    <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
 }
+<div class="filters-container">
+
+<MudCheckBox @bind-Checked="@filter.Resolved" Label="Resolved" Color="Color.Primary"></MudCheckBox>
+<MudButton OnClick="async () => await Search()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white; margin-left: 15px;">Search</MudButton>
+</div>
+
+<MudDataGrid T="AuctionInfo" Items="@_auctions" SortMode="SortMode.Multiple" Filterable="true" Hideable="true" Style="padding: 50px">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Problematic Auctions</MudText>
+    </ToolBarContent>
+
+    <Columns>
+        <TemplateColumn>
+            <HeaderTemplate>
+                <MudText>Auction Id</MudText>
+            </HeaderTemplate>
+
+            <CellTemplate>
+                @{
+                    AuctionInfo auction = @context.Item;
+                }
+                <MudLink Href="@($"/auction/{auction.Id}")">@auction.Id</MudLink>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.Feedback" Title="Feedback"/>
+        <PropertyColumn Property="x => x.Comment" Title="Comment"/>
+        <PropertyColumn Property="x => x.CustomerCompany" Title="Customer Company"/>
+        <PropertyColumn Property="x => x.CustomerCompany.Email" Title="Customer Email"/>
+        <PropertyColumn Property="x => x.CurrentWinner.Name" Title="Vendor Company"/>
+        <PropertyColumn Property="x => x.CurrentWinner.Email" Title="Vendor Email"/>
+        <TemplateColumn>
+            <HeaderTemplate>
+                <MudText>Fulfillment Percentage</MudText>
+            </HeaderTemplate>
+            <CellTemplate>
+                <MudTextField @bind-Value="@context.Item.Percentage"/>
+                <MudButton Style="margin-top: 5px" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => SaveData(context.Item))">Save</MudButton>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="AuctionInfo"/>
+    </PagerContent>
+
+</MudDataGrid>
+
+
+<style>
+
+.filters-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-left: 50px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+</style>

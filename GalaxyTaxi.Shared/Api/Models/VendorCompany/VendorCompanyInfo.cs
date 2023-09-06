@@ -12,4 +12,7 @@ public class VendorCompanyInfo
 
     [ProtoMember(2)]
     public string Name { get; set; } = null!;
+
+    [ProtoMember(3)] 
+    public string Email { get; set; } = null!;
 }

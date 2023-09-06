@@ -68,7 +68,7 @@
 						}
 					</div>
 					<div style="float: right; margin-top: 15px">
-						@if (loggedInAs == AccountType.VendorCompany && CurrentAuction.CurrentWinner == null)
+						@if (loggedInAs == AccountType.VendorCompany && CurrentAuction.ToDate < DateTime.UtcNow)
 						{
 							<MudNumericField Variant="Variant.Text" Max="@CurrentAuction.Amount" Culture="@_en" HelperText="@lastBid.ToString()" @bind-Value="@currentBid" Label="GEL" />
 
@@ -77,7 +77,7 @@
                         else
                         {
                             <div class="auction-item-price">
-                                @if (CurrentAuction.CurrentWinner != null)
+                                @if (CurrentAuction.ToDate > DateTime.UtcNow)
                                 {
                                     <span class="winner-label">Winner:</span>
                                     <span class="winner-name">@CurrentAuction.CurrentWinner.Name</span>
@@ -92,7 +92,7 @@
         </div>
     </MudCardContent>
     
-    @if ((loggedInAs == AccountType.Admin || loggedInAs == AccountType.CustomerCompany) && CurrentAuction.CurrentWinner != null)
+    @if ((loggedInAs == AccountType.Admin || loggedInAs == AccountType.CustomerCompany) && CurrentAuction.ToDate < DateTime.UtcNow)
     {
         <MudCard>
             <MudCardContent Style="padding-left: 20px; padding-right: 20px">
@@ -247,9 +247,9 @@
     {
         loggedInAs = (await AccountService.GetAccountType()).AccountType;
         selectedEvaluation = Feedback.Satisfied;
+	    
         var response = await AuctionService.GetSingleAuction(new IdFilter { Id = Id });
 
-        
         if (response != null)
         {
             CurrentAuction = response.Auction;
@@ -284,6 +284,10 @@
 			await AuctionService.Bid(new BidRequest { AuctionId = Id, Amount = currentBid });
 			alertMessage = "Your Bid Was Successful";
 			alertSeverity = Severity.Success;
+
+			CurrentAuction.Amount = currentBid;
+			
+			StateHasChanged();
 		}
 		catch (RpcException ex)
 		{

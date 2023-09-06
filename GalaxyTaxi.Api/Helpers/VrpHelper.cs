@@ -55,7 +55,7 @@ public static class VrpHelper
         var timeWindows = new long[timeMatrix.GetLength(0), timeMatrix.GetLength(1)];
 
         var data =new VrpDataModel(timeMatrix,timeWindows,timeMatrix.GetLength(0),0, 3);
-        return GenerateJourneys(data, false, office,companyEmployeesWithoutJourneys);
+        return GenerateJourneys(data, false, office, companyEmployeesWithoutJourneys, companyId);
     }
 
     public static async Task<IEnumerable<Journey>> GenerateJourneysForEmployeesHomeToOffice(long companyId, Office office, List<Employee> companyEmployeesWithoutJourneys, long[,] timeMatrix)
@@ -72,9 +72,9 @@ public static class VrpHelper
         }
 
         var data =new VrpDataModel(timeMatrix,timeWindows,timeMatrix.GetLength(0),0, 3);
-        return GenerateJourneys(data, true, office, companyEmployeesWithoutJourneys);
+        return GenerateJourneys(data, true, office, companyEmployeesWithoutJourneys, companyId);
     }
-    private static List<Journey> GenerateJourneys(VrpDataModel data, bool isOfficeDest, Office office, List<Employee> employees)
+    private static List<Journey> GenerateJourneys(VrpDataModel data, bool isOfficeDest, Office office, List<Employee> employees, long companyId)
     {
         RoutingIndexManager manager =
             new RoutingIndexManager(data.TimeMatrix.GetLength(0), data.VehicleNumber, data.Depot);
@@ -135,10 +135,10 @@ public static class VrpHelper
         // Solve the problem.
         Assignment solution = routing.SolveWithParameters(searchParameters);
 
-        return GetJourneysFromSolution(solution, routing, data, manager, isOfficeDest, office, employees);
+        return GetJourneysFromSolution(solution, routing, data, manager, isOfficeDest, office, employees, companyId);
     }
 
-    private static List<Journey> GetJourneysFromSolution(Assignment solution, RoutingModel routing, VrpDataModel data, RoutingIndexManager manager, bool isOfficeDest, Office office, List<Employee> employees)
+    private static List<Journey> GetJourneysFromSolution(Assignment solution, RoutingModel routing, VrpDataModel data, RoutingIndexManager manager, bool isOfficeDest, Office office, List<Employee> employees, long companyId)
     {
         var answer = new List<Journey>();
         
@@ -165,11 +165,11 @@ public static class VrpHelper
                 continue;
             }
             
-            var journey = new Journey(){IsOfficeDest = isOfficeDest, Office = office, Stops = new List<Stop>()};
+            var journey = new Journey{CustomerCompanyId = companyId, IsOfficeDest = isOfficeDest, Office = office, Stops = new List<Stop>()};
 
             for (int j = 0; j < routeForVehicle.Count; j++)
             {
-                journey.Stops.Add(new Stop(){
+                journey.Stops.Add(new Stop{
                     EmployeeAddress = employees[routeForVehicle[j].Item1].Addresses.First(),
                     StopOrder = j + 1,
                     PickupTime = isOfficeDest ? 

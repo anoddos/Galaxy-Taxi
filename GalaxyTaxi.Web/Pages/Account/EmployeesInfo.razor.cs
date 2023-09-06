@@ -235,6 +235,14 @@ public partial class EmployeesInfo
 		generatedAuctionCount = response.GeneratedAuctionCount;
 		totalCost = response.GeneratedAuctionTotalCost;
 		
+		var parameters = new DialogParameters 
+		{
+			["AuctionCount"] = generatedAuctionCount,
+			["UserCount"] = _employees.Count,
+			["TotalCost"] = totalCost
+		};
+		var dialogReference = DialogService.Show<InfoModal>("Auction Information", parameters);
+		await dialogReference.Result; 
 	}
 	
 	private async Task<bool> ShowWarningDialog(int undetectedCount)

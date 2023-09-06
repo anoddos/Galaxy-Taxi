@@ -16,11 +16,12 @@ public class AddressDetectionService : IAddressDetectionService
 {
 	private readonly Db _db;
 	private readonly IHttpContextAccessor _httpContextAccessor;
-
-	public AddressDetectionService(Db db, IHttpContextAccessor httpContextAccessor)
+	private readonly IConfiguration _config;
+	public AddressDetectionService(Db db, IHttpContextAccessor httpContextAccessor, IConfiguration config)
 	{
 		_db = db;
 		_httpContextAccessor = httpContextAccessor;
+		_config = config;
 	}
 
 	public async Task<DetectAddressCoordinatesResponse> DetectSingleAddressCoordinates(DetectAddressCoordinatesRequest request, CallContext context = default)
@@ -67,7 +68,7 @@ public class AddressDetectionService : IAddressDetectionService
 	private async Task<IEnumerable<Database.Models.Address>> DetectAddressCoordinatesForEmployees(IEnumerable<Employee> employees)
 	{
 		var result = new List<Database.Models.Address>();
-		var apiKey = "AIzaSyAX3II8hi3iZWlU5qRGJfogk0fQhmRp-QU"; //todo configebshia gasatani
+		var apiKey = _config.GetValue<string>("GoogleMapsKey"); 
 
 		using (var client = new HttpClient())
 		{
@@ -107,7 +108,7 @@ public class AddressDetectionService : IAddressDetectionService
 
 	public async Task<AddressInfo> DetectAddressNameFromCoordinates(AddressInfo detectAddress)
 	{
-		var apiKey = "AIzaSyAX3II8hi3iZWlU5qRGJfogk0fQhmRp-QU"; //todo configebshia gasatani
+		var apiKey = _config.GetValue<string>("GoogleMapsKey");
 
 		using (var client = new HttpClient())
 		{
@@ -131,7 +132,7 @@ public class AddressDetectionService : IAddressDetectionService
 
 	public async Task<AddressInfo> DetectAddressCoordinatesFromName(AddressInfo detectAddress)
 	{
-		var apiKey = "AIzaSyAX3II8hi3iZWlU5qRGJfogk0fQhmRp-QU"; //todo configebshia gasatani
+		var apiKey = _config.GetValue<string>("GoogleMapsKey");
 
 		try
 		{

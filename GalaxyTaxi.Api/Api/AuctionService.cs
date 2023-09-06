@@ -37,8 +37,13 @@ public class AuctionService : IAuctionService
 
     public async Task Bid(BidRequest request, CallContext context = default)
     {
-        await ValidateBidRequestAsync(request);
-
+        var auction = await _db.Auctions.SingleAsync(x => x.Id == request.AuctionId);
+        
+        if (auction.Amount <= request.Amount)
+        {
+            throw new RpcException(new Status(StatusCode.AlreadyExists, "New Bid Should Have Smaller Value"));
+        }
+        
         var bid = new Bid
         {
             Amount = request.Amount,
@@ -46,11 +51,15 @@ public class AuctionService : IAuctionService
             AuctionId = request.AuctionId,
             TimeStamp = DateTime.UtcNow
         };
-
+        
         try
         {
             await _db.Bids.AddAsync(bid);
 
+            auction.Amount = request.Amount;
+            
+            auction.CurrentWinnerId = GetCompanyId();
+            
             await _db.SaveChangesAsync();
         }
         catch (Exception)
@@ -68,11 +77,11 @@ public class AuctionService : IAuctionService
         var auctions = await _db.Auctions.Include(x => x.Bids)
             .Where(x => ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
                          || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) &&
-                             (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
+                             (x.ToDate < DateTime.UtcNow || x.Bids.Any(xx => xx.AccountId == accountId)))
                          || loggedInAs == AccountType.Admin)
                         && (filter.Status == ActionStatus.All ||
-                            (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) ||
-                            (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
+                            (filter.Status == ActionStatus.Active && x.ToDate < DateTime.UtcNow) ||
+                            (filter.Status == ActionStatus.Finished && x.ToDate > DateTime.UtcNow))
                         && (filter.ToBeEvaluated == false || x.FeedbackId == null)
                         && (filter.WonByMe == false || x.CurrentWinnerId == accountId))
             .Skip(filter.PageIndex * filter.PageSize)
@@ -142,11 +151,11 @@ public class AuctionService : IAuctionService
         var count = _db.Auctions.Count(x =>
             ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
              || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) &&
-                 (x.CurrentWinnerId == null || x.Bids.Any(xx => xx.AccountId == accountId)))
+                 (x.ToDate < DateTime.UtcNow ||x.Bids.Any(xx => xx.AccountId == accountId)))
              || loggedInAs == AccountType.Admin)
             && (filter.Status == ActionStatus.All ||
-                (filter.Status == ActionStatus.Active && x.CurrentWinnerId == null) ||
-                (filter.Status == ActionStatus.Finished && x.CurrentWinnerId != null))
+                (filter.Status == ActionStatus.Active && x.ToDate < DateTime.UtcNow) ||
+                (filter.Status == ActionStatus.Finished && x.ToDate > DateTime.UtcNow))
             && (filter.ToBeEvaluated == false || x.FeedbackId == null)
             && (filter.WonByMe == false || x.CurrentWinnerId == accountId));
 
@@ -162,7 +171,7 @@ public class AuctionService : IAuctionService
         var auction = await _db.Auctions.Include(x => x.Bids)
             .Where(x => x.Id == filter.Id &&
                         ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
-                         || (loggedInAs == AccountType.VendorCompany && x.Bids.Any(xx => xx.AccountId == accountId))
+                         || (loggedInAs == AccountType.VendorCompany && (x.ToDate < DateTime.UtcNow || x.Bids.Any(xx => xx.AccountId == accountId)))
                          || loggedInAs == AccountType.Admin))
             .Select(x => new AuctionInfo
             {
@@ -270,6 +279,8 @@ public class AuctionService : IAuctionService
             await _db.Auctions.AddAsync(newAuction);
         }
 
+        await _db.SaveChangesAsync();
+        
         return new GenerateAuctionsResponse
         {
             GeneratedAuctionCount = journeys.Count,
@@ -363,12 +374,18 @@ public class AuctionService : IAuctionService
     
             foreach (var newJourney in newJourneys)
             {
+                var employees = newJourney.Stops.Select(x => x.EmployeeAddress.Employee);
+                foreach (var employee in employees)
+                {
+                    employee.HasActiveJourney = true;
+                }
+                
                 await _db.Journeys.AddAsync(newJourney);
             }
-
+            
             journeys.AddRange(newJourneys);
         }
-
+        
         await _db.SaveChangesAsync();
 
         return journeys;
@@ -404,8 +421,9 @@ public class AuctionService : IAuctionService
     
     private async Task ValidateBidRequestAsync(BidRequest request)
     {
-        var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;
-        if (lastBid <= request.Amount)
+        var currentAmount = (await _db.Auctions.SingleAsync(x => x.Id == request.AuctionId)).Amount;
+        
+        if (currentAmount <= request.Amount)
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, "New Bid Should Have Smaller Value"));
         }

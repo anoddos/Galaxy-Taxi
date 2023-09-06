@@ -59,7 +59,7 @@ public class AccountService : IAccountService
             await _db.SaveChangesAsync();
             CustomerCompany customerCompany = null;
             VendorCompany vendorCompany = null;
-            
+
             if (request.Type == AccountType.CustomerCompany)
             {
                 customerCompany = new CustomerCompany
@@ -84,7 +84,7 @@ public class AccountService : IAccountService
             }
 
             await _db.SaveChangesAsync();
-            
+
             companyId = request.Type == AccountType.CustomerCompany ? customerCompany.Id : vendorCompany.Id;
         }
         catch (Exception ex)
@@ -314,8 +314,8 @@ public class AccountService : IAccountService
         if (accountId == -1) throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
 
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
-        double maxAmountPerEmployee = 0;
-        bool supportTwoWayJourneys = false;
+        var maxAmountPerEmployee = 0.0;
+        var supportTwoWayJourneys = false;
         var files = new List<VendorFileModel>();
 
         if (loggedInAs == AccountType.CustomerCompany)
@@ -388,7 +388,8 @@ public class AccountService : IAccountService
     }
 
 
-    public async Task<GetVendorFilesResponse> GetVendorFiles(GetVendorFilesRequest request, CallContext context = default)
+    public async Task<GetVendorFilesResponse> GetVendorFiles(GetVendorFilesRequest request,
+        CallContext context = default)
     {
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
 

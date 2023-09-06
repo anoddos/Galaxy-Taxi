@@ -8,122 +8,118 @@
 
 
 <div class="wrapper" style="display:flex;">
-	<div class="employeeFilterContainer" style="width:30%;">
-		<MudTextField ValueChanged="@((string employeeName) => EmployeeNameChanged(employeeName))" Immediate="true" Label="Employee Name" Variant="Variant.Outlined"></MudTextField>
-		<MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined"
-				   AnchorOrigin="Origin.BottomCenter" ValueChanged="@((OfficeInfo currentOffice) => OfficeValueChanged(currentOffice))">
-			<MudSelectItem T="OfficeInfo" Value="@(null)">Select an option:</MudSelectItem>
-			@foreach (var office in _offices)
-			{
-				<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
-			}
-		</MudSelect>
-		<MudRadioGroup T="EmployeeJourneyStatus" SelectedOption="@_employeeFilter.JourneyStatus" SelectedOptionChanged="UpdateEmployeeDataBasedOnSelection">
-			<MudRadio Option="EmployeeJourneyStatus.All" Color="Color.Primary" Size="Size.Small">All</MudRadio>
-			<MudRadio Option="EmployeeJourneyStatus.HasActiveJourney" Color="Color.Primary" Size="Size.Small">Has Active Journey</MudRadio>
-			<MudRadio Option="EmployeeJourneyStatus.NoActiveJourney" Color="Color.Primary" Size="Size.Small">No Active Journeys</MudRadio>
-		</MudRadioGroup>
-
-		<MudButton OnClick="GenerateAuctions" Variant="Variant.Filled"Color="Color.Primary">Generate Auctions</MudButton>
-	</div>
-
-	<div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
-
-		@if (showAlert)
-		{
-			<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
-		}
-		<div style="display: flex; align-items: center;">
-
-			<MudButton DisableElevation Variant="Variant.Outlined" OnClick="GenerateExcelFile" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Export</MudButton>
-				<MudButton DisableElevation Variant="Variant.Filled" OnClick="async () => await ImportFromExcel()" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Import</MudButton>
+    <div class="employeeFilterContainer" style="width:30%;">
+        <MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined"
+                   AnchorOrigin="Origin.BottomCenter" ValueChanged="@((OfficeInfo currentOffice) => OfficeValueChanged(currentOffice))">
+            <MudSelectItem T="OfficeInfo" Value="@(null)">Select an option:</MudSelectItem>
+            @foreach (var office in _offices)
+            {
+                <MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+            }
+        </MudSelect>
+        <MudRadioGroup T="EmployeeJourneyStatus" SelectedOption="@_employeeFilter.JourneyStatus" SelectedOptionChanged="UpdateEmployeeDataBasedOnSelection">
+            <MudRadio Option="EmployeeJourneyStatus.All" Color="Color.Primary" Size="Size.Small">All</MudRadio>
+            <MudRadio Option="EmployeeJourneyStatus.HasActiveJourney" Color="Color.Primary" Size="Size.Small">Has Active Journey</MudRadio>
+            <MudRadio Option="EmployeeJourneyStatus.NoActiveJourney" Color="Color.Primary" Size="Size.Small">No Active Journeys</MudRadio>
+        </MudRadioGroup>
 
 
-				<MudFileUpload T="IBrowserFile" FilesChanged="OnFileChange" class="mud-button-root mud-button-contained mud-theme-themePrimary" style="margin-left: 5px;">
-					<ButtonTemplate>
-						<MudButton HtmlTag="label"
-								   Variant="Variant.Filled"
-								   Color="Color.Primary"
-								   StartIcon="@Icons.Material.Filled.CloudUpload"
-								   for="@context">
-							Upload File
-						</MudButton>
-					</ButtonTemplate>
-				</MudFileUpload>
+        <MudButton OnClick="GenerateAuctions" Variant="Variant.Filled"Color="Color.Primary">Generate Auctions</MudButton>
+    </div>
 
-				@if (file != null)
-			{
-				<MudListItem Icon="@Icons.Material.Filled.AttachFile" @key="@file">
-					@file.Name <code>@file.Size bytes</code>
-				</MudListItem>
-			}
+    <div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">
+        @if (showAlert)
+        {
+            <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
+        }
+        
+        @if (_isImporting)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary"/>
+        }
+        <div style="display: flex; align-items: center;">
+            <MudFileUpload T="IBrowserFile" FilesChanged="OnFileChange" class="mud-button-root mud-button-contained mud-theme-themePrimary" style="margin-left: 5px;">
+                <ButtonTemplate>
+                    <MudButton HtmlTag="label"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.CloudUpload"
+                               for="@context">
+                        Upload File
+                    </MudButton>
+                </ButtonTemplate>
+            </MudFileUpload>
 
-		</div>
+            <MudButton DisableElevation Variant="Variant.Filled" OnClick="async () => await ImportFromExcel()" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Import</MudButton>
+            <MudButton DisableElevation Variant="Variant.Outlined" OnClick="GenerateExcelFile" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Export</MudButton>
 
+            @if (file != null)
+            {
+                <MudListItem Icon="@Icons.Material.Filled.AttachFile" @key="@file">
+                    @file.Name <code>@file.Size bytes</code>
+                </MudListItem>
+            }
+        </div>
 
-		<MudDataGrid T="EmployeeJourneyInfo" Items="@_employees"
-					 SortMode="SortMode.Multiple" Filterable="true" Hideable="true">
+        <MudDataGrid T="EmployeeJourneyInfo" Items="@_employees"SortMode="SortMode.Multiple" Filterable="true" Hideable="true">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Employees</MudText>
+            </ToolBarContent>
 
-			<ToolBarContent>
-				<MudText Typo="Typo.h6">Employees</MudText>
-			</ToolBarContent>
-
-
-			<Columns>
-				<PropertyColumn Property="x => x.FirstName" Title="First Name" />
-				<PropertyColumn Property="x => x.LastName" Title="Last Name" />
-				<PropertyColumn Property="x => x.Mobile" Title="Mobile" />
-				@* <PropertyColumn Property="x => x.From.Name" Title="From" />
+            <Columns>
+                <PropertyColumn Property="x => x.FirstName" Title="First Name"/>
+                <PropertyColumn Property="x => x.LastName" Title="Last Name"/>
+                <PropertyColumn Property="x => x.Mobile" Title="Mobile"/>
+                @* <PropertyColumn Property="x => x.From.Name" Title="From" />
 				<PropertyColumn Property="x => x.To.Address.Name" Title="To" /> *@
-				<TemplateColumn>
-					<HeaderTemplate>
-						From
-					</HeaderTemplate>
-					<CellTemplate>
-						<MudText style="@(context.Item.From.IsDetected ? "" : "color: red;")">
-							@context.Item.From.Name
-						</MudText>
-					</CellTemplate>
-				</TemplateColumn>
+                <TemplateColumn>
+                    <HeaderTemplate>
+                        From
+                    </HeaderTemplate>
+                    <CellTemplate>
+                        <MudText style="@(context.Item.From.IsDetected ? "" : "color: red;")">
+                            @context.Item.From.Name
+                        </MudText>
+                    </CellTemplate>
+                </TemplateColumn>
 
-				<TemplateColumn>
-					<HeaderTemplate>
-						To
-					</HeaderTemplate>
-					<CellTemplate>
-						<MudText style="@(context.Item.To.Address.IsDetected ? "" : "color: red;")">
-							@context.Item.To.Address.Name
-						</MudText>
-					</CellTemplate>
-				</TemplateColumn>
+                <TemplateColumn>
+                    <HeaderTemplate>
+                        To
+                    </HeaderTemplate>
+                    <CellTemplate>
+                        <MudText style="@(context.Item.To.Address.IsDetected ? "" : "color: red;")">
+                            @context.Item.To.Address.Name
+                        </MudText>
+                    </CellTemplate>
+                </TemplateColumn>
 
-				<PropertyColumn Property="x => x.Mobile" Title="Mobile" />
-				<TemplateColumn>
-					<HeaderTemplate>
-						Has Active Journey
-					</HeaderTemplate>
-					<CellTemplate>
-						@if (context.Item.HasActiveJourney)
-						{
-							<MudIcon Icon="@Icons.Material.Filled.Check" Title="Has Active Journey" />
-						}
-					</CellTemplate>
-				</TemplateColumn>
-				<TemplateColumn>
-					<CellTemplate>
-						<MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenEditPopup(context.Item))"/>
-					</CellTemplate>
-				</TemplateColumn>
-				<TemplateColumn>
-					<CellTemplate>
-						<MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteEmployee(context.Item))" />
-					</CellTemplate>
-				</TemplateColumn>
-			</Columns>
-			<PagerContent>
-				<MudDataGridPager T="EmployeeJourneyInfo" />
-			</PagerContent>
-
-		</MudDataGrid>
-	</div>
+                <PropertyColumn Property="x => x.Mobile" Title="Mobile"/>
+                <TemplateColumn>
+                    <HeaderTemplate>
+                        Has Active Journey
+                    </HeaderTemplate>
+                    <CellTemplate>
+                        @if (context.Item.HasActiveJourney)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Check" Title="Has Active Journey"/>
+                        }
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn>
+                    <CellTemplate>
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenEditPopup(context.Item))"/>
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn>
+                    <CellTemplate>
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => DeleteEmployee(context.Item))"/>
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="EmployeeJourneyInfo"/>
+            </PagerContent>
+        </MudDataGrid>
+    </div>
 </div>

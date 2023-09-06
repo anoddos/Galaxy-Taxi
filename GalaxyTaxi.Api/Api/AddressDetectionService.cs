@@ -133,25 +133,34 @@ public class AddressDetectionService : IAddressDetectionService
 	{
 		var apiKey = "AIzaSyAX3II8hi3iZWlU5qRGJfogk0fQhmRp-QU"; //todo configebshia gasatani
 
-		using (var client = new HttpClient())
+		try
 		{
-			var apiUrl = $"https://maps.googleapis.com/maps/api/geocode/json?address={Uri.EscapeDataString(detectAddress.Name)}&key={apiKey}";
-
-			var response = await client.GetAsync(apiUrl);
-
-			if (response.IsSuccessStatusCode)
+			using (var client = new HttpClient())
 			{
-				var responseContent = await response.Content.ReadAsStringAsync();
-				var jsonResponse = JObject.Parse(responseContent);
+				var apiUrl = $"https://maps.googleapis.com/maps/api/geocode/json?address={Uri.EscapeDataString(detectAddress.Name)}&key={apiKey}";
 
-				var location = jsonResponse["results"][0]["geometry"]["location"];
-				var latitude = (double)location["lat"];
-				var longitude = (double)location["lng"];
+				var response = await client.GetAsync(apiUrl);
 
-				detectAddress.Latitude = latitude;
-				detectAddress.Longitude = longitude;
+				if (response.IsSuccessStatusCode)
+				{
+					var responseContent = await response.Content.ReadAsStringAsync();
+					var jsonResponse = JObject.Parse(responseContent);
+						
+					var location = jsonResponse["results"][0]["geometry"]["location"];
+					var latitude = (double)location["lat"];
+					var longitude = (double)location["lng"];
+
+					detectAddress.Latitude = latitude;
+					detectAddress.Longitude = longitude;
+				}
 			}
-
+		}
+		catch (Exception e)
+		{
+			return new AddressInfo
+			{
+				IsDetected = false
+			};
 		}
 
 		return detectAddress;

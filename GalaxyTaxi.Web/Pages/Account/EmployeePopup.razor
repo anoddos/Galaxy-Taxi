@@ -74,7 +74,6 @@
 	{
 		Employee.From = await _addressDetection.DetectAddressCoordinatesFromName(Employee.From);
 
-
 		var position = new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude };
 
 		if (marker == null)

@@ -20,30 +20,38 @@ public class EmployeeManagementService : IEmployeeManagementService
     private readonly IAddressDetectionService _addressDetectionService;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public EmployeeManagementService(Db db, IAddressDetectionService addressDetectionService, IHttpContextAccessor httpContextAccessor)
+    public EmployeeManagementService(Db db, IAddressDetectionService addressDetectionService,
+        IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _addressDetectionService = addressDetectionService;
         _httpContextAccessor = httpContextAccessor;
     }
+
     public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
         if (request.EmployeesInfo == null || request.EmployeesInfo.Count == 0) return;
 
         var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
-        var subscription = await _db.Subscriptions.FirstOrDefaultAsync(s => s.CustomerCompanyId == customerCompanyId);
+        var subscription = await _db.Subscriptions.FirstOrDefaultAsync(s =>
+            s.CustomerCompanyId == customerCompanyId && s.SubscriptionStatus == SubscriptionStatus.Active);
+
+        if (subscription == null)
+            throw new RpcException(new Status(StatusCode.OutOfRange, "Please Buy Subscription First"));
+
         var numberOfEmployees = await _db.Employees.CountAsync(e => e.CustomerCompanyId == customerCompanyId);
 
-        int additionalCounter = 0;
+        var additionalCounter = 0;
 
         try
         {
+            var employees = new List<Employee>();
             foreach (var employeeInfo in request.EmployeesInfo)
             {
                 try
                 {
-                    await ValidateEmployeeAndGetAddress(employeeInfo, customerCompanyId);
+                    await ValidateEmployee(employeeInfo, customerCompanyId);
 
                     var address = new Address { Name = employeeInfo.Address };
                     await _db.Addresses.AddAsync(address);
@@ -54,16 +62,17 @@ public class EmployeeManagementService : IEmployeeManagementService
 
                     var employeeExists = existingEmployee != null;
                     var isAddressUpdated = false;
-
-                    var office = await _db.Offices.FirstOrDefaultAsync(o => o.OfficeIdentification == employeeInfo.OfficeId);
+                    
+                    var office = await _db.Offices.SingleAsync(o => o.CustomerCompanyId == customerCompanyId && o.OfficeIdentification == employeeInfo.OfficeId);
 
                     if (!employeeExists)
                     {
-						if (numberOfEmployees + additionalCounter >= SubscriptionMapping.Mapping[subscription.SubscriptionPlanTypeId])
-						{
-							throw new RpcException(new Status(StatusCode.OutOfRange, "Can not add any more employees"));
-						}
-						existingEmployee = new Employee
+                        if (numberOfEmployees + additionalCounter >= SubscriptionMapping.Mapping[subscription.SubscriptionPlanTypeId])
+                        {
+                            throw new RpcException(new Status(StatusCode.OutOfRange, "Can not add any more employees"));
+                        }
+
+                        existingEmployee = new Employee
                         {
                             FirstName = employeeInfo.FirstName,
                             LastName = employeeInfo.LastName,
@@ -71,17 +80,16 @@ public class EmployeeManagementService : IEmployeeManagementService
                             CustomerCompanyId = customerCompanyId,
                             OfficeId = office.Id,
                             Addresses = new List<EmployeeAddress>
-                        {
-                            new()
                             {
-                                Address = address,
-                                IsActive = true
+                                new()
+                                {
+                                    Address = address,
+                                    IsActive = true
+                                }
                             }
-                        }
                         };
 
                         _db.Employees.Add(existingEmployee);
-
                     }
                     else
                     {
@@ -93,7 +101,6 @@ public class EmployeeManagementService : IEmployeeManagementService
                         {
                             deactivateAddress.IsActive = false;
                         }
-
 
                         var existingAddress = existingEmployee.Addresses.FirstOrDefault(a => a.AddressId == address.Id && a.EmployeeId == existingEmployee.Id);
 
@@ -113,12 +120,11 @@ public class EmployeeManagementService : IEmployeeManagementService
                                 isAddressUpdated = true;
                                 existingAddress.Address.Name = address.Name;
                             }
-
                         }
-
                     }
 
                     await _db.SaveChangesAsync();
+                    
                     additionalCounter++;
                     if (!employeeExists || !isAddressUpdated)
                     {
@@ -133,6 +139,8 @@ public class EmployeeManagementService : IEmployeeManagementService
                     //implement
                 }
             }
+            
+            await _db.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -144,7 +152,8 @@ public class EmployeeManagementService : IEmployeeManagementService
     {
         var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
-        var employee = await _db.Employees.FirstOrDefaultAsync(o => o.Id == request.EmployeeId && o.CustomerCompanyId == customerCompanyId);
+        var employee = await _db.Employees.FirstOrDefaultAsync(o =>
+            o.Id == request.EmployeeId && o.CustomerCompanyId == customerCompanyId);
         if (employee == null)
         {
             throw new InvalidOperationException("Incorrect employee Id");
@@ -188,45 +197,47 @@ public class EmployeeManagementService : IEmployeeManagementService
         }
     }
 
-    public async Task<GetEmployeesResponse> GetEmployees(EmployeeManagementFilter? filter = null, CallContext context = default)
+    public async Task<GetEmployeesResponse> GetEmployees(EmployeeManagementFilter? filter = null,
+        CallContext context = default)
     {
         var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
         var employees = from employee in _db.Employees.Include(e => e.Office)
-                        where (employee.CustomerCompanyId == customerCompanyId
-                            && (filter.JourneyStatus == EmployeeJourneyStatus.All
-                                || (filter.JourneyStatus == EmployeeJourneyStatus.HasActiveJourney && employee.HasActiveJourney)
-                                || (filter.JourneyStatus == EmployeeJourneyStatus.NoActiveJourney && !employee.HasActiveJourney)))
-                        let address = employee.Addresses.SingleOrDefault(a => a.IsActive)
-                        select new EmployeeJourneyInfo
-                        {
-                            FirstName = employee.FirstName,
-                            LastName = employee.LastName,
-                            Mobile = employee.Mobile,
-                            EmployeeId = employee.Id,
-                            From = new AddressInfo
-                            {
-                                Name = address.Address.Name,
-                                Latitude = address.Address.Latitude,
-                                Longitude = address.Address.Longitude,
-                                Id = address.Address.Id,
-                                IsDetected = address.Address.IsDetected
-                            },
-                            To = new OfficeInfo
-                            {
-                                OfficeId = employee.OfficeId,
-                                WorkingEndTime = employee.Office.WorkingEndTime,
-                                WorkingStartTime = employee.Office.WorkingStartTime,
-                                Address = new AddressInfo
-                                {
-                                    Name = employee.Office.Address.Name,
-                                    Latitude = employee.Office.Address.Latitude,
-                                    Longitude = employee.Office.Address.Longitude,
-                                    IsDetected = employee.Office.Address.IsDetected
-                                }
-                            },
-                            HasActiveJourney = employee.HasActiveJourney
-                        };
+            where (employee.CustomerCompanyId == customerCompanyId
+                   && (filter.JourneyStatus == EmployeeJourneyStatus.All
+                       || (filter.JourneyStatus == EmployeeJourneyStatus.HasActiveJourney && employee.HasActiveJourney)
+                       || (filter.JourneyStatus == EmployeeJourneyStatus.NoActiveJourney &&
+                           !employee.HasActiveJourney)))
+            let address = employee.Addresses.SingleOrDefault(a => a.IsActive)
+            select new EmployeeJourneyInfo
+            {
+                FirstName = employee.FirstName,
+                LastName = employee.LastName,
+                Mobile = employee.Mobile,
+                EmployeeId = employee.Id,
+                From = new AddressInfo
+                {
+                    Name = address.Address.Name,
+                    Latitude = address.Address.Latitude,
+                    Longitude = address.Address.Longitude,
+                    Id = address.Address.Id,
+                    IsDetected = address.Address.IsDetected
+                },
+                To = new OfficeInfo
+                {
+                    OfficeId = employee.OfficeId,
+                    WorkingEndTime = employee.Office.WorkingEndTime,
+                    WorkingStartTime = employee.Office.WorkingStartTime,
+                    Address = new AddressInfo
+                    {
+                        Name = employee.Office.Address.Name,
+                        Latitude = employee.Office.Address.Latitude,
+                        Longitude = employee.Office.Address.Longitude,
+                        IsDetected = employee.Office.Address.IsDetected
+                    }
+                },
+                HasActiveJourney = employee.HasActiveJourney
+            };
 
         if (filter?.SelectedOffice != null)
         {
@@ -235,7 +246,8 @@ public class EmployeeManagementService : IEmployeeManagementService
 
         if (!string.IsNullOrWhiteSpace(filter?.EmployeeName))
         {
-            string[]? names = filter?.EmployeeName.Trim().Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[]? names = filter?.EmployeeName.Trim()
+                .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (names != null)
             {
@@ -252,7 +264,7 @@ public class EmployeeManagementService : IEmployeeManagementService
         return new GetEmployeesResponse { Employees = await employees?.ToListAsync() };
     }
 
-    private async Task ValidateEmployeeAndGetAddress(SingleEmployeeInfo employeeInfo, long customerCompanyId)
+    private async Task ValidateEmployee(SingleEmployeeInfo employeeInfo, long customerCompanyId)
     {
         if (string.IsNullOrEmpty(employeeInfo.FirstName))
         {
@@ -273,17 +285,19 @@ public class EmployeeManagementService : IEmployeeManagementService
         {
             throw new InvalidOperationException("Address cannot be empty");
         }
+
         var officeExists = await _db.Offices.AnyAsync(o => o.OfficeIdentification == employeeInfo.OfficeId && o.CustomerCompanyId == customerCompanyId);
-        var companyExists = await _db.CustomerCompanies.AnyAsync(cc => cc.Id == customerCompanyId);
         var mobileExists = await _db.Employees.AnyAsync(e => e.Mobile == employeeInfo.Mobile && e.CustomerCompanyId != customerCompanyId);
+        
         if (mobileExists)
         {
-            throw new InvalidOperationException($"employee with the same mobile already exists in different company {employeeInfo.Mobile}");
+            throw new InvalidOperationException(
+                $"employee with the same mobile already exists in different company {employeeInfo.Mobile}");
         }
 
-        if (!officeExists || !companyExists)
+        if (!officeExists)
         {
-            throw new InvalidOperationException($"invalid officeId {employeeInfo.OfficeId} or companyId {customerCompanyId}");
+            throw new InvalidOperationException($"invalid officeId {employeeInfo.OfficeId}");
         }
 
         if (string.IsNullOrEmpty(employeeInfo.Address))

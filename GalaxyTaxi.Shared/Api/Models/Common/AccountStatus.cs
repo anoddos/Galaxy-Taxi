@@ -2,6 +2,7 @@
 
 public enum AccountStatus
 {
+	Registered,
 	Verified,
 	Pending,
 	Declined

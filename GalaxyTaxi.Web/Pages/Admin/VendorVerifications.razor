@@ -1,7 +1,60 @@
 @page "/admin/vendorVerifications"
+@using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Common
+@using GalaxyTaxi.Shared.Api.Models.VendorCompany
+@inject IAccountService AccountService
+@inject IDialogService DialogService
 
-<h3>VendorVerifications</h3>
 
-@code {
-    
+@if (showAlert)
+{
+    <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed"/>
 }
+<div class="filters-container">
+    <MudRadioGroup @bind-SelectedOption="@_vendorFilter.Status">
+        <MudRadio Option="AccountStatus.Registered" Color="Color.Primary" Size="Size.Small">Registered</MudRadio>
+        <MudRadio Option="AccountStatus.Pending" Color="Color.Primary" Size="Size.Small">Pending</MudRadio>
+        <MudRadio Option="AccountStatus.Declined" Color="Color.Primary" Size="Size.Small">Declined</MudRadio>
+        <MudRadio Option="AccountStatus.Verified" Color="Color.Primary" Size="Size.Small">Verified</MudRadio>
+    </MudRadioGroup>
+    <MudButton OnClick="async () => await Search()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white; margin-left: 15px;">Search</MudButton>
+</div>
+
+<MudDataGrid T="VendorInfo" Items="@_vendors" SortMode="SortMode.Multiple" Filterable="true" Hideable="true" Style="padding: 50px">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Vendor Verifications</MudText>
+    </ToolBarContent>
+
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Name"/>
+        <PropertyColumn Property="x => x.Status" Title="Status"/>
+        <PropertyColumn Property="x => x.Email" Title="Email"/>
+        <PropertyColumn Property="x => x.VerificationRequestDate" Title="Verification Request Date"/>
+        <TemplateColumn>
+            <CellTemplate>
+                @if (context.Item?.Status == AccountStatus.Pending || context.Item?.Status == AccountStatus.Verified)
+                {
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@(() => OpenEditPopup(context.Item))"/>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="VendorInfo"/>
+    </PagerContent>
+
+</MudDataGrid>
+
+
+<style>
+
+.filters-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-left: 50px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+</style>

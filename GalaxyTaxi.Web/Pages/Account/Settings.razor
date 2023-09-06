@@ -13,11 +13,11 @@
             {
                 <div style="display: flex; align-items: center; width: 100%;">
                     @{
-                        var textColor = accountSettings.Status == AccountStatus.Verified ? Color.Success : accountSettings.Status == AccountStatus.Pending ? Color.Warning :Color.Error;
+                        var textColor = accountSettings.Status == AccountStatus.Verified ? Color.Success : accountSettings.Status == AccountStatus.Pending ? Color.Warning : Color.Error;
                         var verificationText = accountSettings.Status == AccountStatus.Verified ? "Verified" :
-                        accountSettings.Status == AccountStatus.Pending ? "Pending" : "Declined";
+                            accountSettings.Status == AccountStatus.Pending ? "Pending" : "Declined";
                         var verificationIcon = accountSettings.Status == AccountStatus.Verified ? Icons.Material.Filled.CheckCircle :
-                                               accountSettings.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
+                            accountSettings.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
                     }
 
                     <MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;"/>
@@ -25,8 +25,9 @@
 
                     @if (accountSettings.Status != AccountStatus.Verified)
                     {
-                        <InputFile OnChange="@OnUploadFiles" Multiple="true" />
-
+                        <div style="float: right; margin: 10px"> 
+                            <InputFile OnChange="@OnUploadFiles" Multiple="true"/>
+                        </div>
                     }
                 </div>
 
@@ -43,8 +44,8 @@
                 }
             }
 
-            <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email" 
-                                        Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
+            <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email"
+                          Validation="@(new EmailAddressAttribute() { ErrorMessage = "The email address is invalid" })"/>
 
             <MudTextField Label="Company Name" Variant="Variant.Outlined" @bind-Value="accountSettings.CompanyName"/>
 
@@ -87,10 +88,9 @@
                           AdornmentAriaLabel="Show Password"
                           Error="@(!passwordsMatch || !string.IsNullOrEmpty(ConfirmPasswordValidation))"
                           ErrorText="@(passwordsMatch ? ConfirmPasswordValidation : "Passwords do not match")"/>
-            @if(accountSettings.AccountType == AccountType.CustomerCompany)
+            @if (accountSettings.AccountType == AccountType.CustomerCompany)
             {
-                <MudSwitch @bind-Checked="accountSettings.SupportTwoWayJourneys" Label="Support Two-Way Journeys" Color="Color.Primary" />
-
+                <MudSwitch @bind-Checked="accountSettings.SupportTwoWayJourneys" Label="Support Two-Way Journeys" Color="Color.Primary"/>
             }
 
         </MudCardContent>

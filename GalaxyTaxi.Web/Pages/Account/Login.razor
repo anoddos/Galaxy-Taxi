@@ -2,86 +2,92 @@
 @using GalaxyTaxi.Shared.Api.Models.Login
 @using Grpc.Core;
 @using Microsoft.AspNetCore.Components
+@using GalaxyTaxi.Shared.Api.Models.Common
 @inject IAccountService AccountService
 @inject NavigationManager NavigationManager
 
 @if (IsLoggedIn == false)
 {
-	<div class="col-md-6 offset-md-3 mt-5">
-		<div class="card">
-			<h4 class="card-header">Login</h4>
-			<div class="card-body">
-				@if (showAlert)
-				{
-					<OperationResult Message="@alertMessage" AlertSeverity="Severity.Error" OnAlertClosed="HandleAlertClosed" />
-				}
-				<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
-					<DataAnnotationsValidator />
-					<div class="form-group">
-						<label>Username</label>
-						<InputText @bind-Value="model.Email" class="form-control" />
-						<ValidationMessage For="@(() => model.Email)" />
-					</div>
-					<div class="form-group">
-						<label>Password</label>
-						<InputText @bind-Value="model.Password" type="password" class="form-control" />
-						<ValidationMessage For="@(() => model.Password)" />
-					</div>
-					<button disabled="@loading" class="btn btn-primary">
-						@if (loading)
-						{
-							<span class="spinner-border spinner-border-sm mr-1"></span>
-						}
-						Login
-					</button>
-					<NavLink href="account/register" class="btn btn-link">Register</NavLink>
-				</EditForm>
-			</div>
-		</div>
-	</div>
+    <div class="col-md-6 offset-md-3 mt-5">
+        <div class="card">
+            <h4 class="card-header">Login</h4>
+            <div class="card-body">
+                @if (showAlert)
+                {
+                    <OperationResult Message="@alertMessage" AlertSeverity="Severity.Error" OnAlertClosed="HandleAlertClosed"/>
+                }
+                <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator/>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <InputText @bind-Value="model.Email" class="form-control"/>
+                        <ValidationMessage For="@(() => model.Email)"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <InputText @bind-Value="model.Password" type="password" class="form-control"/>
+                        <ValidationMessage For="@(() => model.Password)"/>
+                    </div>
+                    <button disabled="@loading" class="btn btn-primary">
+                        @if (loading)
+                        {
+                            <span class="spinner-border spinner-border-sm mr-1"></span>
+                        }
+                        Login
+                    </button>
+                    <NavLink href="account/register" class="btn btn-link">Register</NavLink>
+                </EditForm>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
-	private LoginRequest model = new LoginRequest();
-	private bool loading;
-	private bool? IsLoggedIn;
+    private LoginRequest model = new LoginRequest();
+    private bool loading;
+    private bool? IsLoggedIn;
 
-	private bool showAlert = false;
-	private string alertMessage = "";
-	protected override async Task OnInitializedAsync()
-	{
-		var response = await AccountService.IsLoggedIn();
-		IsLoggedIn = response.IsLoggedIn;
-		if (response.IsLoggedIn)
-		{
-			NavigationManager.NavigateTo("/account/settings");
-		}
-	}
+    private bool showAlert = false;
+    private string alertMessage = "";
 
-	private void HandleAlertClosed()
-	{
-		showAlert = false;
-		StateHasChanged();
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await AccountService.GetAccountType();
+        IsLoggedIn = response?.AccountType != null;
+        if ((bool)IsLoggedIn)
+        {
+            NavigationManager.NavigateTo(response?.AccountType == AccountType.Admin ? "/admin/problematicAuctions" : "/account/settings");
+        }
+    }
 
-	private async void OnValidSubmit()
-	{
+    private void HandleAlertClosed()
+    {
+        showAlert = false;
+        StateHasChanged();
+    }
 
-		loading = true;
-		try
-		{
-			await AccountService.LoginAsync(model);
-			//var returnUrl = NavigationManager.("returnUrl") ?? "";
-			//NavigationManager.NavigateTo(returnUrl);
-			//aq jer employee infoze gadadis, mere zogad url unda davubrunot account typeis mixedvit
-			NavigationManager.NavigateTo("/account/settings");
-		}
-		catch (RpcException ex)
-		{
-			loading = false;
-			showAlert = true;
-			alertMessage = ex.Status.Detail;
-			StateHasChanged();
-		}
-	}
+    private async void OnValidSubmit()
+    {
+        loading = true;
+        try
+        {
+            var response = await AccountService.LoginAsync(model);
+            if (response?.LoggedInAs == AccountType.Admin)
+            {
+                NavigationManager.NavigateTo("/admin/problematicAuctions");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/account/settings");
+            }
+        }
+        catch (RpcException ex)
+        {
+            loading = false;
+            showAlert = true;
+            alertMessage = ex.Status.Detail;
+            StateHasChanged();
+        }
+    }
+
 }

@@ -13,6 +13,7 @@ using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.AccountSettings;
 using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 using GalaxyTaxi.Shared.Api.Models.Admin;
+using GalaxyTaxi.Shared.Api.Models.Filters;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -33,12 +34,13 @@ public class AccountService : IAccountService
         {
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Invalid Account Type"));
         }
-        
+
         await ValidateEmailAsync(new ValidateEmailRequest { CompanyEmail = request.CompanyEmail });
         await ValidateCompanyNameAsync(new ValidateCompanyNameRequest { CompanyName = request.CompanyName });
-        
-        if(request.Type == AccountType.VendorCompany)
-            await ValidateCompanyIdentificationCodeAsync(new ValidateCompanyIdentificationCodeRequest { IdentificationCode = request.IdentificationCode });
+
+        if (request.Type == AccountType.VendorCompany)
+            await ValidateCompanyIdentificationCodeAsync(new ValidateCompanyIdentificationCodeRequest
+                { IdentificationCode = request.IdentificationCode });
 
         var account = new Account
         {
@@ -46,7 +48,7 @@ public class AccountService : IAccountService
             Email = request.CompanyEmail,
             PasswordHash = SaltAndHashPassword(request.Password),
             AccountTypeId = request.Type,
-            Status = request.Type == AccountType.CustomerCompany ? AccountStatus.Verified : AccountStatus.Pending
+            Status = request.Type == AccountType.CustomerCompany ? AccountStatus.Verified : AccountStatus.Registered
         };
         long companyId;
 
@@ -55,9 +57,12 @@ public class AccountService : IAccountService
             var addedAccount = await _db.Accounts.AddAsync(account);
 
             await _db.SaveChangesAsync();
+            CustomerCompany customerCompany = null;
+            VendorCompany vendorCompany = null;
+            
             if (request.Type == AccountType.CustomerCompany)
             {
-                var customerCompany = new CustomerCompany
+                customerCompany = new CustomerCompany
                 {
                     AccountId = addedAccount.Entity.Id,
                     Name = request.CompanyName,
@@ -65,11 +70,10 @@ public class AccountService : IAccountService
                     SupportTwoWayJourneys = false
                 };
                 await _db.CustomerCompanies.AddAsync(customerCompany);
-                companyId = customerCompany.Id;
             }
             else
             {
-                var vendorCompany = new VendorCompany
+                vendorCompany = new VendorCompany
                 {
                     AccountId = addedAccount.Entity.Id,
                     Name = request.CompanyName,
@@ -80,6 +84,8 @@ public class AccountService : IAccountService
             }
 
             await _db.SaveChangesAsync();
+            
+            companyId = request.Type == AccountType.CustomerCompany ? customerCompany.Id : vendorCompany.Id;
         }
         catch (Exception ex)
         {
@@ -106,8 +112,9 @@ public class AccountService : IAccountService
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Company Name Already Exists"));
         }
     }
-    
-    public async Task ValidateCompanyIdentificationCodeAsync(ValidateCompanyIdentificationCodeRequest request, CallContext context = default)
+
+    public async Task ValidateCompanyIdentificationCodeAsync(ValidateCompanyIdentificationCodeRequest request,
+        CallContext context = default)
     {
         var alreadyExists = await _db.VendorCompanies.AnyAsync(x => x.IdentificationCode == request.IdentificationCode);
         if (alreadyExists)
@@ -115,7 +122,7 @@ public class AccountService : IAccountService
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Identification Code Name Already Exists"));
         }
     }
-    
+
     public async Task<LoginResponse> LoginAsync(LoginRequest request, CallContext context = default)
     {
         var account = await _db.Accounts.SingleOrDefaultAsync(x => x.Email == request.Email);
@@ -228,7 +235,6 @@ public class AccountService : IAccountService
     public async Task UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default)
     {
         var accountId = long.Parse(GetSessionValue(AuthenticationKey.AccountId) ?? "-1");
-
         if (accountId == -1) throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
 
         var account = await _db.Accounts.SingleOrDefaultAsync(a => a.Id == accountId);
@@ -248,6 +254,7 @@ public class AccountService : IAccountService
             {
                 company.MaxAmountPerEmployee = (double)request.AccountInformation?.MaxAmountPerEmployee;
             }
+
             company.SupportTwoWayJourneys = request.AccountInformation.SupportTwoWayJourneys;
         }
 
@@ -259,12 +266,45 @@ public class AccountService : IAccountService
 
         await _db.SaveChangesAsync();
 
+        if (request.Files.Any())
+        {
+            if (loggedInAs != AccountType.VendorCompany)
+                throw new RpcException(new Status(StatusCode.Unavailable,
+                    "File Upload Only Allowed for Vendor Companies"));
+
+            await UploadVendorFiles(request.Files);
+
+            account.VerificationRequestDate = DateTime.UtcNow;
+            account.Status = AccountStatus.Pending;
+
+            await _db.SaveChangesAsync();
+        }
+
         if (!string.IsNullOrEmpty(request.NewPassword) && !string.IsNullOrEmpty(request.OldPassword))
         {
             await ValidateNewPassword(request.OldPassword, request.NewPassword);
             account.PasswordHash = SaltAndHashPassword(request.NewPassword);
             await _db.SaveChangesAsync();
         }
+    }
+
+    private async Task UploadVendorFiles(List<VendorFileModel> files)
+    {
+        var companyId = GetCompanyId();
+
+        foreach (var file in files)
+        {
+            var vendorFile = new VendorFile
+            {
+                Name = file.Name,
+                Path = file.Path,
+                UploadDate = DateTime.UtcNow,
+                VendorCompanyId = companyId
+            };
+            await _db.VendorFiles.AddAsync(vendorFile);
+        }
+
+        await _db.SaveChangesAsync();
     }
 
     public async Task<AccountSettings?> GetAccountSettings(CallContext context = default)
@@ -285,15 +325,16 @@ public class AccountService : IAccountService
                 throw new RpcException(new Status(StatusCode.NotFound, "Customer company does not exists"));
             maxAmountPerEmployee = company.MaxAmountPerEmployee;
             supportTwoWayJourneys = company.SupportTwoWayJourneys;
-        } else if (loggedInAs == AccountType.VendorCompany)
+        }
+        else if (loggedInAs == AccountType.VendorCompany)
         {
             var companyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
-            var response = await GetVendorFiles(new GetVendorFilesRequest {VendorId = companyId});
+            var response = await GetVendorFiles(new GetVendorFilesRequest { VendorId = companyId });
             if (response != null)
             {
                 files = response.VendorFiles;
             }
-		}
+        }
 
         var account = await _db.Accounts.SingleOrDefaultAsync(a => a.Id == accountId);
 
@@ -311,23 +352,32 @@ public class AccountService : IAccountService
             : null;
     }
 
-    public Task<GetAccountTypeRespone> GetAccountType(CallContext context = default)
+    public async Task<GetAccountTypeResponse> GetAccountType(CallContext context = default)
     {
         if (Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs))
         {
-            return Task.FromResult(new GetAccountTypeRespone
+            var status = AccountStatus.Verified;
+            if (loggedInAs == AccountType.VendorCompany)
             {
-                AccountType = loggedInAs
-            });    
+                var accountId = GetAccountId();
+                status = (await _db.Accounts.SingleAsync(x => x.Id == accountId)).Status;
+            }
+
+            return new GetAccountTypeResponse
+            {
+                AccountType = loggedInAs,
+                AccountStatus = status
+            };
         }
-        
-        return Task.FromResult(new GetAccountTypeRespone
+
+        return new GetAccountTypeResponse
         {
             AccountType = null
-        });    
+        };
     }
-    
-    public async Task<GetAuthenticationStateProviderUserResponse> GetAuthenticationStateProviderUserAsync(CallContext context = default)
+
+    public async Task<GetAuthenticationStateProviderUserResponse> GetAuthenticationStateProviderUserAsync(
+        CallContext context = default)
     {
         var httpContext = _httpContextAccessor.HttpContext;
         var res = httpContext?.User;
@@ -337,66 +387,73 @@ public class AccountService : IAccountService
         });
     }
 
-	public async Task<VendorFileModel> UploadVendorFile(VendorFileModel request, CallContext context = default)
-	{
-		var companyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
-
-		if (companyId == -1) throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
-
-        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
-
-
-		if (loggedInAs != AccountType.VendorCompany) throw new RpcException(new Status(StatusCode.Unavailable, "File Upload Only Allowed for Vendor Companies"));
-        var vendorFile = new VendorFile
-        {
-            Name = request.Name,
-            Path = request.Path,
-            UploadDate = DateTime.UtcNow,
-            VendorCompanyId = companyId
-        };
-
-
-        await _db.VendorFiles.AddAsync(vendorFile);
-
-        var vendor = await _db.VendorCompanies.SingleOrDefaultAsync(a => a.Id == companyId);
-        vendor.VerificationRequestDate = vendorFile.UploadDate;
-        await _db.SaveChangesAsync();
-        return new VendorFileModel 
-        {
-            Name = request.Name,
-            Path = request.Path,
-            UploadDate = vendorFile.UploadDate
-        };
-	}
 
     public async Task<GetVendorFilesResponse> GetVendorFiles(GetVendorFilesRequest request, CallContext context = default)
     {
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
-        var companyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
-        if (loggedInAs != AccountType.Admin && companyId != request.VendorId)
-        {
-            throw new RpcException(new Status(StatusCode.InvalidArgument, "Not Allowed To See The Files"));
-        }
 
-        var files = await _db.VendorFiles.Include(e => e.VendorCompany).Where(v => v.VendorCompanyId == request.VendorId).Select(e => new VendorFileModel 
-        { 
-            Email = e.VendorCompany.Account.Email,
-            Name = e.Name,
-            Path = e.Path,
-            UploadDate = e.UploadDate
-        }).ToListAsync();
+        var files = await _db.VendorFiles.Include(e => e.VendorCompany)
+            .Where(v => v.VendorCompanyId == request.VendorId).Select(e => new VendorFileModel
+            {
+                Email = e.VendorCompany.Account.Email,
+                Name = e.Name,
+                Path = e.Path,
+                UploadDate = e.UploadDate
+            }).ToListAsync();
         return new GetVendorFilesResponse { VendorFiles = files };
     }
 
-	public async Task RespondToVendor(RespondToVendorRequest request, CallContext context = default)
-	{
-		Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
-		if (loggedInAs != AccountType.Admin)
+    public async Task RespondToVendor(RespondToVendorRequest request, CallContext context = default)
+    {
+        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
+        if (loggedInAs != AccountType.Admin)
         {
-			throw new RpcException(new Status(StatusCode.InvalidArgument, "This type of operations is only allowed for Admin"));
-		}
+            throw new RpcException(new Status(StatusCode.InvalidArgument,
+                "This type of operations is only allowed for Admin"));
+        }
+
         var account = await _db.Accounts.FirstOrDefaultAsync(a => a.Email == request.VendorEmail);
         account.Status = request.NewStatus;
         await _db.SaveChangesAsync();
-	}
+    }
+
+    public async Task<GetVendorResponse> GetVendorCompanies(VendorFilter vendorFilter)
+    {
+        var vendors = _db.VendorCompanies.Where(x => x.Account.Status == vendorFilter.Status);
+
+        return new GetVendorResponse
+        {
+            Vendors = await vendors.Select(x => new VendorInfo
+            {
+                Name = x.Name,
+                Status = x.Account.Status,
+                VerificationRequestDate = x.Account.VerificationRequestDate,
+                Email = x.Account.Email
+            }).ToListAsync()
+        };
+    }
+
+    private long GetCompanyId()
+    {
+        var companyId = GetSessionValue(AuthenticationKey.CompanyId);
+
+        if (string.IsNullOrWhiteSpace(companyId))
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+        }
+
+        return long.Parse(companyId);
+    }
+
+    private long GetAccountId()
+    {
+        var accountId = GetSessionValue(AuthenticationKey.AccountId);
+
+        if (string.IsNullOrWhiteSpace(accountId))
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+        }
+
+        return long.Parse(accountId);
+    }
 }

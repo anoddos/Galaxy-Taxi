@@ -120,7 +120,7 @@ public class AuctionService : IAuctionService
 
     private bool AccountIsVerified(long accountId)
     {
-        return  _db.Accounts.Any(x => x.Id == accountId && x.IsVerified);
+        return  _db.Accounts.Any(x => x.Id == accountId && x.Status == AccountStatus.Verified);
     }
 
     public async Task<GetAuctionsCountResponse> GetAuctionCount(AuctionsFilter filter)

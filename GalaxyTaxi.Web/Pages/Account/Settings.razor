@@ -15,28 +15,30 @@
             {
                 <div style="display: flex; align-items: center; width: 100%;">
                     @{
-                        var textColor = accountSettings.IsVerified ? Color.Success : Color.Error;
-                        var verificationText = accountSettings.IsVerified ? "Verified" : "Not Verified";
-                        var verificationIcon = accountSettings.IsVerified ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.ErrorOutline;
+                        var textColor = accountSettings.Status == AccountStatus.Verified ? Color.Success : accountSettings.Status == AccountStatus.Pending ? Color.Warning :Color.Error;
+                        var verificationText = accountSettings.Status == AccountStatus.Verified ? "Verified" :
+                        accountSettings.Status == AccountStatus.Pending ? "Pending" : "Declined";
+                        var verificationIcon = accountSettings.Status == AccountStatus.Verified ? Icons.Material.Filled.CheckCircle :
+                                               accountSettings.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
                     }
 
                     <MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;"/>
                     <MudText Typo="Typo.overline" Color="@textColor">@verificationText</MudText>
 
-                    @if (!accountSettings.IsVerified)
+                    @if (accountSettings.Status != AccountStatus.Verified)
                     {
                         <InputFile OnChange="@OnUploadFiles" Multiple="true" />
 
                     }
                 </div>
 
-                @if (files != null)
+                @if (accountSettings.VendorFiles != null)
                 {
                     <MudList>
-                        @foreach (var file in files)
+                        @foreach (var file in accountSettings.VendorFiles)
                         {
                             <MudListItem Icon="@Icons.Material.Filled.AttachFile">
-                                @file.Name <code>@file.Size bytes</code>
+                                @file.Name
                             </MudListItem>
                         }
                     </MudList>

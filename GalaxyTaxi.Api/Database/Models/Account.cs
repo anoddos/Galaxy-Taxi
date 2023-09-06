@@ -14,5 +14,5 @@ public class Account
 
     public string PasswordHash { get; set; } = null!;
     
-    public bool IsVerified { get; set; }
+    public AccountStatus Status { get; set; }
 }

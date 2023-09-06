@@ -1,17 +1,25 @@
 ﻿@using GalaxyTaxi.Shared.Api.Interfaces;
+@using GalaxyTaxi.Shared.Api.Models.Common;
 @inject IAccountService AccountService;
 
 <MudDialog DialogTitle="Edit Employee" Width="400px">
 	<DialogContent>
+		@if (showAlert)
+		{
+			<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
+		}
 		<MudTextField Label="Vendor Name" ReadOnly=true @bind-Value="Vendor.Name" />
 		<MudTextField Label="Email" ReadOnly=true @bind-Value="Vendor.Email" />
 		<MudTextField Label="Verification Request Date" ReadOnly=true @bind-Value="Vendor.VerificationRequestDate" />
 		<div style="display: flex; align-items: center; width: 100%;">
 			@{
-				var textColor = Vendor.IsVerified ? Color.Success : Color.Error;
-				var verificationText = Vendor.IsVerified ? "Verified" : "Not Verified";
-				var verificationIcon = Vendor.IsVerified ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.ErrorOutline;
+				var textColor = Vendor.Status == AccountStatus.Verified ? Color.Success : Vendor.Status == AccountStatus.Pending ? Color.Warning : Color.Error;
+				var verificationText = Vendor.Status == AccountStatus.Verified ? "Verified" :
+				Vendor.Status == AccountStatus.Pending ? "Pending" : "Declined";
+				var verificationIcon = Vendor.Status == AccountStatus.Verified ? Icons.Material.Filled.CheckCircle :
+				Vendor.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
 			}
+
 
 			<MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;" />
 			<MudText Typo="Typo.overline" Color="@textColor">@verificationText</MudText>
@@ -29,15 +37,17 @@
 		}
 	</DialogContent>
 	<DialogActions>
-		@if (!Vendor.IsVerified)
+		@if (Vendor.Status != AccountStatus.Verified)
 		{
-			<MudButton Color="Color.Success" >Verify</MudButton>
-			<MudButton Color="Color.Error" >Decline</MudButton>
+			<MudButton Color="Color.Success" OnClick="(() => UpdateVendor(AccountStatus.Verified))">Verify</MudButton>
+			<MudButton Color="Color.Error" OnClick="(() => UpdateVendor(AccountStatus.Declined))">Decline</MudButton>
 		}
 		else
 		{
-			<MudButton Color="Color.Error" >Unverify</MudButton>
+			<MudButton Color="Color.Error" OnClick="(() => UpdateVendor(AccountStatus.Pending))">Unverify</MudButton>
 		}
+
+		<MudButton OnClick="CloseDialog">Cancel</MudButton>
 
 	</DialogActions>
 </MudDialog>

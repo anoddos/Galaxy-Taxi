@@ -15,10 +15,6 @@
       <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Api\Models\Admin\" />
-    </ItemGroup>
-
 
 
 </Project>

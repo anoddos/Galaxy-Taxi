@@ -3,6 +3,7 @@ using System;
 using GalaxyTaxi.Api.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    partial class DbModelSnapshot : ModelSnapshot
+    [Migration("20230906073220_EditStop")]
+    partial class EditStop
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,9 +49,6 @@ namespace GalaxyTaxi.Api.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("VerificationRequestDate")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
@@ -111,14 +110,11 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<DateTime>("FromDate")
                         .HasColumnType("Date");
 
-                    b.Property<double?>("FulfillmentPercentage")
+                    b.Property<double>("FulfillmentPercentage")
                         .HasColumnType("double precision");
 
                     b.Property<long>("JourneyId")
                         .HasColumnType("bigint");
-
-                    b.Property<bool>("PaymentProcessed")
-                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("timestamp with time zone");
@@ -399,6 +395,9 @@ namespace GalaxyTaxi.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("VerificationRequestDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

@@ -42,5 +42,10 @@ public class Db : DbContext
             entity.Property(e => e.WorkingStartTime).HasColumnType("time");
             entity.Property(e => e.WorkingEndTime).HasColumnType("time");
         });
+        
+        modelBuilder.Entity<Stop>(entity =>
+        {
+            entity.Property(e => e.PickupTime).HasColumnType("time");
+        });
     }
 }

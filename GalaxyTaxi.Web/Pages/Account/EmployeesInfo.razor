@@ -4,6 +4,7 @@
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @inject IDialogService DialogService
 @inject IJSRuntime js
+@inject IAuctionService AuctionService
 
 
 <div class="wrapper" style="display:flex;">
@@ -23,8 +24,7 @@
 			<MudRadio Option="EmployeeJourneyStatus.NoActiveJourney" Color="Color.Primary" Size="Size.Small">No Active Journeys</MudRadio>
 		</MudRadioGroup>
 
-
-
+		<MudButton OnClick="GenerateAuctions" Variant="Variant.Filled"Color="Color.Primary">Generate Auctions</MudButton>
 	</div>
 
 	<div class="employeeInfoContainer" style="width: 65%; margin-left: 5%; height: 100%;">

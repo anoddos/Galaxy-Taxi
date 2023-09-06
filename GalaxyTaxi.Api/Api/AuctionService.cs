@@ -1,5 +1,9 @@
+using System.Text.Encodings.Web;
+using System.Web;
+using GalaxyTaxi.Api.Api.Models;
 using GalaxyTaxi.Api.Database;
 using GalaxyTaxi.Api.Database.Models;
+using GalaxyTaxi.Api.Helpers;
 using GalaxyTaxi.Shared.Api.Interfaces;
 using GalaxyTaxi.Shared.Api.Models.AddressDetection;
 using GalaxyTaxi.Shared.Api.Models.Auction;
@@ -12,7 +16,9 @@ using GalaxyTaxi.Shared.Api.Models.Register;
 using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 using Grpc.Core;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using ProtoBuf.Grpc;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -20,11 +26,12 @@ public class AuctionService : IAuctionService
 {
     private readonly Db _db;
     private readonly IHttpContextAccessor _httpContextAccessor;
-
-    public AuctionService(Db db, IHttpContextAccessor httpContextAccessor)
+    private readonly IConfiguration _config;
+    public AuctionService(Db db, IHttpContextAccessor httpContextAccessor, IConfiguration configuration)
     {
         _db = db;
         _httpContextAccessor = httpContextAccessor;
+        _config = configuration;
     }
 
     public async Task Bid(BidRequest request, CallContext context = default)
@@ -213,7 +220,14 @@ public class AuctionService : IAuctionService
                             Name = xx.EmployeeAddress.Address.Name,
                             Latitude = xx.EmployeeAddress.Address.Latitude,
                             Longitude = xx.EmployeeAddress.Address.Longitude
-                        }
+                        },
+                        EmployeeDetails = new SingleEmployeeInfo
+                        {
+                            FirstName = xx.EmployeeAddress.Employee.FirstName,
+                            LastName = xx.EmployeeAddress.Employee.LastName,
+                            Mobile = xx.EmployeeAddress.Employee.Mobile
+                        },
+                        StopOrder = xx.StopOrder
                     })
                 }
             }).SingleAsync();
@@ -344,8 +358,8 @@ public class AuctionService : IAuctionService
                 .ThenInclude(x => x.Address)
                 .Where(x => x.CustomerCompanyId == companyId && !x.HasActiveJourney && x.Addresses.Any(xx => xx.IsActive && xx.Address.IsDetected)).ToListAsync();
 
-            var newJourneys = await GenerateJourneysForEmployees(companyId, office.Address, officeEmployeesWithoutJourneys);
-
+            var newJourneys = await GenerateJourneysForEmployees(companyId, office, officeEmployeesWithoutJourneys);
+    
             foreach (var newJourney in newJourneys)
             {
                 await _db.Journeys.AddAsync(newJourney);
@@ -370,34 +384,23 @@ public class AuctionService : IAuctionService
         };
     }
 
-    private async Task<List<Journey>> GenerateJourneysForEmployees(long companyId, Address officeAddress, List<Employee> companyEmployeesWithoutJourneys)
+    private async Task<List<Journey>> GenerateJourneysForEmployees(long companyId, Office office, List<Employee> companyEmployeesWithoutJourneys)
     {
         var result = new List<Journey>();
 
-        var supportTwoWayJourneys = (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).SupportTwoWayJourneys;
-
-        result.AddRange(
-            await GenerateJourneysForEmployeesHomeToOffice(companyId, officeAddress, companyEmployeesWithoutJourneys));
-
-        if (supportTwoWayJourneys)
-            result.AddRange(await GenerateJourneysForEmployeesOfficeToHome(companyId, officeAddress,
-                companyEmployeesWithoutJourneys));
-
+        var supportTwoWayJourneys = _db.CustomerCompanies.Single(x => x.Id == companyId).SupportTwoWayJourneys;
+        var timeMatrix = await VrpHelper.GenerateTimeMatrix(office.Address,
+            companyEmployeesWithoutJourneys.Select(e => e.Addresses.First().Address).ToList(),
+            _config.GetValue<string>("GoogleMapsKey"));
+        
+        result.AddRange(await VrpHelper.GenerateJourneysForEmployeesHomeToOffice(companyId, office, companyEmployeesWithoutJourneys, timeMatrix));
+        
+        if(supportTwoWayJourneys)
+            result.AddRange(await VrpHelper.GenerateJourneysForEmployeesOfficeToHome(companyId, office, companyEmployeesWithoutJourneys, timeMatrix));
+        
         return result;
     }
-
-    private async Task<IEnumerable<Journey>> GenerateJourneysForEmployeesOfficeToHome(long companyId,
-        Address officeAddress, List<Employee> companyEmployeesWithoutJourneys)
-    {
-        throw new NotImplementedException();
-    }
-
-    private async Task<IEnumerable<Journey>> GenerateJourneysForEmployeesHomeToOffice(long companyId,
-        Address officeAddress, List<Employee> companyEmployeesWithoutJourneys)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     private async Task ValidateBidRequestAsync(BidRequest request)
     {
         var lastBid = (await _db.Bids.LastAsync(x => x.AuctionId == request.AuctionId)).Amount;

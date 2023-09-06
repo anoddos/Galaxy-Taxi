@@ -35,9 +35,6 @@ public class EmployeeManagementService : IEmployeeManagementService
         var subscription = await _db.Subscriptions.FirstOrDefaultAsync(s => s.CustomerCompanyId == customerCompanyId);
         var numberOfEmployees = await _db.Employees.CountAsync(e => e.CustomerCompanyId == customerCompanyId);
 
-        if (numberOfEmployees >= SubscriptionMapping.Mapping[subscription.SubscriptionPlanTypeId]) { 
-            throw new RpcException(new Status(StatusCode.OutOfRange, "Can not add any more employees")); 
-        }
         int additionalCounter = 0;
 
         try
@@ -46,10 +43,6 @@ public class EmployeeManagementService : IEmployeeManagementService
             {
                 try
                 {
-                    if (numberOfEmployees + additionalCounter >= SubscriptionMapping.Mapping[subscription.SubscriptionPlanTypeId])
-                    {
-                        throw new RpcException(new Status(StatusCode.OutOfRange, "Can not add any more employees"));
-                    }
                     await ValidateEmployeeAndGetAddress(employeeInfo, customerCompanyId);
 
                     var address = new Address { Name = employeeInfo.Address };
@@ -66,7 +59,11 @@ public class EmployeeManagementService : IEmployeeManagementService
 
                     if (!employeeExists)
                     {
-                        existingEmployee = new Employee
+						if (numberOfEmployees + additionalCounter >= SubscriptionMapping.Mapping[subscription.SubscriptionPlanTypeId])
+						{
+							throw new RpcException(new Status(StatusCode.OutOfRange, "Can not add any more employees"));
+						}
+						existingEmployee = new Employee
                         {
                             FirstName = employeeInfo.FirstName,
                             LastName = employeeInfo.LastName,
@@ -91,7 +88,7 @@ public class EmployeeManagementService : IEmployeeManagementService
                         // Employee exists, update officeId, mobile and check address
                         existingEmployee.OfficeId = office.Id;
                         existingEmployee.Mobile = employeeInfo.Mobile;
-                        var deactivateAddress = _db.EmployeeAddresses.SingleOrDefault(ea => ea.EmployeeId == existingEmployee.Id);
+                        var deactivateAddress = _db.EmployeeAddresses.FirstOrDefault(ea => ea.EmployeeId == existingEmployee.Id);
                         if (deactivateAddress != null)
                         {
                             deactivateAddress.IsActive = false;

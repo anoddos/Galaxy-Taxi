@@ -21,6 +21,10 @@ public partial class EmployeesInfo
 	private bool _isImporting;
 	private IBrowserFile file;
 	private bool _isOpen;
+
+	private int generatedAuctionCount;
+
+	private double totalCost;
 	//private MudDialog dialog;
 	public string EmployeeNameFilter { get; set; }
 	public OfficeInfo OfficeFilter { get; set; }
@@ -207,5 +211,12 @@ public partial class EmployeesInfo
 		}
 		showAlert = true;
 		StateHasChanged();
+	}
+
+	private async Task GenerateAuctions()
+	{
+		var response = await AuctionService.GenerateAuctionsForCompany();
+		generatedAuctionCount = response.GeneratedAuctionCount;
+		totalCost = response.GeneratedAuctionTotalCost;
 	}
 }

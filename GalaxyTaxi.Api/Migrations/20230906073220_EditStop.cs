@@ -12,7 +12,7 @@ namespace GalaxyTaxi.Api.Migrations
             migrationBuilder.AlterColumn<TimeSpan>(
                 name: "PickupTime",
                 table: "Stops",
-                type: "interval",
+                type: "time",
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "timestamp with time zone");
@@ -26,7 +26,7 @@ namespace GalaxyTaxi.Api.Migrations
                 type: "timestamp with time zone",
                 nullable: false,
                 oldClrType: typeof(TimeSpan),
-                oldType: "interval");
+                oldType: "time");
         }
     }
 }

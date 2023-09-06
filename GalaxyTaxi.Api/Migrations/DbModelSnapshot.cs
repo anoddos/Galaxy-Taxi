@@ -328,7 +328,7 @@ namespace GalaxyTaxi.Api.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<TimeSpan>("PickupTime")
-                        .HasColumnType("interval");
+                        .HasColumnType("time");
 
                     b.Property<int>("StopOrder")
                         .HasColumnType("integer");

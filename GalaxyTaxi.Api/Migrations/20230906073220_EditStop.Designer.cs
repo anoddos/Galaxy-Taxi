@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace GalaxyTaxi.Api.Migrations
 {
     [DbContext(typeof(Db))]
-    [Migration("20230906072809_EditStop")]
+    [Migration("20230906073220_EditStop")]
     partial class EditStop
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -330,7 +330,7 @@ namespace GalaxyTaxi.Api.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<TimeSpan>("PickupTime")
-                        .HasColumnType("interval");
+                        .HasColumnType("time");
 
                     b.Property<int>("StopOrder")
                         .HasColumnType("integer");

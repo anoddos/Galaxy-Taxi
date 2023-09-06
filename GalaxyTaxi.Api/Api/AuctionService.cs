@@ -303,10 +303,10 @@ public class AuctionService : IAuctionService
             companyEmployeesWithoutJourneys.Select(e => e.Addresses.First().Address).ToList(),
             _config.GetValue<string>("GoogleMapsKey"));
         
-        result.AddRange(await VrpHelper.GenerateJourneysForEmployeesHomeToOffice(companyId, office.Address, companyEmployeesWithoutJourneys, timeMatrix));
+        result.AddRange(await VrpHelper.GenerateJourneysForEmployeesHomeToOffice(companyId, office, companyEmployeesWithoutJourneys, timeMatrix));
         
         if(supportTwoWayJourneys)
-            result.AddRange(await VrpHelper.GenerateJourneysForEmployeesOfficeToHome(companyId, office.Address, companyEmployeesWithoutJourneys, timeMatrix));
+            result.AddRange(await VrpHelper.GenerateJourneysForEmployeesOfficeToHome(companyId, office, companyEmployeesWithoutJourneys, timeMatrix));
         
         return result;
     }

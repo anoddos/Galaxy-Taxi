@@ -218,7 +218,7 @@
 	</style>
 
 
-	@code {
+@code {
 	[Parameter]
 	public long Id { get; set; }
 
@@ -257,10 +257,10 @@
             if (response.Auction?.Feedback != null)
                 selectedEvaluation = (Feedback)response.Auction.Feedback;
 
-            if (CurrentAuction != null)
-            {
-                currentBid = CurrentAuction.Amount;
-                lastBid = CurrentAuction.Amount;
+			if (CurrentAuction != null)
+			{
+				currentBid = CurrentAuction.Amount;
+				lastBid = CurrentAuction.Amount;
 
 				mapOptions = new MapOptions()
 				{
@@ -272,6 +272,10 @@
 				    },
 				    MapTypeId = MapTypeId.Roadmap
 				};
+				if (CurrentAuction.JourneyInfo?.Stops != null)
+				{
+					CurrentAuction.JourneyInfo.Stops = CurrentAuction.JourneyInfo?.Stops.OrderBy(s => s.StopOrder).ToList();
+				}
 
 			}
 		}
@@ -318,26 +322,19 @@
 
 			if (CurrentAuction.JourneyInfo?.Stops != null)
 			{
-				var orderedStops = CurrentAuction.JourneyInfo.Stops.OrderBy(s => s.StopOrder).ToList();
+				var orderedStops = CurrentAuction.JourneyInfo.Stops;
 
+				int markNum = 1;
 				foreach (var stop in orderedStops)
 				{
 					if (stop?.Address != null)
 					{
-						var marker = await createMarker(stop.Address, stop.StopOrder + "");
+						var marker = await createMarker(stop.Address, markNum + "");
 						markerList.Add(marker);
+						markNum++;
 					}
 				}
 				var path = new List<LatLngLiteral>();
-
-				if (CurrentAuction.JourneyInfo.Office.Address != null)
-				{
-					path.Add(new LatLngLiteral
-						{
-							Lat = (double)CurrentAuction.JourneyInfo.Office.Address.Latitude,
-							Lng = (double)CurrentAuction.JourneyInfo.Office.Address.Longitude
-						});
-				}
 
 				foreach (var stop in orderedStops)
 				{
@@ -349,6 +346,15 @@
 								Lng = (double)stop.Address.Longitude
 							});
 					}
+				}
+
+				if (CurrentAuction.JourneyInfo.Office.Address != null)
+				{
+					path.Add(new LatLngLiteral
+						{
+							Lat = (double)CurrentAuction.JourneyInfo.Office.Address.Latitude,
+							Lng = (double)CurrentAuction.JourneyInfo.Office.Address.Longitude
+						});
 				}
 
 				await CreatePolyline(path);

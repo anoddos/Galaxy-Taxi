@@ -159,22 +159,31 @@ public class EmployeeManagementService : IEmployeeManagementService
             throw new InvalidOperationException("Incorrect employee Id");
         }
 
+
         employee.FirstName = request.FirstName;
         employee.LastName = request.LastName;
         employee.Mobile = request.Mobile;
         employee.OfficeId = request.To.OfficeId;
         var address = _db.Addresses.SingleOrDefault(a => a.Id == request.From.Id);
         address.Name = request.From.Name;
-        try
+        if (request.From.IsDetected)
         {
-            var response = await _addressDetectionService.DetectAddressCoordinatesFromName(request.From);
-            address.Latitude = (double)response.Latitude;
-            address.Longitude = (double)response.Longitude;
-            address.IsDetected = true;
+            address.Latitude = (double)request.From.Latitude;
+            address.Longitude = (double)request.From.Longitude;
         }
-        catch (Exception ex)
+        else
         {
-            address.IsDetected = false;
+            try
+            {
+                var response = await _addressDetectionService.DetectAddressCoordinatesFromName(request.From);
+                address.Latitude = (double)response.Latitude;
+                address.Longitude = (double)response.Longitude;
+                address.IsDetected = true;
+            }
+            catch (Exception ex)
+            {
+                address.IsDetected = false;
+            }
         }
 
         await _db.SaveChangesAsync();

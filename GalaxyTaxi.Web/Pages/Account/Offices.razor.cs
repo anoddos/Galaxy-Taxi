@@ -48,15 +48,28 @@ public partial class Offices
         navigationLink = $"/account/employeesInfo";
     }
 
+    private async Task OnFromAddressChanged(string newValue)
+    {
+        OfficeFilter.Address.Name = newValue;
+        await AddMarker();
+    }
+
     private async Task AddMarker()
     {
-        OfficeFilter.Address = await _addressDetection.DetectAddressCoordinatesFromName(OfficeFilter.Address);
-
-        var position = new LatLngLiteral
-            { Lat = (double)OfficeFilter.Address.Latitude, Lng = (double)OfficeFilter.Address.Longitude };
+		OfficeFilter.Address = string.IsNullOrWhiteSpace(OfficeFilter.Address.Name) ? new AddressInfo()
+																	: await _addressDetection.DetectAddressCoordinatesFromName(OfficeFilter.Address);
 
 
-        if (marker == null)
+
+        var position = OfficeFilter.Address.IsDetected ? new LatLngLiteral{ Lat = (double)OfficeFilter.Address.Latitude, Lng = (double)OfficeFilter.Address.Longitude }
+			                                           : new LatLngLiteral { Lat = 41.716667, Lng = 44.783333 };
+
+        if (!OfficeFilter.Address.IsDetected) {
+            OfficeFilter.Address.Name = "";
+        }
+
+
+		if (marker == null)
         {
             marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
             {

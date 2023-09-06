@@ -1,4 +1,5 @@
 using GalaxyTaxi.Shared.Api.Interfaces;
+using GalaxyTaxi.Shared.Api.Models.Common;
 using GalaxyTaxi.Shared.Api.Models.Payment;
 using ProtoBuf.Grpc;
 using Stripe;
@@ -7,26 +8,26 @@ namespace GalaxyTaxi.Api.Api;
 
 public class PaymentService : IPaymentService
 {
-    private const string StripeSecretKey = "your_stripe_secret_key";
 
-    public Task<PaymentResponse> ProcessPayment(PaymentRequest request, CallContext context)
-    {
-        StripeConfiguration.ApiKey = StripeSecretKey;
+	public async Task<PaymentResponse> ProcessPayment(PaymentRequest request, CallContext context)
+	{
+		StripeConfiguration.ApiKey = PaymentInfo.StripeSecretKey;
 
-        // Use Stripe SDK to create a payment intent
-        var options = new PaymentIntentCreateOptions
-        {
-            Amount = request.Amount,
-            Currency = "gel",
-            PaymentMethodTypes = new List<string> { "card" }
-        };
-        var service = new PaymentIntentService();
-        var paymentIntent = service.Create(options);
+		// Use Stripe SDK to create a payment intent
+		StripeConfiguration.ApiKey = PaymentInfo.StripeSecretKey;
 
-        // Return payment intent information to the client
-        return Task.FromResult(new PaymentResponse
-        {
-            PaymentIntentId = paymentIntent.Id
-        });
-    }
+
+		var chargeOptions = new ChargeCreateOptions
+		{
+			Amount = request.Amount, // e.g. $10.00, adjust accordingly
+			Currency = "GEL",
+			Description = "Description for the charge",
+			Source = request.token
+		};
+
+		var chargeService = new ChargeService();
+
+		var charge = await chargeService.CreateAsync(chargeOptions);
+		return new PaymentResponse { PaymentStatus = charge.Status };
+	}
 }

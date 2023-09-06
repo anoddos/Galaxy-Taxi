@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GalaxyTaxi.Shared.Api.Models.Admin;
+namespace GalaxyTaxi.Shared.Api.Models.VendorCompany;
 
 [ProtoContract]
 [Serializable]

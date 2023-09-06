@@ -3,6 +3,7 @@
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
 @using Grpc.Core;
+@inject IJSRuntime JSRuntime
 
 <MudDialog DialogTitle="Edit Employee" Width="400px">
 	<DialogContent>
@@ -15,7 +16,10 @@
 		<MudTextField Label="Mobile" @bind-Value="Employee.Mobile" />
 		<MudTextField Label="From Address" @bind-Value="Employee.From.Name" />
 		<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
-		<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+		<div id="@MapElementId">
+			<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+		</div>
+
 
 		<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office" Style="width:400px;"
 				   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
@@ -34,7 +38,7 @@
 @code {
 	[Parameter]
 	public EmployeeJourneyInfo Employee { get; set; }
-	
+
 	[Parameter]
 	public List<OfficeInfo> OfficeList { get; set; }
 
@@ -48,6 +52,7 @@
 
 	private bool showAlert = false;
 	private string alertMessage = "";
+	private string MapElementId = "myGoogleMap";
 	private Severity alertSeverity;
 
 	protected override async void OnInitialized()
@@ -71,8 +76,6 @@
 
 
 		var position = new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude };
-		// mapOptions.Center = position;
-
 
 		if (marker == null)
 		{
@@ -83,6 +86,7 @@
 				});
 		}
 		await marker.SetPosition(position);
+
 
 
 		await marker.AddListener("dragend", async () =>

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 using GalaxyTaxi.Shared.Api.Models.EmployeeManagement;
 using GalaxyTaxi.Shared.Api.Models.AccountSettings;
-using GalaxyTaxi.Shared.Api.Models.Admin;
+using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -45,7 +45,7 @@ public class AccountService : IAccountService
             Email = request.CompanyEmail,
             PasswordHash = SaltAndHashPassword(request.Password),
             AccountTypeId = request.Type,
-            IsVerified = request.Type == AccountType.CustomerCompany
+            Status = request.Type == AccountType.CustomerCompany ? AccountStatus.Verified : AccountStatus.Pending
         };
         long companyId;
 
@@ -275,6 +275,8 @@ public class AccountService : IAccountService
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
         double maxAmountPerEmployee = 0;
         bool supportTwoWayJourneys = false;
+        var files = new List<VendorFileModel>();
+
         if (loggedInAs == AccountType.CustomerCompany)
         {
             var company = await _db.CustomerCompanies.SingleOrDefaultAsync(a => a.AccountId == accountId);
@@ -282,7 +284,15 @@ public class AccountService : IAccountService
                 throw new RpcException(new Status(StatusCode.NotFound, "Customer company does not exists"));
             maxAmountPerEmployee = company.MaxAmountPerEmployee;
             supportTwoWayJourneys = company.SupportTwoWayJourneys;
-        }
+        } else if (loggedInAs == AccountType.VendorCompany)
+        {
+            var companyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+            var response = await GetVendorFiles(new GetVendorFilesRequest {VendorId = companyId});
+            if (response != null)
+            {
+                files = response.VendorFiles;
+            }
+		}
 
         var account = await _db.Accounts.SingleOrDefaultAsync(a => a.Id == accountId);
 
@@ -293,7 +303,9 @@ public class AccountService : IAccountService
                 Email = account.Email,
                 MaxAmountPerEmployee = maxAmountPerEmployee,
                 AccountType = loggedInAs,
-                SupportTwoWayJourneys = supportTwoWayJourneys
+                SupportTwoWayJourneys = supportTwoWayJourneys,
+                Status = account.Status,
+                VendorFiles = files
             }
             : null;
     }
@@ -324,7 +336,7 @@ public class AccountService : IAccountService
         });
     }
 
-	public async Task UploadVendorFile(VendorFileModel request, CallContext context = default)
+	public async Task<VendorFileModel> UploadVendorFile(VendorFileModel request, CallContext context = default)
 	{
 		var companyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
 
@@ -348,5 +360,30 @@ public class AccountService : IAccountService
         var vendor = await _db.VendorCompanies.SingleOrDefaultAsync(a => a.Id == companyId);
         vendor.VerificationRequestDate = vendorFile.UploadDate;
         await _db.SaveChangesAsync();
+        return new VendorFileModel 
+        {
+            Name = request.Name,
+            Path = request.Path,
+            UploadDate = vendorFile.UploadDate
+        };
 	}
+
+    public async Task<GetVendorFilesResponse> GetVendorFiles(GetVendorFilesRequest request, CallContext context = default)
+    {
+        Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
+        var companyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
+        if (loggedInAs != AccountType.Admin && companyId != request.VendorId)
+        {
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Not Allowed To See The Files"));
+        }
+
+        var files = await _db.VendorFiles.Include(e => e.VendorCompany).Where(v => v.VendorCompanyId == request.VendorId).Select(e => new VendorFileModel 
+        { 
+            Email = e.VendorCompany.Account.Email,
+            Name = e.Name,
+            Path = e.Path,
+            UploadDate = e.UploadDate
+        }).ToListAsync();
+        return new GetVendorFilesResponse { VendorFiles = files };
+    }
 }

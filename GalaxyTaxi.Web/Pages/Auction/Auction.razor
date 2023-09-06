@@ -213,7 +213,7 @@
 </style>
 
 
-@code {
+ @code {
     [Parameter]
     public long Id { get; set; }
 
@@ -235,7 +235,7 @@
     private AccountType? loggedInAs;
 
     private Feedback selectedEvaluation { get; set; }
-    
+
     private string comment { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -300,9 +300,10 @@
         if (CurrentAuction != null)
         {
             markerList = new List<Marker>();
+            int numOfStops = CurrentAuction.JourneyInfo?.Stops != null ? (int)CurrentAuction.JourneyInfo?.Stops.Count() : 0;
             if (CurrentAuction.JourneyInfo?.Office?.Address != null)
             {
-                await createMarker(CurrentAuction.JourneyInfo.Office.Address);
+                await createMarker(CurrentAuction.JourneyInfo.Office.Address, numOfStops + 1 + "");
             }
 
             if (CurrentAuction.JourneyInfo?.Stops != null)
@@ -311,7 +312,7 @@
                 {
                     if (stop?.Address != null)
                     {
-                        var marker = await createMarker(stop.Address);
+                        var marker = await createMarker(stop.Address, stop.StopOrder + "");
                         markerList.Add(marker);
                     }
                 }
@@ -320,7 +321,7 @@
         StateHasChanged();
     }
 
-    private async Task<Marker> createMarker(AddressInfo address)
+    private async Task<Marker> createMarker(AddressInfo address, string label)
     {
         if (address == null || map1 == null)
         {
@@ -331,7 +332,8 @@
         var marker = await Marker.CreateAsync(map1.JsRuntime, new MarkerOptions()
         {
             Map = map1.InteropObject,
-            Draggable = false
+            Draggable = false,
+            Label = label
         });
         await marker.SetPosition(position);
         return marker;

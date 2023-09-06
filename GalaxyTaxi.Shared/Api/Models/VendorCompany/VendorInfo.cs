@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GalaxyTaxi.Shared.Api.Models.Admin;
+namespace GalaxyTaxi.Shared.Api.Models.VendorCompany;
 
 [ProtoContract]
 [Serializable]
@@ -22,4 +22,7 @@ public class VendorInfo
 
     [ProtoMember(5)]
     public string Email { get; set; }
+
+    [ProtoMember(6)]
+    public long VendorId { get; set; }
 }

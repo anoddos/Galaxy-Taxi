@@ -1,23 +1,44 @@
-﻿<MudDialog DialogTitle="Edit Employee" Width="400px">
+﻿@using GalaxyTaxi.Shared.Api.Interfaces;
+@inject IAccountService AccountService;
+
+<MudDialog DialogTitle="Edit Employee" Width="400px">
 	<DialogContent>
 		<MudTextField Label="Vendor Name" ReadOnly=true @bind-Value="Vendor.Name" />
 		<MudTextField Label="Email" ReadOnly=true @bind-Value="Vendor.Email" />
 		<MudTextField Label="Verification Request Date" ReadOnly=true @bind-Value="Vendor.VerificationRequestDate" />
-@* 		<MudTextField Label="From Address" @bind-Value="Employee.From.Name" />
-		<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
-		<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
-
-		<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office" Style="width:400px;"
-				   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
-			@foreach (var office in OfficeList)
-			{
-				<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
+		<div style="display: flex; align-items: center; width: 100%;">
+			@{
+				var textColor = Vendor.IsVerified ? Color.Success : Color.Error;
+				var verificationText = Vendor.IsVerified ? "Verified" : "Not Verified";
+				var verificationIcon = Vendor.IsVerified ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.ErrorOutline;
 			}
-		</MudSelect> *@
+
+			<MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;" />
+			<MudText Typo="Typo.overline" Color="@textColor">@verificationText</MudText>
+		</div>
+		@if (files != null)
+		{
+			<MudList>
+				@foreach (var file in files)
+				{
+					<MudListItem Icon="@Icons.Material.Filled.AttachFile">
+						@file.Name
+					</MudListItem>
+				}
+			</MudList>
+		}
 	</DialogContent>
 	<DialogActions>
-@* 		<MudButton OnClick="SaveChanges">Save</MudButton>
-		<MudButton OnClick="CloseDialog">Cancel</MudButton> *@
+		@if (!Vendor.IsVerified)
+		{
+			<MudButton Color="Color.Success" >Verify</MudButton>
+			<MudButton Color="Color.Error" >Decline</MudButton>
+		}
+		else
+		{
+			<MudButton Color="Color.Error" >Unverify</MudButton>
+		}
+
 	</DialogActions>
 </MudDialog>
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
-using GalaxyTaxi.Shared.Api.Models.Admin;
+using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 
 namespace GalaxyTaxi.Web.Pages.Account
 {
@@ -39,7 +39,9 @@ namespace GalaxyTaxi.Web.Pages.Account
 		private string alertMessage = "";
 		private Severity alertSeverity;
 
-		private string OldPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(oldPassword)
+
+
+        private string OldPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(oldPassword)
 			? "Old Password is required."
 			: "";
 
@@ -103,14 +105,11 @@ namespace GalaxyTaxi.Web.Pages.Account
 			StateHasChanged();
 		}
 
-		IList<IBrowserFile> files = new List<IBrowserFile>();
 
         private async Task OnUploadFiles(InputFileChangeEventArgs e)
         {
             foreach (var file in e.GetMultipleFiles())
             {
-                files.Add(file);
-
                 var fileName = file.Name;
                 var path = Path.Combine("C:", $"UploadedFiles/Vendors/{accountSettings.Email}", fileName);
 
@@ -126,7 +125,8 @@ namespace GalaxyTaxi.Web.Pages.Account
 				};
 				try
 				{
-					await _accountService.UploadVendorFile(vendorFile);
+					var fileModel = await _accountService.UploadVendorFile(vendorFile);
+					accountSettings.VendorFiles.Add(fileModel);
 				}
 				catch (RpcException ex)
 				{

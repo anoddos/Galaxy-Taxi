@@ -15,39 +15,30 @@
             {
                 <div style="display: flex; align-items: center; width: 100%;">
                     @{
-                        var textColor = accountSettings.IsVerified ? Color.Success : Color.Error;
-                        var verificationText = accountSettings.IsVerified ? "Verified" : "Not Verified";
-                        var verificationIcon = accountSettings.IsVerified ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.ErrorOutline;
+                        var textColor = accountSettings.Status == AccountStatus.Verified ? Color.Success : accountSettings.Status == AccountStatus.Pending ? Color.Warning :Color.Error;
+                        var verificationText = accountSettings.Status == AccountStatus.Verified ? "Verified" :
+                        accountSettings.Status == AccountStatus.Pending ? "Pending" : "Declined";
+                        var verificationIcon = accountSettings.Status == AccountStatus.Verified ? Icons.Material.Filled.CheckCircle :
+                                               accountSettings.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
                     }
 
                     <MudIcon Icon="@verificationIcon" Color="@textColor" Style="margin-right: 10px;"/>
                     <MudText Typo="Typo.overline" Color="@textColor">@verificationText</MudText>
 
-                    @if (!accountSettings.IsVerified)
+                    @if (accountSettings.Status != AccountStatus.Verified)
                     {
-                        <div style="margin-left: auto;">
-                            <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
-                                <ButtonTemplate>
-                                    <MudButton HtmlTag="label"
-                                               Variant="Variant.Filled"
-                                               Color="Color.Primary"
-                                               StartIcon="@Icons.Material.Filled.CloudUpload"
-                                               for="@context">
-                                        Upload Files
-                                    </MudButton>
-                                </ButtonTemplate>
-                            </MudFileUpload>
-                        </div>
+                        <InputFile OnChange="@OnUploadFiles" Multiple="true" />
+
                     }
                 </div>
 
-                @if (files != null)
+                @if (accountSettings.VendorFiles != null)
                 {
                     <MudList>
-                        @foreach (var file in files)
+                        @foreach (var file in accountSettings.VendorFiles)
                         {
                             <MudListItem Icon="@Icons.Material.Filled.AttachFile">
-                                @file.Name <code>@file.Size bytes</code>
+                                @file.Name
                             </MudListItem>
                         }
                     </MudList>
@@ -61,7 +52,7 @@
 
             @if (accountSettings.AccountType == AccountType.CustomerCompany)
             {
-                <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="0.0"/>
+                <MudNumericField @bind-Value="accountSettings.MaxAmountPerEmployee" Label="Max Amount Per Employee (GEL)" Variant="Variant.Outlined" Min="3.0"/>
             }
 
             <MudTextField @bind-Value="oldPassword"
@@ -116,116 +107,6 @@
     </MudCard>
 </MudContainer>
 
-@code {
-
-    [Inject]
-    public IDialogService DialogService { get; set; }
-
-    private string oldPassword { get; set; } = "";
-    private string newPassword { get; set; } = "";
-    private string confirmPassword { get; set; } = "";
-    private bool passwordsMatch => newPassword == confirmPassword;
-    private IDialogReference dialogReference;
-
-
-    private bool oldPasswordVisible = false;
-    private bool newPasswordVisible = false;
-    private bool confirmPasswordVisible = false;
-
-    private string oldPasswordIcon = Icons.Material.Filled.Visibility;
-    private string newPasswordIcon = Icons.Material.Filled.Visibility;
-    private string confirmPasswordIcon = Icons.Material.Filled.Visibility;
-
-    private InputType OldPasswordInput => oldPasswordVisible ? InputType.Text : InputType.Password;
-    private InputType NewPasswordInput => newPasswordVisible ? InputType.Text : InputType.Password;
-    private InputType ConfirmPasswordInput => confirmPasswordVisible ? InputType.Text : InputType.Password;
-
-    private AccountSettings accountSettings { get; set; } = new AccountSettings();
-
-    private bool showAlert = false;
-    private string alertMessage = "";
-    private Severity alertSeverity;
-
-    private string OldPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(oldPassword)
-        ? "Old Password is required."
-        : "";
-
-    private string NewPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(newPassword)
-        ? "New Password is required."
-        : "";
-
-    private string ConfirmPasswordValidation => IsAnyPasswordFilled && string.IsNullOrWhiteSpace(confirmPassword)
-        ? "Confirm Password is required."
-        : "";
-
-    protected override async Task OnInitializedAsync()
-    {
-        var response = await _accountService.GetAccountSettings();
-        if (response != null)
-        {
-            accountSettings = response;
-        }
-    }
-
-    private void ToggleOldPasswordVisibility()
-    {
-        oldPasswordVisible = !oldPasswordVisible;
-        oldPasswordIcon = oldPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
-    }
-
-    private void ToggleNewPasswordVisibility()
-    {
-        newPasswordVisible = !newPasswordVisible;
-        newPasswordIcon = newPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
-    }
-
-    private void ToggleConfirmPasswordVisibility()
-    {
-        confirmPasswordVisible = !confirmPasswordVisible;
-        confirmPasswordIcon = confirmPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility;
-    }
-
-    private async Task SaveChanges()
-    {
-        try
-        {
-            await _accountService.UpdateAccountSettings(new UpdateAccountSettingsRequest { NewPassword = newPassword, OldPassword = oldPassword, AccountInformation = accountSettings });
-            alertMessage = "Account Settings Updated";
-            alertSeverity = Severity.Success;
-        }
-        catch (RpcException ex)
-        {
-            alertMessage = ex.Status.Detail;
-            alertSeverity = Severity.Error;
-        }
-
-        showAlert = true;
-        StateHasChanged();
-    }
-
-    private void HandleAlertClosed()
-    {
-        showAlert = false;
-        StateHasChanged();
-    }
-
-    IList<IBrowserFile> files = new List<IBrowserFile>();
-
-    private void UploadFiles(IBrowserFile file)
-    {
-        files.Add(file);
-    //TODO upload the files to the server
-    }
-
-    private string PasswordMatchValidation() => newPassword == confirmPassword ? "" : "Passwords do not match";
-    private void ValidatePasswords() => StateHasChanged();
-
-    private bool IsAnyPasswordFilled => !string.IsNullOrWhiteSpace(oldPassword)
-                                        || !string.IsNullOrWhiteSpace(newPassword)
-                                        || !string.IsNullOrWhiteSpace(confirmPassword);
-
-
-}
 
 <style>
     .settings-card {

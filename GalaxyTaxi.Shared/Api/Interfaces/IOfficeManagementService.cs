@@ -8,7 +8,7 @@ namespace GalaxyTaxi.Shared.Api.Interfaces;
 [Service("OfficeManagement")]
 public interface IOfficeManagementService
 {
-    Task EditOfficeDetails(OfficeInfo request, CallContext context = default);
+    Task<OfficeInfo> EditOfficeDetails(OfficeInfo request, CallContext context = default);
     Task<GetOfficesResponse> GetOffices(OfficeManagementFilter? filter = null, CallContext context = default);
 	Task<OfficeInfo> AddOffice(OfficeInfo request, CallContext context = default);
 }

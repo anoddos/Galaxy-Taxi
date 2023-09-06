@@ -29,6 +29,8 @@ public class Db : DbContext
 
     public DbSet<Subscription> Subscriptions { get; set; } = null!;
 
+    public DbSet<VendorFile> VendorFiles { get; set; } = null;
+
     public Db(DbContextOptions options) : base(options)
     {
     }

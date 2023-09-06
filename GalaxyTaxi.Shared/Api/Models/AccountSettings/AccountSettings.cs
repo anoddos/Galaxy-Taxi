@@ -1,13 +1,9 @@
 ﻿using ProtoBuf;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using GalaxyTaxi.Shared.Api.Models.Common;
+using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 
 namespace GalaxyTaxi.Shared.Api.Models.AccountSettings;
+
 [ProtoContract]
 [Serializable]
 public class AccountSettings
@@ -25,8 +21,12 @@ public class AccountSettings
     public AccountType AccountType { get; set; }
     
     [ProtoMember(5)]
-    public bool IsVerified { get; set; }
+    public AccountStatus Status { get; set; }
 
     [ProtoMember(6)]
     public bool SupportTwoWayJourneys { get; set; }
+
+    [ProtoMember(7)]
+    public List<VendorFileModel> VendorFiles { get; set; } = new List<VendorFileModel>();
+
 }

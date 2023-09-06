@@ -127,7 +127,7 @@ public class AuctionService : IAuctionService
 
     private bool AccountIsVerified(long accountId)
     {
-        return  _db.Accounts.Any(x => x.Id == accountId && x.IsVerified);
+        return  _db.Accounts.Any(x => x.Id == accountId && x.Status == AccountStatus.Verified);
     }
 
     public async Task<GetAuctionsCountResponse> GetAuctionCount(AuctionsFilter filter)
@@ -147,8 +147,10 @@ public class AuctionService : IAuctionService
 
     public async Task<GetSingleAuctionsResponse> GetSingleAuction(IdFilter filter)
     {
+        var accountId = GetAccountId();
+
         var auction = await _db.Auctions.Include(x => x.Bids)
-            .Where(x => x.Id == filter.Id)
+            .Where(x => x.Id == filter.Id && x.CustomerCompany.AccountId == accountId || x.Bids.Any(xx => xx.AccountId == accountId))
             .Select(x => new AuctionInfo
             {
                 Id = x.Id,
@@ -225,8 +227,8 @@ public class AuctionService : IAuctionService
         
         var journeys = await GenerateJourneysForCompany(companyId);
         
-        var maxAmountPerEmployee = _db.CustomerCompanies.Single(x => x.Id == companyId).MaxAmountPerEmployee;
-        var dayCountPerAuction = _db.Subscriptions.Single(x => x.SubscriptionStatus == SubscriptionStatus.Active).SubscriptionPlanTypeId == SubscriptionPlanType.Annual ? 7 : 5;
+        var maxAmountPerEmployee = (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).MaxAmountPerEmployee;
+        var dayCountPerAuction = (await _db.Subscriptions.SingleAsync(x => x.SubscriptionStatus == SubscriptionStatus.Active)).SubscriptionPlanTypeId == SubscriptionPlanType.Annual ? 7 : 5;
         var nextRelevantMonday = GetNextRelevantMonday();
         
         foreach (var journey in journeys)
@@ -252,6 +254,22 @@ public class AuctionService : IAuctionService
             GeneratedAuctionCount = journeys.Count,
             GeneratedAuctionTotalCost = totalCost
         };
+    }
+
+    public async Task SaveEvaluation(SaveEvaluationRequest evaluation, CallContext context = default)
+    {
+        var auction = await _db.Auctions.SingleAsync(x => x.Id == evaluation.Id);
+
+        if (auction.ToDate.AddDays(2) < DateTime.Today)
+        {
+            throw new RpcException(new Status(StatusCode.AlreadyExists, "Too Late For Evaluation"));
+        }
+        
+        auction.Comment = evaluation.Comment;
+        //auction.FeedbackId = evaluation.Evaluation;
+
+        _db.Auctions.Update(auction);
+        await _db.SaveChangesAsync();
     }
 
     private async Task<List<Journey>> GenerateJourneysForCompany(long companyId)

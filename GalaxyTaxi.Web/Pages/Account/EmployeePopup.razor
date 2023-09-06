@@ -2,15 +2,24 @@
 @using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 @using GoogleMapsComponents
 @using GoogleMapsComponents.Maps
+@using Grpc.Core;
+@inject IJSRuntime JSRuntime
 
 <MudDialog DialogTitle="Edit Employee" Width="400px">
 	<DialogContent>
+		@if (showAlert)
+		{
+			<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
+		}
 		<MudTextField Label="First Name" @bind-Value="Employee.FirstName" />
 		<MudTextField Label="Last Name" @bind-Value="Employee.LastName" />
 		<MudTextField Label="Mobile" @bind-Value="Employee.Mobile" />
 		<MudTextField Label="From Address" @bind-Value="Employee.From.Name" />
 		<MudButton OnClick="AddMarker">Show Address Pin</MudButton>
-		<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+		<div id="@MapElementId">
+			<GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
+		</div>
+
 
 		<MudSelect T="OfficeInfo" Items="OfficeList" Label="Office" Style="width:400px;"
 				   AnchorOrigin="Origin.BottomCenter" @bind-Value="SelectedOffice">
@@ -29,7 +38,7 @@
 @code {
 	[Parameter]
 	public EmployeeJourneyInfo Employee { get; set; }
-	
+
 	[Parameter]
 	public List<OfficeInfo> OfficeList { get; set; }
 
@@ -40,6 +49,11 @@
 	private GoogleMap map1;
 	private MapOptions mapOptions;
 	private Marker marker;
+
+	private bool showAlert = false;
+	private string alertMessage = "";
+	private string MapElementId = "myGoogleMap";
+	private Severity alertSeverity;
 
 	protected override async void OnInitialized()
 	{
@@ -62,8 +76,6 @@
 
 
 		var position = new LatLngLiteral { Lat = (double)Employee.From.Latitude, Lng = (double)Employee.From.Longitude };
-		// mapOptions.Center = position;
-
 
 		if (marker == null)
 		{
@@ -74,6 +86,7 @@
 				});
 		}
 		await marker.SetPosition(position);
+
 
 
 		await marker.AddListener("dragend", async () =>
@@ -89,13 +102,33 @@
 	}
 	private async Task SaveChanges()
 	{
-		Employee.To = SelectedOffice;
-		await _employeeManagement.EditEmployeeDetails(Employee);
-		dialog.Close(DialogResult.Ok(true));
+		try
+		{
+			Employee.To = SelectedOffice;
+			await _employeeManagement.EditEmployeeDetails(Employee);
+			alertMessage = "Employee Details Updated";
+			alertSeverity = Severity.Success;
+		}
+		catch (RpcException ex)
+		{
+			alertMessage = ex.Status.Detail;
+			alertSeverity = Severity.Error;
+		}
+
+		showAlert = true;
+		StateHasChanged();
+		// dialog.Close(DialogResult.Ok(true));
+
 	}
 
 	private void CloseDialog()
 	{
 		dialog.Close(DialogResult.Ok(true));
+	}
+
+	private void HandleAlertClosed()
+	{
+		showAlert = false;
+		StateHasChanged();
 	}
 }

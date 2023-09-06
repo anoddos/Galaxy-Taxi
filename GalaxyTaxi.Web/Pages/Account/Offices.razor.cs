@@ -3,6 +3,9 @@ using GalaxyTaxi.Shared.Api.Models.OfficeManagement;
 using GoogleMapsComponents.Maps;
 using GoogleMapsComponents;
 using GalaxyTaxi.Shared.Api.Models.AddressDetection;
+using MudBlazor;
+using GalaxyTaxi.Shared.Api.Models.AccountSettings;
+using Grpc.Core;
 
 namespace GalaxyTaxi.Web.Pages.Account;
 
@@ -13,8 +16,13 @@ public partial class Offices
     public OfficeInfo OfficeFilter { get; set; } = new OfficeInfo { Address = new AddressInfo(), OfficeId = -1 };
     private string navigationLink { get; set; } = "";
     private GoogleMap map1;
+    private string DetectedStatus = "";
 
-    private MapOptions mapOptions { get; set; } = new MapOptions
+	private bool showAlert = false;
+	private string alertMessage = "";
+	private Severity alertSeverity;
+
+	private MapOptions mapOptions { get; set; } = new MapOptions
     {
         Zoom = 13,
         Center = new LatLngLiteral { Lat = 41.716667, Lng = 44.783333 },
@@ -73,22 +81,34 @@ public partial class Offices
 
     private async Task SaveChanges()
     {
-        if (!string.IsNullOrWhiteSpace(OfficeFilter.Address.Name))
-        {
-            OfficeFilter.Address = await _addressDetection.DetectAddressCoordinatesFromName(OfficeFilter.Address);
-        }
 
-        if (OfficeFilter.OfficeId == -1)
-        {
-            await _officeManagement.AddOffice(OfficeFilter);
-            await ReloadOffices();
-            StateHasChanged();
-        }
-        else
-        {
-            await _officeManagement.EditOfficeDetails(OfficeFilter);
-        }
-    }
+		StateHasChanged();
+
+		try
+		{
+			if (OfficeFilter.OfficeId == -1)
+			{
+				OfficeFilter = await _officeManagement.AddOffice(OfficeFilter);
+				alertMessage = "Office Details Saved";
+
+				await ReloadOffices();
+			}
+			else
+			{
+				OfficeFilter = await _officeManagement.EditOfficeDetails(OfficeFilter);
+				alertMessage = "Office Details Updated";
+			}
+			alertSeverity = Severity.Success;
+		}
+		catch (RpcException ex)
+		{
+			alertMessage = ex.Status.Detail;
+			alertSeverity = Severity.Error;
+		}
+
+		showAlert = true;
+		StateHasChanged();
+	}
 
     private async Task OfficeValueChanged(OfficeInfo current)
     {
@@ -99,10 +119,17 @@ public partial class Offices
         else
         {
             OfficeFilter = current;
+            DetectedStatus = current.Address.IsDetected ? "" : "[Not Detected]";
             mapOptions.Center = new LatLngLiteral
                 { Lat = (double)OfficeFilter.Address.Latitude, Lng = (double)OfficeFilter.Address.Longitude };
         }
 
         StateHasChanged();
     }
+
+	private void HandleAlertClosed()
+	{
+		showAlert = false;
+		StateHasChanged();
+	}
 }

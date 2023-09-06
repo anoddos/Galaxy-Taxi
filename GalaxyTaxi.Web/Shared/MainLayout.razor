@@ -40,8 +40,8 @@
 
         </MudMenu>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu></NavMenu>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="25">
+        <NavMenu SomeParameter=@_drawerOpen.ToString()></NavMenu>
     </MudDrawer>
     <MudMainContent MaxWidth="MaxWidth.Medium" Color="Color.Red">
         @Body
@@ -79,6 +79,7 @@
     private void Register()
     {
         NavigationManager.NavigateTo("account/register");
+        
     }
 
     private async void Logout()

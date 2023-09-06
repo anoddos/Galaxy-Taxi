@@ -21,4 +21,6 @@ public class OfficeInfo
 
 	[ProtoMember(5)]
 	public int NumberOfEmployees { get; set; }
+	[ProtoMember(6)]
+    public long OfficeIdentification { get; set; }
 }

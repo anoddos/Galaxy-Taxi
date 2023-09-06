@@ -18,7 +18,15 @@
     <div class="OfficeInfoContainer">
         <MudCard>
             <MudCardContent>
-                <MudTextField Label="Office Address" @bind-Value="OfficeFilter.Address.Name"/>
+                @if (showAlert)
+                {
+                    <OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
+                }
+                <MudTextField Label="Office Address" @bind-Value="OfficeFilter.Address.Name "
+                              Error="@(!OfficeFilter.Address.IsDetected)"
+                              ErrorText="@DetectedStatus" />
+    
+                        <MudTextField Label="Office Identification"  @bind-Value="OfficeFilter.OfficeIdentification" ReadOnly=true/>
                 <MudButton OnClick="AddMarker">Show Address Pin</MudButton>
                 <GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
                 <MudLink Href="@navigationLink">Number Of Employees : @OfficeFilter.NumberOfEmployees</MudLink>

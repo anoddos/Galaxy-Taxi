@@ -9,6 +9,8 @@ public class VendorCompany
     public long AccountId { get; set; }
 
     public string IdentificationCode { get; set; } = null!;
+    public DateTime? VerificationRequestDate { get; set; }
 
     public Account Account { get; set; } = null!;
+    public List<VendorFile> VendorFiles { get; set; } = new List<VendorFile>();
 }

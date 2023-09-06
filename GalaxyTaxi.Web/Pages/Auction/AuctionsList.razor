@@ -4,6 +4,7 @@
 @using GoogleMapsComponents
 @using Size = MudBlazor.Size
 @inject IAuctionService AuctionService
+@inject IAccountService AccountService
 @inject NavigationManager NavigationManager
 
 <div class="filters-container">
@@ -13,7 +14,10 @@
         <MudRadio Option="ActionStatus.All" Color="Color.Primary" Size="Size.Small">All</MudRadio>
     </MudRadioGroup>
 
-    <MudCheckBox @bind-Checked="@_auctionsFilter.WonByMe" Label="Won By Me" Color="Color.Primary"></MudCheckBox>
+    @if (loggedInAs == AccountType.VendorCompany)
+    {
+        <MudCheckBox @bind-Checked="@_auctionsFilter.WonByMe" Label="Won By Me" Color="Color.Primary"></MudCheckBox>
+    }
     <MudButton OnClick="async () => await UpdateGrid()" Variant="Variant.Filled" Size="Size.Small" Style="background-color: royalblue; color:white; margin-left: 15px;">Search</MudButton>
 </div>
 
@@ -52,7 +56,7 @@
                             }
                         </div>
                         <div class="auction-item-price">
-                            <p class="price">@item.Amount</p>
+                            <p class="price">@item.Amount GEL</p>
                             <p class="bid-count">Bids: @(item.Bids?.Count() ?? 0)</p>
                             @if (item.CurrentWinner != null)
                             {

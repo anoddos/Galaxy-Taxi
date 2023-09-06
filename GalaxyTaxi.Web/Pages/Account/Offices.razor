@@ -27,8 +27,8 @@
                               ErrorText="@DetectedStatus" />
     
                 <MudTextField Label="Office Identification"  @bind-Value="OfficeFilter.OfficeIdentification" ReadOnly=true/>
-                <MudTimePicker Label="24 hours" Time="OfficeFilter.WorkingStartTime" TimeChanged="(e) => OfficeFilter.WorkingStartTime = (TimeSpan)e" />
-                <MudTimePicker Label="24 hours" Time="OfficeFilter.WorkingEndTime" TimeChanged="(e) => OfficeFilter.WorkingEndTime = (TimeSpan)e" />
+                <MudTimePicker Label="Working Start Time" Time="OfficeFilter.WorkingStartTime" TimeChanged="(e) => OfficeFilter.WorkingStartTime = (TimeSpan)e" />
+                <MudTimePicker Label="Working End Time" Time="OfficeFilter.WorkingEndTime" TimeChanged="(e) => OfficeFilter.WorkingEndTime = (TimeSpan)e" />
                 <MudButton OnClick="AddMarker">Show Address Pin</MudButton>
                 <GoogleMap @ref="@map1" Options="@mapOptions"></GoogleMap>
                 <MudLink Href="@navigationLink">Number Of Employees : @OfficeFilter.NumberOfEmployees</MudLink>

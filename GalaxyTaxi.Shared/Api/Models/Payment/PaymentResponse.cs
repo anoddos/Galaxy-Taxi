@@ -7,5 +7,5 @@ namespace GalaxyTaxi.Shared.Api.Models.Payment;
 public class PaymentResponse
 {
     [ProtoMember(1)]
-    public string PaymentIntentId { get; set; }
+    public string PaymentStatus { get; set; }
 }

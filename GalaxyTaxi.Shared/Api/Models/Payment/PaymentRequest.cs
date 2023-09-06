@@ -12,4 +12,7 @@ public class PaymentRequest
 
     [ProtoMember(2)]
     public long Amount { get; set; }
+
+    [ProtoMember(3)]
+    public string token { get; set; }
 }

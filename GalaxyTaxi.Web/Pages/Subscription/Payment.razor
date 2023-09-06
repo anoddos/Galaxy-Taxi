@@ -1,30 +1,99 @@
 @page "/subscription/payment"
 @using GalaxyTaxi.Shared.Api.Interfaces
+@using GalaxyTaxi.Shared.Api.Models.Common;
 @using GalaxyTaxi.Shared.Api.Models.Payment
 @inject ISubscriptionService SubscriptionService
 @inject NavigationManager NavigationManager
 @inject IPaymentService PaymentClient
+@inject IAccountService AccountService
+@inject IJSRuntime JSRuntime
 
-@page "/payment"
+<MudContainer Width="40%">
+	<MudPaper Elevation="1" Class="mt-4 pa-4">
+		<MudText Label="Amount (GEL)">@paymentAmount</MudText>
 
+		<div id="card-element" class="my-4"></div>
+		<MudCardActions>
+			<MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="HandlePayment" EndIcon="@Icons.Filled.CreditCard">Process Payment</MudButton>
+		</MudCardActions>
+	</MudPaper>
 
-<MudForm>
-    <MudTextField Label="Amount" @bind-Value="paymentAmount" />
-    <MudButton @onclick="ProcessPayment">Process Payment</MudButton>
-</MudForm>
+	@if (showAlert)
+	{
+		<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
+	}
+</MudContainer>
 
 @code {
-    private decimal paymentAmount;
+	[Parameter]
 
-    private async Task ProcessPayment()
-    {
-        var paymentRequest = new PaymentRequest()
-        {
-            Amount = (int)(paymentAmount * 100) // Convert to cents
-        };
+	public SubscriptionPlanType SubsriptionType { get; set; }
 
-        var paymentResponse = await PaymentClient.ProcessPayment(paymentRequest);
+	private long paymentAmount;
+	private bool showAlert = false;
+	private string alertMessage = "";
+	private Severity alertSeverity;
 
-    // Payment failed, display an error message or perform other actions
-    }
-}}
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			displayCard();
+		}
+	}
+	protected override async Task OnInitializedAsync()
+	{
+
+		paymentAmount = SubscriptionMapping.Mapping[SubsriptionType];
+		StateHasChanged();
+	}
+
+	private async void displayCard()
+	{
+		await JSRuntime.InvokeVoidAsync("initializeStripe", PaymentInfo.StripePublishableKey);
+		await JSRuntime.InvokeVoidAsync("mountCard", "card-element");
+	}
+
+	private void HandleAlertClosed()
+	{
+		showAlert = false;
+		StateHasChanged();
+	}
+
+	private async Task HandlePayment()
+	{
+		try
+		{
+			var token = await JSRuntime.InvokeAsync<string>("createToken");
+			var response = await PaymentClient.ProcessPayment(new PaymentRequest { Amount = 200, token = token, SelectedSubscriptionType = SubsriptionType });
+			if (response.PaymentStatus == "succeeded")
+			{
+				await AccountService.UpdatePaymentToken(new UpdatePaymentTokenRequest { Token = token });
+				alertMessage = "Payment Was Successful";
+				alertSeverity = Severity.Success;
+			}
+			else
+			{
+				alertMessage = response.PaymentStatus;
+				alertSeverity = Severity.Error;
+			}
+
+		}
+		catch (Exception ex)
+		{
+			alertMessage = ex.Message;
+			alertSeverity = Severity.Error;
+		}
+		showAlert = true;
+		StateHasChanged();
+	}
+}
+
+<style>
+	#card-element {
+		padding: 10px 15px;
+		background-color: #f8f8f8;
+		border: 1px solid #e0e0e0;
+		border-radius: 4px;
+	}
+</style>

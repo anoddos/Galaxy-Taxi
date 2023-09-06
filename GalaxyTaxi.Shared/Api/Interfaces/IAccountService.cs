@@ -8,6 +8,7 @@ using ProtoBuf.Grpc;
 using ProtoBuf.Grpc.Configuration;
 using GalaxyTaxi.Shared.Api.Models.Admin;
 using GalaxyTaxi.Shared.Api.Models.Filters;
+using GalaxyTaxi.Shared.Api.Models.Payment;
 
 namespace GalaxyTaxi.Shared.Api.Interfaces;
 
@@ -28,4 +29,5 @@ public interface IAccountService
     Task<GetVendorFilesResponse> GetVendorFiles(GetVendorFilesRequest request,  CallContext context = default);
     Task RespondToVendor(RespondToVendorRequest request, CallContext context = default);
     Task<GetVendorResponse> GetVendorCompanies(VendorFilter vendorFilter);
+    Task UpdatePaymentToken(UpdatePaymentTokenRequest request, CallContext context = default);
 }

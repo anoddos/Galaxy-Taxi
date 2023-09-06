@@ -17,4 +17,6 @@ public class Account
     public AccountStatus Status { get; set; }
     
     public DateTime? VerificationRequestDate { get; set; }
+
+    public string PaymentToken { get; set; } = null!;
 }

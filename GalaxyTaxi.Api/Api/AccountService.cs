@@ -14,6 +14,7 @@ using GalaxyTaxi.Shared.Api.Models.AccountSettings;
 using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 using GalaxyTaxi.Shared.Api.Models.Admin;
 using GalaxyTaxi.Shared.Api.Models.Filters;
+using GalaxyTaxi.Shared.Api.Models.Payment;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -456,4 +457,18 @@ public class AccountService : IAccountService
 
         return long.Parse(accountId);
     }
+
+	public async Task UpdatePaymentToken(UpdatePaymentTokenRequest request, CallContext context = default)
+	{
+		var accountId = GetSessionValue(AuthenticationKey.AccountId);
+
+		if (string.IsNullOrWhiteSpace(accountId))
+		{
+			throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
+		}
+
+        var account = await _db.Accounts.FirstOrDefaultAsync(a => a.Id == long.Parse(accountId));
+        account.PaymentToken = request.Token;
+        await _db.SaveChangesAsync();
+	}
 }

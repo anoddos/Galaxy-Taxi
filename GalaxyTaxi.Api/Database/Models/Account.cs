@@ -18,5 +18,5 @@ public class Account
     
     public DateTime? VerificationRequestDate { get; set; }
 
-    public string PaymentToken { get; set; } = null!;
+    public string? PaymentToken { get; set; } = null!;
 }

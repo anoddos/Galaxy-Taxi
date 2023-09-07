@@ -30,7 +30,7 @@
 	public SubscriptionPlanType SubsriptionType { get; set; }
 
 	private long paymentAmount;
-	private bool showAlert = false;
+	private bool showAlert;
 	private string alertMessage = "";
 	private Severity alertSeverity;
 
@@ -38,17 +38,18 @@
 	{
 		if (firstRender)
 		{
-			displayCard();
+			DisplayCard();
 		}
 	}
-	protected override async Task OnInitializedAsync()
+	
+	protected override Task OnInitializedAsync()
 	{
-
 		paymentAmount = SubscriptionMapping.Mapping[SubsriptionType];
 		StateHasChanged();
+		return Task.CompletedTask;
 	}
 
-	private async void displayCard()
+	private async void DisplayCard()
 	{
 		await JSRuntime.InvokeVoidAsync("initializeStripe", PaymentInfo.StripePublishableKey);
 		await JSRuntime.InvokeVoidAsync("mountCard", "card-element");
@@ -77,7 +78,6 @@
 				alertMessage = response.PaymentStatus;
 				alertSeverity = Severity.Error;
 			}
-
 		}
 		catch (Exception ex)
 		{

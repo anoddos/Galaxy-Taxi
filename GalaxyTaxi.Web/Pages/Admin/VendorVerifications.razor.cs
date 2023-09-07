@@ -48,6 +48,10 @@ public partial class VendorVerifications
         {
             _vendors = response;
         }
+        else
+        {
+            _vendors = new List<VendorInfo>();
+        }
         StateHasChanged();
     }
     

@@ -77,11 +77,11 @@ public class AuctionService : IAuctionService
         var auctions = await _db.Auctions.Include(x => x.Bids)
             .Where(x => ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
                          || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) &&
-                             (x.ToDate < DateTime.UtcNow || x.Bids.Any(xx => xx.AccountId == accountId)))
+                             (x.EndTime > DateTime.UtcNow ||x.Bids.Any(xx => xx.AccountId == accountId)))
                          || loggedInAs == AccountType.Admin)
                         && (filter.Status == ActionStatus.All ||
-                            (filter.Status == ActionStatus.Active && x.ToDate < DateTime.UtcNow) ||
-                            (filter.Status == ActionStatus.Finished && x.ToDate > DateTime.UtcNow))
+                            (filter.Status == ActionStatus.Active && x.EndTime > DateTime.UtcNow) ||
+                            (filter.Status == ActionStatus.Finished && x.EndTime < DateTime.UtcNow))
                         && (filter.ToBeEvaluated == false || x.FeedbackId == null)
                         && (filter.WonByMe == false || x.CurrentWinnerId == accountId))
             .Skip(filter.PageIndex * filter.PageSize)
@@ -151,11 +151,11 @@ public class AuctionService : IAuctionService
         var count = _db.Auctions.Count(x =>
             ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
              || (loggedInAs == AccountType.VendorCompany && AccountIsVerified(accountId) &&
-                 (x.ToDate < DateTime.UtcNow ||x.Bids.Any(xx => xx.AccountId == accountId)))
+                 (x.EndTime > DateTime.UtcNow ||x.Bids.Any(xx => xx.AccountId == accountId)))
              || loggedInAs == AccountType.Admin)
             && (filter.Status == ActionStatus.All ||
-                (filter.Status == ActionStatus.Active && x.ToDate < DateTime.UtcNow) ||
-                (filter.Status == ActionStatus.Finished && x.ToDate > DateTime.UtcNow))
+                (filter.Status == ActionStatus.Active && x.EndTime > DateTime.UtcNow) ||
+                (filter.Status == ActionStatus.Finished && x.EndTime < DateTime.UtcNow))
             && (filter.ToBeEvaluated == false || x.FeedbackId == null)
             && (filter.WonByMe == false || x.CurrentWinnerId == accountId));
 
@@ -171,7 +171,7 @@ public class AuctionService : IAuctionService
         var auction = await _db.Auctions.Include(x => x.Bids)
             .Where(x => x.Id == filter.Id &&
                         ((loggedInAs == AccountType.CustomerCompany && x.CustomerCompany.AccountId == accountId)
-                         || (loggedInAs == AccountType.VendorCompany && (x.ToDate < DateTime.UtcNow || x.Bids.Any(xx => xx.AccountId == accountId)))
+                         || (loggedInAs == AccountType.VendorCompany && (x.EndTime > DateTime.UtcNow || x.Bids.Any(xx => xx.AccountId == accountId)))
                          || loggedInAs == AccountType.Admin))
             .Select(x => new AuctionInfo
             {

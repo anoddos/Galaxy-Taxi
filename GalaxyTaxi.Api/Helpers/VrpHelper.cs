@@ -66,9 +66,9 @@ public static class VrpHelper
         
         for (var i = 0; i < distanceMatrix.rows.Count; i++)
         {
-            for (var j = 0; j < distanceMatrix.rows.Count; j++)
+            for (var j = 0; j < distanceMatrix.rows[i].elements.Count; j++)
             {
-                graph[offsetOrigin + i, offsetDestination + j] = distanceMatrix.rows[i].elements![j].duration!.value;
+                graph[offsetOrigin + j, offsetDestination + i] = distanceMatrix.rows[i].elements![j].duration!.value;
             }
         }
 

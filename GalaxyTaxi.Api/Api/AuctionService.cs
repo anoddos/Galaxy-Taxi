@@ -368,8 +368,12 @@ public class AuctionService : IAuctionService
             var officeEmployeesWithoutJourneys = await _db.Employees
                 .Include(x => x.Addresses)
                 .ThenInclude(x => x.Address)
-                .Where(x => x.CustomerCompanyId == companyId && !x.HasActiveJourney && x.Addresses.Any(xx => xx.IsActive && xx.Address.IsDetected)).ToListAsync();
-
+                .Where(x => x.CustomerCompanyId == companyId && x.OfficeId == office.Id
+                                                             && !x.HasActiveJourney && x.Addresses.Any(xx => xx.IsActive && xx.Address.IsDetected)).ToListAsync();
+            if (officeEmployeesWithoutJourneys.Count == 0)
+            {
+                continue;
+            }
             var newJourneys = await GenerateJourneysForEmployees(companyId, office, officeEmployeesWithoutJourneys);
     
             foreach (var newJourney in newJourneys)

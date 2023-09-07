@@ -258,10 +258,9 @@ public class AuctionService : IAuctionService
 
         var journeys = await GenerateJourneysForCompany(companyId);
 
-        var maxAmountPerEmployee =
-            (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).MaxAmountPerEmployee;
-        var dayCountPerAuction =
-            (await _db.Subscriptions.SingleAsync(x => x.SubscriptionStatus == SubscriptionStatus.Active))
+        var maxAmountPerEmployee = (await _db.CustomerCompanies.SingleAsync(x => x.Id == companyId)).MaxAmountPerEmployee;
+        
+        var dayCountPerAuction = (await _db.Subscriptions.SingleAsync(x =>x.CustomerCompanyId == companyId && x.SubscriptionStatus == SubscriptionStatus.Active))
             .SubscriptionPlanTypeId == SubscriptionPlanType.Annual
                 ? 7
                 : 5;
@@ -290,7 +289,8 @@ public class AuctionService : IAuctionService
         return new GenerateAuctionsResponse
         {
             GeneratedAuctionCount = journeys.Count,
-            GeneratedAuctionTotalCost = totalCost
+            GeneratedAuctionTotalCost = totalCost,
+            AffectedUsersCount = journeys.Sum(x => x.Stops.Count)
         };
     }
 

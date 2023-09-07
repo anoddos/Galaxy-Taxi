@@ -70,6 +70,8 @@
 			if (response.PaymentStatus == "succeeded")
 			{
 				await AccountService.UpdatePaymentToken(new UpdatePaymentTokenRequest { Token = token });
+				
+				await SubscriptionService.UpdateSubscriptionStatus();
 				alertMessage = "Payment Was Successful";
 				alertSeverity = Severity.Success;
 			}

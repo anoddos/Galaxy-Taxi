@@ -13,4 +13,8 @@ public class GenerateAuctionsResponse
     
     [ProtoMember(2)] 
     public double GeneratedAuctionTotalCost { get; set; }
+    
+    
+    [ProtoMember(3)] 
+    public int AffectedUsersCount { get; set; }
 }

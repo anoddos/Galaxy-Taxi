@@ -68,7 +68,7 @@ public static class VrpHelper
         {
             for (var j = 0; j < distanceMatrix.rows[i].elements.Count; j++)
             {
-                graph[offsetOrigin + j, offsetDestination + i] = distanceMatrix.rows[i].elements![j].duration!.value;
+                graph[offsetOrigin + j, offsetDestination + i] = distanceMatrix.rows[i].elements![j].duration?.value ?? long.MaxValue;
             }
         }
 
@@ -203,8 +203,8 @@ public static class VrpHelper
                     EmployeeAddress = employees[routeForVehicle[j].Item1].Addresses.First(),
                     StopOrder = j + 1,
                     PickupTime = isOfficeDest ? 
-                        new TimeSpan((long)office.WorkingStartTime.TotalSeconds - totalTime + routeForVehicle[j].Item2) :
-                        new TimeSpan((long)office.WorkingEndTime.TotalSeconds + routeForVehicle[j].Item2)
+                        new TimeSpan(Math.Max((long)office.WorkingStartTime.TotalSeconds - totalTime + routeForVehicle[j].Item2, 0)) :
+                        new TimeSpan(Math.Min((long)office.WorkingEndTime.TotalSeconds + routeForVehicle[j].Item2,TimeSpan.MaxValue.Ticks))
                 });
             }
 

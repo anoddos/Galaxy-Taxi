@@ -238,7 +238,7 @@ public partial class EmployeesInfo
 		var parameters = new DialogParameters 
 		{
 			["AuctionCount"] = generatedAuctionCount,
-			["UserCount"] = _employees.Count,
+			["UserCount"] = response.AffectedUsersCount,
 			["TotalCost"] = totalCost
 		};
 		var dialogReference = DialogService.Show<InfoModal>("Auction Information", parameters);

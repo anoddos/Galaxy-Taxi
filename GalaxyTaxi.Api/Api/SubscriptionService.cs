@@ -67,7 +67,7 @@ public class SubscriptionService : ISubscriptionService
 
     public async Task<GetSubscriptionDetailResponse> GetSubscriptionDetails(CallContext context = default)
     {
-        var subscription = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == 13);
+        var subscription = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == GetCompanyId());
 
         if (subscription != null)
         {
@@ -81,6 +81,20 @@ public class SubscriptionService : ISubscriptionService
         {
             throw new RpcException(new Status(StatusCode.Internal, "Subscription Not Chosen"));
         }
+    }
+
+    public async Task UpdateSubscriptionStatus()
+    {
+        var subscription = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == GetCompanyId());
+
+        if (subscription == null)
+        {
+            throw new RpcException(new Status(StatusCode.Internal, "Subscription Not Chosen"));
+        }
+
+        subscription.SubscriptionStatus = SubscriptionStatus.Active;
+        
+        await _db.SaveChangesAsync();
     }
 
     private string GetSessionValue(string key, CallContext context = default)

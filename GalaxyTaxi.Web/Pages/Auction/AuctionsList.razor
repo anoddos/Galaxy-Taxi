@@ -61,7 +61,7 @@
                             }
                         </div>
                         <div class="auction-item-price">
-                            @if (loggedInAs == AccountType.CustomerCompany && item.CurrentWinner != null && item.ToDate.AddDays(2) <= DateTime.Today && item.Feedback == null)
+                            @if (loggedInAs == AccountType.CustomerCompany && item.ToDate > DateTime.UtcNow && item.ToDate.AddDays(2) <= DateTime.Today && item.Feedback == null)
                             {
                                 var evaluationIcon = Icons.Material.Filled.ErrorOutline;
                                 <div style="float: right">

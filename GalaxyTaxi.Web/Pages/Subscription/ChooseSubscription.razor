@@ -9,7 +9,7 @@
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Subscriptions</MudText>
     <MudGrid Class="mt-8" Style="flex-wrap: inherit; gap: 100px; background-color: #eeeded;">
         <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="25" Class="rounded-lg pb-4">
+            <MudCard Elevation="25" Class="@(sub.SubscriptionPlanType == SubscriptionPlanType.Weekly ? "selected-subscription rounded-lg pb-4" : "rounded-lg pb-4")">
                 <MudCardHeader>
                     <CardHeaderContent>
                         <MudText Typo="Typo.h5" Align="Align.Center">Venture</MudText>
@@ -33,12 +33,12 @@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
-                    <MudButton OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Weekly)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
+                    <MudButton Disabled="@(sub.Status == SubscriptionStatus.Active)" OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Weekly)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="25" Class="rounded-lg pb-4">
+            <MudCard Elevation="25" Class="@(sub.SubscriptionPlanType == SubscriptionPlanType.Monthly ? "selected-subscription rounded-lg pb-4" : "rounded-lg pb-4")">
                 <MudCardHeader>
                     <CardHeaderContent>
                         <MudText Typo="Typo.h5" Align="Align.Center">Business</MudText>
@@ -62,12 +62,12 @@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
-                    <MudButton OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Monthly)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
+                    <MudButton Disabled="@(sub.Status == SubscriptionStatus.Active)" OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Monthly)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
         <MudItem xs="12" sm="12" md="4">
-            <MudCard Elevation="25" Class="rounded-lg pb-4">
+            <MudCard Elevation="25" Class="@(sub.SubscriptionPlanType == SubscriptionPlanType.Annual ? "selected-subscription rounded-lg pb-4" : "rounded-lg pb-4")">
                 <MudCardHeader>
                     <CardHeaderContent>
                         <MudText Typo="Typo.h5" Align="Align.Center">Enterprise</MudText>
@@ -91,15 +91,30 @@
                     </MudList>
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
-                    <MudButton OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Annual)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
+                    <MudButton Disabled="@(sub.Status == SubscriptionStatus.Active)" OnClick="async () => await ChoseSubscription(SubscriptionPlanType.Annual)" Variant="Variant.Filled" Size="Size.Large" Style="background-color: royalblue; color:white;; width: 50%;">Start Now</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
     </MudGrid>
 </MudContainer>
 
+<style>
+.selected-subscription {
+        border: 2px solid royalblue; /* or any color that suits your design */
+        background-color: rgba(65, 105, 225, 0.1); /* a light shade of royalblue */
+    }
+</style>
+
 @code {
     private SubscriptionRequest model = new SubscriptionRequest();
+    private GetSubscriptionDetailResponse sub = new GetSubscriptionDetailResponse();
+
+    protected override async Task OnInitializedAsync()
+    {
+        sub = await SubscriptionService.GetActiveSubscription();
+
+        StateHasChanged();
+    }
 
     private async Task ChoseSubscription(SubscriptionPlanType type)
     {
@@ -107,7 +122,6 @@
         await SubscriptionService.ChoseSubscriptionType(model);
 
         NavigationManager.NavigateTo($"/subscription/payment/{(int)type}");
-
     }
 
 }

@@ -10,4 +10,5 @@ public interface ISubscriptionService
     Task ChoseSubscriptionType(SubscriptionRequest request, CallContext context = default);
     Task<GetSubscriptionDetailResponse> GetSubscriptionDetails(CallContext context = default);
     Task UpdateSubscriptionStatus();
+    Task<GetSubscriptionDetailResponse> GetActiveSubscription();
 }

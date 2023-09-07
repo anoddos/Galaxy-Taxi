@@ -50,8 +50,9 @@
                 </ButtonTemplate>
             </MudFileUpload>
 
-            <MudButton DisableElevation Variant="Variant.Filled" OnClick="async () => await ImportFromExcel()" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Import</MudButton>
-            <MudButton DisableElevation Variant="Variant.Outlined" OnClick="GenerateExcelFile" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Export</MudButton>
+            <MudButton DisableElevation Disabled="@(file == null)" Variant="Variant.Filled" OnClick="async () => await ImportFromExcel()" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Import</MudButton>
+            
+            <MudButton DisableElevation Disabled="@(_employees == null || _employees.Count == 0)" Variant="Variant.Filled" OnClick="GenerateExcelFile" StartIcon="@Icons.Custom.FileFormats.FileExcel" IconColor="Color.Secondary" Color="Color.Surface" Style="margin-left: 5px;">Export</MudButton>
 
             @if (file != null)
             {

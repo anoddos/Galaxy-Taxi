@@ -248,6 +248,12 @@ public class AuctionService : IAuctionService
     public async Task<GenerateAuctionsResponse> GenerateAuctionsForCompany(CallContext context = default)
     {
         var companyId = GetCompanyId();
+
+        var subscription = await _db.Subscriptions.FirstOrDefaultAsync(s => s.CustomerCompanyId == companyId && s.SubscriptionStatus == SubscriptionStatus.Active);
+        
+        if (subscription == null)
+            throw new RpcException(new Status(StatusCode.OutOfRange, "Please Buy Subscription First"));
+        
         var totalCost = 0.0;
 
         var journeys = await GenerateJourneysForCompany(companyId);

@@ -32,6 +32,11 @@
 						{
 							<OperationResult Message="@alertMessage" AlertSeverity="@alertSeverity" OnAlertClosed="HandleAlertClosed" />
 						}
+
+						<div>
+							<label class="mud-typography mud-typography--subtitle1">Office Identification</label>
+							<MudText>@OfficeFilter.OfficeIdentification</MudText>
+						</div>
 						<MudTextField Label="Office Address"
 									  Value="@OfficeFilter.Address.Name"
 															  Required
@@ -40,11 +45,6 @@
 										  ErrorText="@DetectedStatus"
 										  ValueChanged="@((string newValue) => OnFromAddressChanged(newValue))" />
 							<MudLink Href="@navigationLink">Number Of Employees : @OfficeFilter.NumberOfEmployees</MudLink>
-
-							<div>
-								<label class="mud-typography mud-typography--subtitle1">Office Identification</label>
-								<MudText>@OfficeFilter.OfficeIdentification</MudText>
-							</div>
 							<MudTimePicker Label="Working Start Time" Time="OfficeFilter.WorkingStartTime" TimeChanged="(e) => OfficeFilter.WorkingStartTime = (TimeSpan)e" />
 							<MudTimePicker Label="Working End Time" Time="OfficeFilter.WorkingEndTime" TimeChanged="(e) => OfficeFilter.WorkingEndTime = (TimeSpan)e" />
 							<MudLink Style="margin-top: 15px; float: right" Href="@navigationLink">Number Of Employees : @OfficeFilter.NumberOfEmployees</MudLink>

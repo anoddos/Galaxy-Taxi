@@ -22,7 +22,7 @@ public interface IAccountService
     Task<LoginResponse> LoginAsync(LoginRequest request, CallContext context = default);
     Task LogoutAsync(CallContext context = default);
     Task<IsLoggedInResponse> IsLoggedIn(CallContext context = default);
-    Task UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default);
+    Task<AccountSettings> UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default);
     Task<AccountSettings?> GetAccountSettings(CallContext context = default);
     Task<GetAccountTypeResponse> GetAccountType(CallContext context = default);
     Task<GetAuthenticationStateProviderUserResponse> GetAuthenticationStateProviderUserAsync(CallContext context = default);

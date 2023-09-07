@@ -1,6 +1,7 @@
 ﻿@page "/account/settings"
 @using GalaxyTaxi.Shared.Api.Models.Common
 @using System.ComponentModel.DataAnnotations;
+@using System.Globalization;
 
 <MudContainer>
     <MudCard Class="settings-card">
@@ -14,8 +15,7 @@
                 <div style="display: flex; align-items: center; width: 100%;">
                     @{
                         var textColor = accountSettings.Status == AccountStatus.Verified ? Color.Success : accountSettings.Status == AccountStatus.Pending ? Color.Warning : Color.Error;
-                        var verificationText = accountSettings.Status == AccountStatus.Verified ? "Verified" :
-                            accountSettings.Status == AccountStatus.Pending ? "Pending" : "Declined";
+                        var verificationText = AccountStatusMapping.StatusMapping[accountSettings.Status];
                         var verificationIcon = accountSettings.Status == AccountStatus.Verified ? Icons.Material.Filled.CheckCircle :
                             accountSettings.Status == AccountStatus.Pending ? Icons.Material.Filled.Warning : Icons.Material.Filled.ErrorOutline;
                     }
@@ -42,6 +42,24 @@
                         }
                     </MudList>
                 }
+            } else
+            {
+                @if (accountSettings != null && accountSettings.SubscriptionInfo != null && accountSettings?.SubscriptionInfo?.Status == SubscriptionStatus.InActive)
+                {
+                    <MudText Typo="Typo.subtitle1" Color="Color.Error">No subscription</MudText>
+                }
+                else if (accountSettings != null && accountSettings.SubscriptionInfo != null)
+                {
+                    <div style="display: flex; align-items: center; width: 100%;">
+                        <MudText Typo="Typo.subtitle1" Style="margin-right: 10px;">
+                            Subscription Type: @accountSettings.SubscriptionInfo.SubscriptionPlanType
+                        </MudText>
+                        <MudText Typo="Typo.subtitle1">
+                            Price: @accountSettings.SubscriptionInfo.Price.ToString("C2", new CultureInfo("ka-GE"))
+                        </MudText>
+                    </div>
+                }
+
             }
 
             <MudTextField Label="Email" Variant="Variant.Outlined" Type="InputType.Email" @bind-Value="accountSettings.Email"

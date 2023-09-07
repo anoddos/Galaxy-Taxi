@@ -2,6 +2,7 @@
 @using GalaxyTaxi.Shared.Api.Interfaces
 @using GalaxyTaxi.Shared.Api.Models.Common;
 @using GalaxyTaxi.Shared.Api.Models.Payment
+@using System.Globalization;
 @inject ISubscriptionService SubscriptionService
 @inject NavigationManager NavigationManager
 @inject IPaymentService PaymentClient
@@ -10,7 +11,7 @@
 
 <MudContainer Width="40%">
 	<MudPaper Elevation="1" Class="mt-4 pa-4">
-		<MudText Label="Amount (GEL)">@paymentAmount (GEL)</MudText>
+		<MudText Label="Amount (GEL)">@paymentAmount.ToString("C2", new CultureInfo("ka-GE"))</MudText>
 
 		<div id="card-element" class="my-4"></div>
 		<MudCardActions>

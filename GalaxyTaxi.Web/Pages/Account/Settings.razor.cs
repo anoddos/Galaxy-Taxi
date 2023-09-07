@@ -83,7 +83,8 @@ public partial class Settings
 	{
 		try
 		{
-			await _accountService.UpdateAccountSettings(new UpdateAccountSettingsRequest { NewPassword = newPassword, OldPassword = oldPassword, AccountInformation = accountSettings, Files = accountSettings.VendorFiles});
+			accountSettings = await _accountService.UpdateAccountSettings(new UpdateAccountSettingsRequest { NewPassword = newPassword, OldPassword = oldPassword, AccountInformation = accountSettings, Files = accountSettings.VendorFiles});
+			
 			alertMessage = "Account Settings Updated";
 			alertSeverity = Severity.Success;
 		}

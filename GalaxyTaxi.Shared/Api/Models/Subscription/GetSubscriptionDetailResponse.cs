@@ -12,4 +12,7 @@ public class GetSubscriptionDetailResponse
 
     [ProtoMember(2)]
     public decimal Price { get; set; }
+
+    [ProtoMember(3)]
+    public SubscriptionStatus Status { get; set; }
 }

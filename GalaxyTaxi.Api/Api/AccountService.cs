@@ -15,6 +15,7 @@ using GalaxyTaxi.Shared.Api.Models.VendorCompany;
 using GalaxyTaxi.Shared.Api.Models.Admin;
 using GalaxyTaxi.Shared.Api.Models.Filters;
 using GalaxyTaxi.Shared.Api.Models.Payment;
+using GalaxyTaxi.Shared.Api.Models.Subscription;
 
 namespace GalaxyTaxi.Api.Api;
 
@@ -233,7 +234,7 @@ public class AccountService : IAccountService
                 "New Password Can't be the same as the old password"));
     }
 
-    public async Task UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default)
+    public async Task<AccountSettings> UpdateAccountSettings(UpdateAccountSettingsRequest request, CallContext context = default)
     {
         var accountId = long.Parse(GetSessionValue(AuthenticationKey.AccountId) ?? "-1");
         if (accountId == -1) throw new RpcException(new Status(StatusCode.NotFound, "Not Logged In"));
@@ -277,6 +278,10 @@ public class AccountService : IAccountService
 
             account.VerificationRequestDate = DateTime.UtcNow;
             account.Status = AccountStatus.Pending;
+            if (request.AccountInformation != null)
+            {
+                request.AccountInformation.Status = AccountStatus.Pending;
+            }
 
             await _db.SaveChangesAsync();
         }
@@ -287,6 +292,7 @@ public class AccountService : IAccountService
             account.PasswordHash = SaltAndHashPassword(request.NewPassword);
             await _db.SaveChangesAsync();
         }
+        return request.AccountInformation ?? new AccountSettings();
     }
 
     private async Task UploadVendorFiles(List<VendorFileModel> files)
@@ -319,6 +325,9 @@ public class AccountService : IAccountService
         var supportTwoWayJourneys = false;
         var files = new List<VendorFileModel>();
 
+
+        var subcsription = new GetSubscriptionDetailResponse { Status = SubscriptionStatus.InActive };
+
         if (loggedInAs == AccountType.CustomerCompany)
         {
             var company = await _db.CustomerCompanies.SingleOrDefaultAsync(a => a.AccountId == accountId);
@@ -326,6 +335,15 @@ public class AccountService : IAccountService
                 throw new RpcException(new Status(StatusCode.NotFound, "Customer company does not exists"));
             maxAmountPerEmployee = company.MaxAmountPerEmployee;
             supportTwoWayJourneys = company.SupportTwoWayJourneys;
+            var subscriptionInDb = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == GetCompanyId());
+            if (subscriptionInDb != null)
+            {
+                subcsription.SubscriptionPlanType = subscriptionInDb.SubscriptionPlanTypeId;
+                subcsription.Status = subscriptionInDb.SubscriptionStatus;
+                subcsription.Price = SubscriptionMapping.AmountMapping[subscriptionInDb.SubscriptionPlanTypeId];
+            } 
+            
+            //subscriptionType = company.sub
         }
         else if (loggedInAs == AccountType.VendorCompany)
         {
@@ -348,7 +366,8 @@ public class AccountService : IAccountService
                 AccountType = loggedInAs,
                 SupportTwoWayJourneys = supportTwoWayJourneys,
                 Status = account.Status,
-                VendorFiles = files
+                VendorFiles = files,
+                SubscriptionInfo = subcsription
             }
             : null;
     }

@@ -1,6 +1,7 @@
 ﻿using ProtoBuf;
 using GalaxyTaxi.Shared.Api.Models.Common;
 using GalaxyTaxi.Shared.Api.Models.VendorCompany;
+using GalaxyTaxi.Shared.Api.Models.Subscription;
 
 namespace GalaxyTaxi.Shared.Api.Models.AccountSettings;
 
@@ -28,5 +29,8 @@ public class AccountSettings
 
     [ProtoMember(7)]
     public List<VendorFileModel> VendorFiles { get; set; } = new List<VendorFileModel>();
+
+    [ProtoMember(8)]
+    public GetSubscriptionDetailResponse SubscriptionInfo { get; set; }
 
 }

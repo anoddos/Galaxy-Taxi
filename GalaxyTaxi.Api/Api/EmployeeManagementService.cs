@@ -44,7 +44,9 @@ public class EmployeeManagementService : IEmployeeManagementService
 
         var additionalCounter = 0;
 
-        try
+		List<string> errors = new List<string>();
+
+		try
         {
             var employees = new List<Employee>();
             foreach (var employeeInfo in request.EmployeesInfo)
@@ -67,7 +69,7 @@ public class EmployeeManagementService : IEmployeeManagementService
 
                     if (!employeeExists)
                     {
-                        if (numberOfEmployees + additionalCounter >= SubscriptionMapping.Mapping[subscription.SubscriptionPlanTypeId])
+                        if (numberOfEmployees + additionalCounter >= SubscriptionMapping.AmountMapping[subscription.SubscriptionPlanTypeId])
                         {
                             throw new RpcException(new Status(StatusCode.OutOfRange, "Can not add any more employees"));
                         }
@@ -136,7 +138,7 @@ public class EmployeeManagementService : IEmployeeManagementService
                 }
                 catch (Exception ex)
                 {
-                    //implement
+                    errors.Add(ex.Message);
                 }
             }
             
@@ -146,7 +148,13 @@ public class EmployeeManagementService : IEmployeeManagementService
         {
             Console.WriteLine(ex.Message);
         }
-    }
+
+		if (errors.Any())
+		{
+			var aggregatedError = string.Join("; ", errors);
+			throw new RpcException(new Status(StatusCode.Internal, $"Multiple errors occurred: {aggregatedError}"));
+		}
+	}
 
     public async Task EditEmployeeDetails(EmployeeJourneyInfo request, CallContext context = default)
     {

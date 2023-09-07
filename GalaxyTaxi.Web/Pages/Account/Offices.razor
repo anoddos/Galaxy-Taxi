@@ -17,13 +17,15 @@
 					<div class="RightSection">
 						<div class="OfficeFilterContainer">
 							<MudSelect T="OfficeInfo" Items="@_offices" Label="Office" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter"
-									   ValueChanged="@((OfficeInfo current) => OfficeValueChanged(current))">
-								<MudSelectItem T="OfficeInfo" Value="@(null)">[Add New Office]</MudSelectItem>
+									   Value="@OfficeFilter" ValueChanged="@((OfficeInfo current) => OfficeValueChanged(current))" Text="@(OfficeFilter?.Address?.Name ?? "")">
 								@foreach (var office in _offices)
 								{
 									<MudSelectItem Value="@office">@office.Address.Name</MudSelectItem>
 								}
 							</MudSelect>
+
+							<MudButton Variant="Variant.Outlined" OnClick="AddNewOffice">Render Empty Office Form</MudButton>
+
 						</div>
 
 						@if (showAlert)
@@ -48,7 +50,7 @@
 					</div>
 				</MudCardContent>
 				<MudCardActions Style="float:right;">
-					<MudButton OnClick="SaveChanges"  >Save Office Info</MudButton>
+					<MudButton Variant="Variant.Outlined" OnClick="SaveChanges">Save Office Info</MudButton>
 				</MudCardActions>
 			</MudCard>
 		</div>

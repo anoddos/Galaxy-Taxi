@@ -34,7 +34,11 @@ public partial class Offices
     protected override async Task OnInitializedAsync()
     {
         await ReloadOffices();
-        _loaded = true;
+        if (_offices != null && _offices.Any())
+		{
+			OfficeFilter = _offices.First();
+		}
+		_loaded = true;
     }
 
     private async Task ReloadOffices()
@@ -92,7 +96,12 @@ public partial class Offices
         });
     }
 
-    private async Task SaveChanges()
+
+	private void AddNewOffice()
+	{
+		OfficeFilter = new OfficeInfo { Address = new AddressInfo(), OfficeId = -1 };
+	}
+	private async Task SaveChanges()
     {
 
 		StateHasChanged();

@@ -106,7 +106,8 @@
         model.SubscriptionPlanType = type;
         await SubscriptionService.ChoseSubscriptionType(model);
 
-        NavigationManager.NavigateTo("/subscription/payment");
+        NavigationManager.NavigateTo($"/subscription/payment/{(int)type}");
+
     }
 
 }

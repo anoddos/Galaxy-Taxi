@@ -1,4 +1,4 @@
-@page "/subscription/payment"
+@page "/subscription/payment/{SubscriptionTypeValue:int}"
 @using GalaxyTaxi.Shared.Api.Interfaces
 @using GalaxyTaxi.Shared.Api.Models.Common;
 @using GalaxyTaxi.Shared.Api.Models.Payment
@@ -10,7 +10,7 @@
 
 <MudContainer Width="40%">
 	<MudPaper Elevation="1" Class="mt-4 pa-4">
-		<MudText Label="Amount (GEL)">@paymentAmount</MudText>
+		<MudText Label="Amount (GEL)">@paymentAmount (GEL)</MudText>
 
 		<div id="card-element" class="my-4"></div>
 		<MudCardActions>
@@ -26,8 +26,9 @@
 
 @code {
 	[Parameter]
+	public int SubscriptionTypeValue { get; set; }
 
-	public SubscriptionPlanType SubsriptionType { get; set; }
+	private SubscriptionPlanType SubsriptionType { get; set; }
 
 	private long paymentAmount;
 	private bool showAlert;
@@ -44,7 +45,8 @@
 	
 	protected override Task OnInitializedAsync()
 	{
-		paymentAmount = SubscriptionMapping.Mapping[SubsriptionType];
+		SubsriptionType = (SubscriptionPlanType)SubscriptionTypeValue;
+		paymentAmount = SubscriptionMapping.AmountMapping[SubsriptionType];
 		StateHasChanged();
 		return Task.CompletedTask;
 	}

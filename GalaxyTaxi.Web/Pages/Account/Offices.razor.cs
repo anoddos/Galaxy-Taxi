@@ -60,17 +60,23 @@ public partial class Offices
 
     private async Task AddMarker()
     {
-		OfficeFilter.Address = string.IsNullOrWhiteSpace(OfficeFilter.Address.Name) ? new AddressInfo()
+		var res = string.IsNullOrWhiteSpace(OfficeFilter.Address.Name) ? new AddressInfo()
 																	: await _addressDetection.DetectAddressCoordinatesFromName(OfficeFilter.Address);
 
 
 
-        var position = OfficeFilter.Address.IsDetected ? new LatLngLiteral{ Lat = (double)OfficeFilter.Address.Latitude, Lng = (double)OfficeFilter.Address.Longitude }
+        var position = res.IsDetected ? new LatLngLiteral{ Lat = (double)res.Latitude, Lng = (double)res.Longitude }
 			                                           : new LatLngLiteral { Lat = 41.716667, Lng = 44.783333 };
 
-        if (!OfficeFilter.Address.IsDetected) {
+        if (!res.IsDetected) {
             OfficeFilter.Address.Name = "";
+            DetectedStatus = res.IsDetected ? "" : "[Not Detected]";
         }
+        else
+        {
+            DetectedStatus = "";
+            OfficeFilter.Address = res;
+		}
 
 
 		if (marker == null)
@@ -85,7 +91,7 @@ public partial class Offices
         await marker.SetPosition(position);
         StateHasChanged();
 
-        await marker.AddListener("dragend", async () =>
+        await marker.AddListener("dragend", async () => 
         {
             var position = await marker.GetPosition();
             OfficeFilter.Address.Longitude = position.Lng;

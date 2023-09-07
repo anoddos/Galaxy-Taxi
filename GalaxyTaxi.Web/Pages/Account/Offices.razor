@@ -24,7 +24,7 @@
 								}
 							</MudSelect>
 
-							<MudButton Variant="Variant.Outlined" OnClick="AddNewOffice">Render Empty Office Form</MudButton>
+							<MudButton Variant="Variant.Outlined" Disabled="@(_offices == null || _offices.Count == 0)" OnClick="AddNewOffice">Render Empty Office Form</MudButton>
 
 						</div>
 
@@ -40,9 +40,8 @@
 						<MudTextField Label="Office Address"
 									  Value="@OfficeFilter.Address.Name"
 															  Required
-										  RequiredError="From Address is required."
+										  RequiredError="@DetectedStatus"
 										  Error="@(!OfficeFilter.Address.IsDetected)"
-										  ErrorText="@DetectedStatus"
 										  ValueChanged="@((string newValue) => OnFromAddressChanged(newValue))" />
 							<MudLink Href="@navigationLink">Number Of Employees : @OfficeFilter.NumberOfEmployees</MudLink>
 							<MudTimePicker Label="Working Start Time" Time="OfficeFilter.WorkingStartTime" TimeChanged="(e) => OfficeFilter.WorkingStartTime = (TimeSpan)e" />

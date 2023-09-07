@@ -89,6 +89,8 @@ public partial class Offices
         }
 
         await marker.SetPosition(position);
+        await map1.InteropObject.SetCenter(position);
+
         StateHasChanged();
 
         await marker.AddListener("dragend", async () => 

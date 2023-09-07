@@ -108,7 +108,7 @@
 				});
 		}
 		await marker.SetPosition(position);
-
+		await map1.InteropObject.SetCenter(position);
 
 
 		await marker.AddListener("dragend", async () =>

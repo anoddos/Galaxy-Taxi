@@ -83,22 +83,31 @@
                     </div>
                     <div class="auction-item-price">
                         <div style="display: flex">
-                            @if (CurrentAuction.EndTime < DateTime.UtcNow)
+
+
+                            @if (CurrentAuction?.CurrentWinner != null)
                             {
-                                <span class="winner-label">Winner: </span>
+
+
+
+                                if (CurrentAuction.EndTime < DateTime.UtcNow)
+                                {
+                                    <span class="winner-label">Winner: </span>
+                                }
+                                else if (CurrentAuction?.CurrentWinner != null)
+                                {
+                                    <span class="winner-label">Last Bidder:</span>
+                                }
+
+                                <span class="winner-name">@CurrentAuction?.CurrentWinner?.Name </span>
                             }
-                            else
-                            {
-                                <span class="winner-label">Last Bidder:</span>
-                            }
-                            <span class="winner-name">@CurrentAuction.CurrentWinner.Name</span>
                         </div>
-                        @if (!(loggedInAs == AccountType.VendorCompany && CurrentAuction.EndTime > DateTime.UtcNow))
+                        @if (!(loggedInAs == AccountType.VendorCompany && CurrentAuction?.EndTime > DateTime.UtcNow))
                         {
                             <p style="margin-top: 22px">@currentBid GEL</p>
                         }
 
-                        <p class="bid-count">Bids: @(CurrentAuction.Bids?.Count() ?? 0)</p>
+                        <p class="bid-count">Bids: @(CurrentAuction?.Bids?.Count() ?? 0)</p>
                     </div>
                 }
             </div>
@@ -368,7 +377,9 @@
             int numOfStops = CurrentAuction.JourneyInfo?.Stops != null ? (int)CurrentAuction.JourneyInfo?.Stops.Count() : 0;
             if (CurrentAuction.JourneyInfo?.Office?.Address != null)
             {
-                await createMarker(CurrentAuction.JourneyInfo.Office.Address, numOfStops + 1 + "");
+                var mark = await createMarker(CurrentAuction.JourneyInfo.Office.Address, numOfStops + 1 + "");
+                var pos = await mark.GetPosition();
+                await map1.InteropObject.SetCenter(pos);
             }
 
             if (CurrentAuction.JourneyInfo?.Stops != null)

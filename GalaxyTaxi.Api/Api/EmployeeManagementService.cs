@@ -28,10 +28,10 @@ public class EmployeeManagementService : IEmployeeManagementService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task AddEmployees(AddEmployeesRequest request, CallContext context = default)
+    public async Task<AddEmployeeResponse> AddEmployees(AddEmployeesRequest request, CallContext context = default)
     {
         if (request == null) throw new ArgumentNullException(nameof(request));
-        if (request.EmployeesInfo == null || request.EmployeesInfo.Count == 0) return;
+        if (request.EmployeesInfo == null || request.EmployeesInfo.Count == 0) return new AddEmployeeResponse { SuccessfulCount = 0, FailedCount = 0 };
 
         var customerCompanyId = long.Parse(GetSessionValue(AuthenticationKey.CompanyId) ?? "-1");
         var subscription = await _db.Subscriptions.FirstOrDefaultAsync(s =>
@@ -44,7 +44,7 @@ public class EmployeeManagementService : IEmployeeManagementService
 
         var additionalCounter = 0;
 
-		List<string> errors = new List<string>();
+        int failedCounter = 0;
 
 		try
         {
@@ -138,7 +138,7 @@ public class EmployeeManagementService : IEmployeeManagementService
                 }
                 catch (Exception ex)
                 {
-                    errors.Add(ex.Message);
+                    failedCounter++;
                 }
             }
             
@@ -149,11 +149,7 @@ public class EmployeeManagementService : IEmployeeManagementService
             Console.WriteLine(ex.Message);
         }
 
-		if (errors.Any())
-		{
-			var aggregatedError = string.Join("; ", errors);
-			throw new RpcException(new Status(StatusCode.Internal, $"Multiple errors occurred: {aggregatedError}"));
-		}
+        return new AddEmployeeResponse { SuccessfulCount = request.EmployeesInfo.Count() - failedCounter, FailedCount = failedCounter };
 	}
 
     public async Task EditEmployeeDetails(EmployeeJourneyInfo request, CallContext context = default)

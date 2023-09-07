@@ -34,8 +34,10 @@ public partial class EmployeesInfo
 
 	private EmployeeJourneyInfo selectedEmployeeForEdit;
 
+	private bool _isGeneratingAuctions = false;
+
 	private EmployeeManagementFilter _employeeFilter = new()
-	{ 
+	{
 		EmployeeName = string.Empty,
 		JourneyStatus = EmployeeJourneyStatus.All,
 		SelectedOffice = null
@@ -44,15 +46,15 @@ public partial class EmployeesInfo
 	private bool showAlert = false;
 	private string alertMessage = "";
 	private Severity alertSeverity;
-	
-	
+
+
 
 	// custom sort by name length
 	protected override async Task OnInitializedAsync()
 	{
 		await ReloadEmployees();
 		var officeResponse = await _officeManagement.GetOffices(new OfficeManagementFilter());
-		
+
 		if (officeResponse != null && officeResponse.Offices != null)
 		{
 			_offices = officeResponse.Offices;
@@ -131,7 +133,7 @@ public partial class EmployeesInfo
 			{
 				worksheet.Cells[i + 2, 1].Value = _employees[i].FirstName;
 				worksheet.Cells[i + 2, 2].Value = _employees[i].LastName;
-				worksheet.Cells[i + 2, 3].Value =  _employees[i].Mobile;
+				worksheet.Cells[i + 2, 3].Value = _employees[i].Mobile;
 				worksheet.Cells[i + 2, 4].Value = _employees[i].To?.OfficeId;
 				worksheet.Cells[i + 2, 5].Value = _employees[i].From?.Name;
 			}
@@ -151,6 +153,8 @@ public partial class EmployeesInfo
 
 		try
 		{
+			int failedRows = 0;
+			int successRows = 0;
 			using (var stream = file.OpenReadStream())
 			{
 				using (var package = new ExcelPackage())
@@ -199,52 +203,69 @@ public partial class EmployeesInfo
 					{
 						EmployeesInfo = importedData
 					};
-					await _employeeManagement.AddEmployees(request);
+					var response = await _employeeManagement.AddEmployees(request);
+					if (response != null)
+					{
+						failedRows = response.FailedCount;
+						successRows = response.SuccessfulCount;
+					}
 
-					_isImporting = false; 
+					_isImporting = false;
 					await ReloadEmployees();
 				}
 			}
-			alertMessage = "Employees Uploaded";
-			alertSeverity = Severity.Success;
+			alertMessage = $"Successfull: {successRows}; Failed: {failedRows}";
+			alertSeverity = failedRows == 0 ? Severity.Success : successRows == 0 ? Severity.Error : Severity.Warning;
 		}
 		catch (RpcException ex)
 		{
 			alertMessage = ex.Status.Detail;
 			alertSeverity = Severity.Error;
-			_isImporting = false; 
+			_isImporting = false;
 			StateHasChanged();
 		}
 		showAlert = true;
 		StateHasChanged();
 	}
 
+
 	private async Task GenerateAuctions()
 	{
-		var undetectedAddressesCount = _employees.Count(e => !e.From.IsDetected);
-
-		if (undetectedAddressesCount > 0)
+		_isGeneratingAuctions = true;
+		StateHasChanged();
+		try
 		{
-			var continueWithAuction = await ShowWarningDialog(undetectedAddressesCount);
+			var undetectedAddressesCount = _employees.Count(e => !e.From.IsDetected);
 
-			if (!continueWithAuction)
-				return;  
+			if (undetectedAddressesCount > 0)
+			{
+				var continueWithAuction = await ShowWarningDialog(undetectedAddressesCount);
+
+				if (!continueWithAuction)
+					return;
+			}
+
+			var response = await AuctionService.GenerateAuctionsForCompany();
+			generatedAuctionCount = response.GeneratedAuctionCount;
+			totalCost = response.GeneratedAuctionTotalCost;
+
+			var parameters = new DialogParameters
+			{
+				["AuctionCount"] = generatedAuctionCount,
+				["UserCount"] = response.AffectedUsersCount,
+				["TotalCost"] = totalCost
+			};
+			var dialogReference = DialogService.Show<InfoModal>("Auction Information", parameters);
+			await dialogReference.Result;
 		}
-
-		var response = await AuctionService.GenerateAuctionsForCompany();
-		generatedAuctionCount = response.GeneratedAuctionCount;
-		totalCost = response.GeneratedAuctionTotalCost;
-		
-		var parameters = new DialogParameters 
+		finally
 		{
-			["AuctionCount"] = generatedAuctionCount,
-			["UserCount"] = response.AffectedUsersCount,
-			["TotalCost"] = totalCost
-		};
-		var dialogReference = DialogService.Show<InfoModal>("Auction Information", parameters);
-		await dialogReference.Result; 
+			_isGeneratingAuctions = false;
+			StateHasChanged();
+		}
 	}
-	
+
+
 	private async Task<bool> ShowWarningDialog(int undetectedCount)
 	{
 		bool continueWithAuction = false;

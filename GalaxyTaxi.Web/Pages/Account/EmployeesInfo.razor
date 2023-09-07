@@ -23,7 +23,10 @@
             <MudRadio Option="EmployeeJourneyStatus.NoActiveJourney" Color="Color.Primary" Size="Size.Small">No Active Journeys</MudRadio>
         </MudRadioGroup>
 
-
+        @if (_isGeneratingAuctions)
+        {
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+        }
         <MudButton OnClick="GenerateAuctions" Variant="Variant.Filled"Color="Color.Primary">Generate Auctions</MudButton>
     </div>
 

@@ -36,8 +36,6 @@
 				{
 					<div class="info-section">
 						<label>Company Name: @CurrentAuction.JourneyInfo.CustomerCompany.Name</label>
-						<label>Start Time: @CurrentAuction.StartTime</label>
-						<label>End Time: @CurrentAuction.EndTime</label>
 					</div>
 
 					<div class="auction-item-details">
@@ -72,155 +70,168 @@
 						{
 							<MudNumericField Variant="Variant.Text" Max="@CurrentAuction.Amount" Culture="@_en" HelperText="@lastBid.ToString()" @bind-Value="@currentBid" Label="GEL" />
 
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Bid" Style="margin-top: 20px; float: right;">Bid</MudButton>
-                        }
-                        else
-                        {
-                            <div class="auction-item-price">
-                                @if (CurrentAuction.ToDate > DateTime.UtcNow)
-                                {
-                                    <span class="winner-label">Winner:</span>
-                                    <span class="winner-name">@CurrentAuction.CurrentWinner.Name</span>
-                                }
-                                <p style="margin-top: 22px">@currentBid GEL</p>
-                                <p class="bid-count">Bids: @(CurrentAuction.Bids?.Count() ?? 0)</p>
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-    </MudCardContent>
-    
-    @if ((loggedInAs == AccountType.Admin || loggedInAs == AccountType.CustomerCompany) && CurrentAuction.ToDate < DateTime.UtcNow)
-    {
-        <MudCard>
-            <MudCardContent Style="padding-left: 20px; padding-right: 20px">
-                <div class="evaluation-section">
-                    <MudRadioGroup  ReadOnly="@(loggedInAs == AccountType.Admin || CurrentAuction.Feedback != null)" T="Feedback" SelectedOption="@selectedEvaluation" SelectedOptionChanged="UpdateEvaluation" >
-                        <MudRadio Color="Color.Primary" Option="Feedback.NoServiceProvided">Service Not Provided</MudRadio>
-                        <MudRadio Color="Color.Primary" Option="Feedback.NotSatisfied">Not Satisfied</MudRadio>
-                        <MudRadio Color="Color.Primary" Option="Feedback.Satisfied">Satisfied</MudRadio>
-                    </MudRadioGroup>
-                
-                    <MudTextField @bind-Value="CurrentAuction.Comment" Label="Comment" Variant="Variant.Filled" ReadOnly="@(loggedInAs == AccountType.Admin || CurrentAuction.Feedback != null)" FullWidth></MudTextField>
-                    
-                     @if (loggedInAs == AccountType.CustomerCompany && CurrentAuction.Feedback == null)
-                     {
-                         <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendEvaluation" Style="margin-top: 20px;">Send Evaluation</MudButton>
-                     }
-                </div>
-            </MudCardContent>
-        </MudCard>
-    }
+							<div class="countdown-timer">
+								Time left: @timeLeft
+							</div>
+
+							<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Bid" Style="margin-top: 20px; float: right;">Bid</MudButton>
+						}
+						else
+						{
+							<div class="auction-item-price">
+								@if (CurrentAuction.ToDate > DateTime.UtcNow)
+								{
+									<span class="winner-label">Winner:</span>
+									<span class="winner-name">@CurrentAuction.CurrentWinner.Name</span>
+								}
+								<p style="margin-top: 22px">@currentBid GEL</p>
+								<p class="bid-count">Bids: @(CurrentAuction.Bids?.Count() ?? 0)</p>
+							</div>
+						}
+					</div>
+				}
+			</div>
+		</div>
+	</MudCardContent>
+
+	@if ((loggedInAs == AccountType.Admin || loggedInAs == AccountType.CustomerCompany) && CurrentAuction.ToDate < DateTime.UtcNow)
+	{
+		<MudCard>
+			<MudCardContent Style="padding-left: 20px; padding-right: 20px">
+				<div class="evaluation-section">
+					<MudRadioGroup ReadOnly="@(loggedInAs == AccountType.Admin || CurrentAuction.Feedback != null)" T="Feedback" SelectedOption="@selectedEvaluation" SelectedOptionChanged="UpdateEvaluation">
+						<MudRadio Color="Color.Primary" Option="Feedback.NoServiceProvided">Service Not Provided</MudRadio>
+						<MudRadio Color="Color.Primary" Option="Feedback.NotSatisfied">Not Satisfied</MudRadio>
+						<MudRadio Color="Color.Primary" Option="Feedback.Satisfied">Satisfied</MudRadio>
+					</MudRadioGroup>
+
+					<MudTextField @bind-Value="CurrentAuction.Comment" Label="Comment" Variant="Variant.Filled" ReadOnly="@(loggedInAs == AccountType.Admin || CurrentAuction.Feedback != null)" FullWidth></MudTextField>
+
+						@if (loggedInAs == AccountType.CustomerCompany && CurrentAuction.Feedback == null)
+					{
+						<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendEvaluation" Style="margin-top: 20px;">Send Evaluation</MudButton>
+					}
+				</div>
+			</MudCardContent>
+		</MudCard>
+	}
 </MudCard>
 
 <style>
-    .evaluation-section {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .flex-container {
-        display: flex;
-        flex-direction: row;
-        gap: 20px;
-    }
-    
-    .map-container {
-        flex: 1;
-        max-width: 50%;
-    }
-    
-    .info-container {
-        flex: 1;
-        max-width: 50%;
-    }
-    
-    .info-section {
-        background-color: #f6f8fa;
-        padding: 10px 15px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-    
-    .info-section label {
-        display: block;
-        margin-bottom: 5px;
-    }
+	.countdown-timer {
+		font-weight: bold;
+		margin-top: 10px;
+	}
+	.evaluation-section {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
 
-		.locations-list-container {
-			max-height: calc(100vh - 100px);
-			overflow-y: auto;
+	.flex-container {
+		display: flex;
+		flex-direction: row;
+		gap: 20px;
+	}
+
+	.map-container {
+		flex: 1;
+		max-width: 50%;
+	}
+
+	.info-container {
+		flex: 1;
+		max-width: 50%;
+	}
+
+	.info-section {
+		background-color: #f6f8fa;
+		padding: 10px 15px;
+		border-radius: 5px;
+		margin-bottom: 10px;
+	}
+
+		.info-section label {
+			display: block;
+			margin-bottom: 5px;
 		}
 
-		.locations-list {
-			padding: 0px;
-			display: flex;
-			flex-direction: column;
-			gap: 10px;
-		}
+	.locations-list-container {
+		max-height: calc(100vh - 100px);
+		overflow-y: auto;
+	}
 
-		.location-item {
-			display: flex;
-			align-items: center;
-			font-size: 1.1em;
-		}
+	.locations-list {
+		padding: 0px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
 
-		.location-pin::before {
-			content: "\1F4CC";
-			color: royalblue;
-			font-size: 1.5em;
-			margin-right: 5px;
-		}
+	.location-item {
+		display: flex;
+		align-items: center;
+		font-size: 1.1em;
+	}
 
-		.destination-location {
-			font-weight: bold;
-			margin-top: 10px;
-			display: flex;
-			align-items: center;
-		}
+	.location-pin::before {
+		content: "\1F4CC";
+		color: royalblue;
+		font-size: 1.5em;
+		margin-right: 5px;
+	}
 
-		.auction-item-details {
-			flex: 2;
-			padding: 0 20px;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			color: #333;
-			margin-right: 20px;
-		}
+	.destination-location {
+		font-weight: bold;
+		margin-top: 10px;
+		display: flex;
+		align-items: center;
+	}
+
+	.auction-item-details {
+		flex: 2;
+		padding: 0 20px;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		color: #333;
+		margin-right: 20px;
+	}
 
 
-		.auction-item-price {
-			flex: 1;
-			display: flex;
-			flex-direction: column;
-			align-items: flex-end;
-			padding-right: 20px;
-		}
+	.auction-item-price {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		padding-right: 20px;
+	}
 
-		.price {
-			font-size: 18px;
-			color: royalblue;
-		}
+	.price {
+		font-size: 18px;
+		color: royalblue;
+	}
 
-		.bid-count {
-			color: #777;
-		}
+	.bid-count {
+		color: #777;
+	}
 
-		.winner-name {
-			font-size: 18px;
-			color: royalblue;
-		}
+	.winner-name {
+		font-size: 18px;
+		color: royalblue;
+	}
 
-	</style>
+</style>
 
 
 @code {
 	[Parameter]
 	public long Id { get; set; }
+
+	public string timeLeft { get; set; } = "";
+	public double percentageTimeLeft { get; set; } = 100;
+	private DateTime endTime;
+	private Timer timer;
 
 	public AuctionInfo CurrentAuction { get; set; }
 	private GoogleMap map1;
@@ -243,19 +254,19 @@
 
 	private string comment { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        loggedInAs = (await AccountService.GetAccountType()).AccountType;
-        selectedEvaluation = Feedback.Satisfied;
-	    
-        var response = await AuctionService.GetSingleAuction(new IdFilter { Id = Id });
+	protected override async Task OnInitializedAsync()
+	{
+		loggedInAs = (await AccountService.GetAccountType()).AccountType;
+		selectedEvaluation = Feedback.Satisfied;
 
-        if (response != null)
-        {
-            CurrentAuction = response.Auction;
-            
-            if (response.Auction?.Feedback != null)
-                selectedEvaluation = (Feedback)response.Auction.Feedback;
+		var response = await AuctionService.GetSingleAuction(new IdFilter { Id = Id });
+
+		if (response != null)
+		{
+			CurrentAuction = response.Auction;
+
+			if (response.Auction?.Feedback != null)
+				selectedEvaluation = (Feedback)response.Auction.Feedback;
 
 			if (CurrentAuction != null)
 			{
@@ -263,23 +274,51 @@
 				lastBid = CurrentAuction.Amount;
 
 				mapOptions = new MapOptions()
-				{
-				    Zoom = 13,
-				    Center = new LatLngLiteral()
-				    {
-				        Lat = (double)CurrentAuction.JourneyInfo.Office.Address.Latitude,
-				        Lng = (double)CurrentAuction.JourneyInfo.Office.Address.Longitude
-				    },
-				    MapTypeId = MapTypeId.Roadmap
-				};
+					{
+						Zoom = 13,
+						Center = new LatLngLiteral()
+						{
+							Lat = (double)CurrentAuction.JourneyInfo.Office.Address.Latitude,
+							Lng = (double)CurrentAuction.JourneyInfo.Office.Address.Longitude
+						},
+						MapTypeId = MapTypeId.Roadmap
+					};
 				if (CurrentAuction.JourneyInfo?.Stops != null)
 				{
 					CurrentAuction.JourneyInfo.Stops = CurrentAuction.JourneyInfo?.Stops.OrderBy(s => s.StopOrder).ToList();
 				}
 
+				endTime = CurrentAuction.EndTime;
+				timer = new Timer(UpdateCountdown, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+
 			}
 		}
 	}
+
+	private void UpdateCountdown(object state)
+	{
+		var remainingTime = endTime - DateTime.Now;
+		timeLeft = $"{remainingTime.Hours}h {remainingTime.Minutes}m {remainingTime.Seconds}s";
+
+		var totalAuctionTime = CurrentAuction.EndTime - CurrentAuction.StartTime;
+		percentageTimeLeft = (remainingTime.TotalSeconds / totalAuctionTime.TotalSeconds) * 100;
+
+		if (remainingTime.TotalSeconds <= 0)
+		{
+			timer.Dispose();
+			timeLeft = "Auction ended!";
+			percentageTimeLeft = 0;
+		}
+
+		StateHasChanged(); // To request a UI update
+	}
+
+	public void Dispose()
+	{
+		timer?.Dispose();
+	}
+
+
 
 	private async Task Bid()
 	{
@@ -290,7 +329,7 @@
 			alertSeverity = Severity.Success;
 
 			CurrentAuction.Amount = currentBid;
-			
+
 			StateHasChanged();
 		}
 		catch (RpcException ex)
@@ -395,22 +434,22 @@
 		return marker;
 	}
 
-    private async Task SendEvaluation()
-    {
-        await AuctionService.SaveEvaluation(new SaveEvaluationRequest
-        {
-            Id = CurrentAuction.Id,
-            Comment = CurrentAuction.Comment!,
-            Evaluation = selectedEvaluation
-        });
-        
-        CurrentAuction.Feedback = selectedEvaluation;
-        
-        alertMessage = "Your evaluation was submitted successfully.";
-        alertSeverity = Severity.Success;
-        showAlert = true;
-        StateHasChanged();
-    }
+	private async Task SendEvaluation()
+	{
+		await AuctionService.SaveEvaluation(new SaveEvaluationRequest
+			{
+				Id = CurrentAuction.Id,
+				Comment = CurrentAuction.Comment!,
+				Evaluation = selectedEvaluation
+			});
+
+		CurrentAuction.Feedback = selectedEvaluation;
+
+		alertMessage = "Your evaluation was submitted successfully.";
+		alertSeverity = Severity.Success;
+		showAlert = true;
+		StateHasChanged();
+	}
 
 	private void UpdateEvaluation(Feedback arg)
 	{

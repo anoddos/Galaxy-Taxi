@@ -3,9 +3,12 @@
 @using GalaxyTaxi.Shared.Api.Interfaces
 @attribute [Authorize]
 @inject IAccountService AccountService
+@inject NavigationManager NavigationManager
 
-<div class="p-4">
-    <div class="container">
-        <p>Information About Galaxy Taxi !!</p>
-    </div>
-</div>
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        NavigationManager.NavigateTo("/account/login");
+    }
+}

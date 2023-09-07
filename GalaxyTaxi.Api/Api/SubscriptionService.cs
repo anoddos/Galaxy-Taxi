@@ -97,6 +97,25 @@ public class SubscriptionService : ISubscriptionService
         await _db.SaveChangesAsync();
     }
 
+    public async Task<GetSubscriptionDetailResponse> GetActiveSubscription()
+    {
+        var subscription = await _db.Subscriptions.SingleOrDefaultAsync(x => x.CustomerCompanyId == GetCompanyId());
+
+        if (subscription == null)
+        {
+            return new GetSubscriptionDetailResponse
+            {
+                Status = SubscriptionStatus.InActive,
+            };
+        }
+        
+        return new GetSubscriptionDetailResponse
+        {
+            Status = subscription.SubscriptionStatus,
+            SubscriptionPlanType = subscription.SubscriptionPlanTypeId
+        };
+    }
+
     private string GetSessionValue(string key, CallContext context = default)
     {
         var httpContext = _httpContextAccessor.HttpContext;

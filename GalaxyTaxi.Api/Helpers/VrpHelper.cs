@@ -1,4 +1,5 @@
 ﻿using System.Web;
+using System.Collections.Generic;
 using GalaxyTaxi.Api.Api.Models;
 using GalaxyTaxi.Api.Database.Models;
 using Google.OrTools.ConstraintSolver;
@@ -13,12 +14,39 @@ public static class VrpHelper
     {
         var addresses = new List<string> { $"{officeAddress.Latitude},{officeAddress.Longitude}" };
         addresses.AddRange(employeeAddresses.Select(a => $"{a.Latitude},{a.Longitude}"));
-        var addressQuery =  string.Join("|",addresses);
+        var graph = new long[addresses.Count, addresses.Count];
+        for (var i = 0; i < addresses.Count; i++)
+        {
+            for (var j = 0; j < addresses.Count; j++)
+            {
+                graph[i, j] = long.MaxValue;
+            }
+        }
+
+        for (int chunkO = 0; chunkO < Math.Ceiling((double)addresses.Count/10); chunkO++)
+        {
+            var originStart = chunkO * 10;
+            var origins = addresses.GetRange(originStart, Math.Min(10, addresses.Count-originStart));
+            for (int chunkD = 0; chunkD < Math.Ceiling((double)addresses.Count / 10); chunkD++)
+            {
+                var destinationStart = chunkD * 10;
+                var destinations = addresses.GetRange(destinationStart, Math.Min(10, addresses.Count-destinationStart));
+                graph = await GenerateTimeMatrixByChunks(origins, destinations, apiKey, graph, originStart, destinationStart);
+            }
+        }
+        
+        return graph;
+    }
+
+    private static async Task<long[,]> GenerateTimeMatrixByChunks(IEnumerable<string> origins, IEnumerable<string> destinations, string apiKey, long[,] graph, int offsetOrigin,int offsetDestination)
+    {
+        var originsQuery =  string.Join("|",origins);
+        var destinationsQuery =  string.Join("|",destinations);
         
         var builder = new UriBuilder("https://maps.googleapis.com/maps/api/distancematrix/json");
         var query = HttpUtility.ParseQueryString(builder.Query);
-        query["destinations"] = addressQuery;
-        query["origins"] = addressQuery;
+        query["destinations"] = originsQuery;
+        query["origins"] = destinationsQuery;
         query["units"] = "metric";
         query["key"] = apiKey;
         builder.Query = query.ToString();
@@ -29,21 +57,23 @@ public static class VrpHelper
         using var response = await client.GetAsync(builder.ToString());
         response.EnsureSuccessStatusCode();
         var distanceMatrix = await response.Content.ReadFromJsonAsync<MapsDistanceMatrixResponse>();
+        
         if (distanceMatrix == null)
         {
-            return new long[0,0];
+            return graph;
         }
         
-        var graph = new long[distanceMatrix.rows!.Count, distanceMatrix.rows.Count];
+        
         for (var i = 0; i < distanceMatrix.rows.Count; i++)
         {
             for (var j = 0; j < distanceMatrix.rows.Count; j++)
             {
-                graph[i, j] = distanceMatrix.rows[i].elements![j].duration!.value;
+                graph[offsetOrigin + i, offsetDestination + j] = distanceMatrix.rows[i].elements![j].duration!.value;
             }
         }
+
         return graph;
-    }
+    } 
 
     public static async Task<IEnumerable<Journey>> GenerateJourneysForEmployeesOfficeToHome(long companyId, Office office, List<Employee> companyEmployeesWithoutJourneys, long[,] timeMatrix)
     {

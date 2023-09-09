@@ -153,6 +153,8 @@ public class AddressDetectionService : IAddressDetectionService
 
 					detectAddress.Latitude = latitude;
 					detectAddress.Longitude = longitude;
+
+					detectAddress.IsDetected = true;
 				}
 			}
 		}

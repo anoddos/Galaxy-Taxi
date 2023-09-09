@@ -408,8 +408,7 @@ public class AccountService : IAccountService
     }
 
 
-    public async Task<GetVendorFilesResponse> GetVendorFiles(GetVendorFilesRequest request,
-        CallContext context = default)
+    public async Task<GetVendorFilesResponse> GetVendorFiles(GetVendorFilesRequest request, CallContext context = default)
     {
         Enum.TryParse(GetSessionValue(AuthenticationKey.LoggedInAs), out AccountType loggedInAs);
 
@@ -446,6 +445,7 @@ public class AccountService : IAccountService
         {
             Vendors = await vendors.Select(x => new VendorInfo
             {
+                VendorId = x.Id,
                 Name = x.Name,
                 Status = x.Account.Status,
                 VerificationRequestDate = x.Account.VerificationRequestDate,

@@ -55,6 +55,10 @@ public partial class ProblematicAuctions
         {
             _auctions = response;
         }
+        else
+        {
+            _auctions = new List<AuctionInfo>();
+        }
         StateHasChanged();
     }
 }

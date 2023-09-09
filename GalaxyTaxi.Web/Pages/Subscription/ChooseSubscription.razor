@@ -9,7 +9,7 @@
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Subscriptions</MudText>
     <MudGrid Class="mt-8" Style="flex-wrap: inherit; gap: 100px; background-color: #eeeded;">
         <MudItem xs="12" sm="6" md="4">
-            <MudCard Elevation="25" Class="@(sub.SubscriptionPlanType == SubscriptionPlanType.Weekly ? "selected-subscription rounded-lg pb-4" : "rounded-lg pb-4")">
+            <MudCard Elevation="25" Class="@(sub.Status != SubscriptionStatus.InActive && sub.SubscriptionPlanType == SubscriptionPlanType.Weekly ? "selected-subscription rounded-lg pb-4" : "rounded-lg pb-4")">
                 <MudCardHeader>
                     <CardHeaderContent>
                         <MudText Typo="Typo.h5" Align="Align.Center">Venture</MudText>

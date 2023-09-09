@@ -31,9 +31,8 @@
             <MudList>
                 @foreach (var file in files)
                 {
-                    <MudListItem Icon="@Icons.Material.Filled.AttachFile">
-                        @file.Name
-                    </MudListItem>
+                    <MudLink Href="@file.Path" Target="_blank">@file.Name</MudLink>
+                    <br/>
                 }
             </MudList>
         }

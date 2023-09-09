@@ -114,7 +114,7 @@
         </div>
     </MudCardContent>
 
-    @if ((loggedInAs == AccountType.Admin || loggedInAs == AccountType.CustomerCompany) && CurrentAuction.ToDate < DateTime.UtcNow)
+    @if ((loggedInAs == AccountType.Admin || loggedInAs == AccountType.CustomerCompany) && CurrentAuction.EndTime < DateTime.UtcNow)
     {
         <MudCard>
             <MudCardContent Style="padding-left: 20px; padding-right: 20px">
